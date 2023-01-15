@@ -24,7 +24,7 @@ pub fn init() {
 
             let mut location_line_style = buf.style();
             location_line_style.set_dimmed(true);
-
+            
             writeln!(
                 buf,
                 "{} {:<50}\t{}{}{}",
@@ -36,7 +36,7 @@ pub fn init() {
                     Level::Trace => "[t]",
                 }),
                 format!("{}", record.args()),
-                location_style.value(record.module_path().unwrap_or("<unknown>")),
+                location_style.value(record.target()),
                 location_line_style.value(" :"),
                 location_line_style.value(record.line().unwrap_or(0))
             )
