@@ -2,6 +2,8 @@ use std::{fs, io};
 use glium::texture::{RawImage2d, SrgbTexture2d};
 
 fn load_png(file_path: &str, display: &glium::Display) -> SrgbTexture2d {
+    log::info!("loading texture {}", file_path);
+
     //Load file
     let data = fs::read(file_path)
         .expect(&format!("Failed to load texture: {}", file_path));

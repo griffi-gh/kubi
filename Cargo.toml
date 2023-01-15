@@ -7,3 +7,5 @@ edition = "2021"
 glium = "0.32"
 glutin = "*"
 image = { version = "0.24", default_features = false, features = ["png"] }
+log = "0.4"
+env_logger = "0.10"
