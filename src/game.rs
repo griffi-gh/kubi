@@ -1,6 +1,6 @@
 use glium::{Surface, uniform};
 use glium::glutin::{
-  event::{Event, WindowEvent, DeviceEvent, VirtualKeyCode},
+  event::{Event, WindowEvent, DeviceEvent, KeyboardInput, VirtualKeyCode},
   event_loop::{EventLoop, ControlFlow},
 };
 use std::time::Instant;
@@ -41,6 +41,8 @@ pub fn run() {
   let assets = Assets::load_all_sync(&display);
   log::info!("init game state");
   let mut state = State::init();
+  state.camera.position = [0., 0., 1.];
+  state.camera.direction = [0., 0., -1.];
   log::info!("game loaded");
 
   //=======================
@@ -58,8 +60,7 @@ pub fn run() {
     match event {
       Event::MainEventsCleared => (),
       Event::DeviceEvent {
-        event: DeviceEvent::MouseMotion{ delta, },
-        ..
+        event: DeviceEvent::MouseMotion{ delta, }, ..
       } => {
         state.controls.process_mouse_input(delta.0, delta.1);
       }
@@ -69,6 +70,14 @@ pub fn run() {
             log::info!("exit requested");
             *control_flow = ControlFlow::Exit;
             return
+          },
+          WindowEvent::KeyboardInput {
+            input: KeyboardInput {
+              virtual_keycode: Some(key),
+              state: el_state, ..
+            }, ..
+          } => {
+            state.controls.process_keyboard_input(key, el_state);
           },
           _ => return
         }
@@ -81,6 +90,7 @@ pub fn run() {
     last_render = now;
 
     let actions = state.controls.calculate(dt);
+    log::trace!("{}", actions.rotation[0]);
     actions.apply_to_camera(&mut state.camera);
 
     let mut target = display.draw();

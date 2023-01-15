@@ -11,18 +11,18 @@ pub struct InputAmounts {
 }
 
 pub struct Actions {
-  movement: [f32; 3],
-  rotation: [f32; 2],
+  pub movement: [f32; 3],
+  pub rotation: [f32; 2],
 }
 impl Actions {
   pub fn apply_to_camera(&self, camera: &mut Camera) {
     //Apply movement
     for v in camera.position.iter_mut().zip(self.movement) {
-      *v.0 += v.1;
+      *v.0 -= v.1;
     }
     //Apply rotation
-    camera.yaw += self.rotation[0];
-    camera.pitch += self.rotation[1];
+    camera.yaw -= self.rotation[0];
+    camera.pitch -= self.rotation[1];
     camera.update_direction();
   }
 }
@@ -62,13 +62,17 @@ impl Controls {
     }
   }
   pub fn calculate(&mut self, dt: f32) -> Actions {
-    let mut movement = {
+    let movement = {
       let magnitude = (self.inputs.move_x.powi(2) + self.inputs.move_y.powi(2) + self.inputs.move_z.powi(2)).sqrt();
-      [
-        dt * self.speed * (self.inputs.move_x / magnitude), 
-        dt * self.speed * (self.inputs.move_y / magnitude), 
-        dt * self.speed * (self.inputs.move_z / magnitude)
-      ]
+      if magnitude == 0. {
+        [0., 0., 0.]
+      } else {
+        [
+          dt * self.speed * (self.inputs.move_x / magnitude), 
+          dt * self.speed * (self.inputs.move_y / magnitude), 
+          dt * self.speed * (self.inputs.move_z / magnitude)
+        ]
+      }
     };
     let rotation = [
       dt * self.inputs.look_h * self.sensitivity,
@@ -82,8 +86,8 @@ impl Default for Controls {
   fn default() -> Self {
     Self {
       inputs: Default::default(),
-      speed: 1.,
-      sensitivity: 1.,
+      speed: 10.,
+      sensitivity: 2.,
     }
   }
 }
