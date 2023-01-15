@@ -63,7 +63,12 @@ pub fn run() {
       glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
       &programs.chunk, 
       &uniform! { 
-        model: [[0.0f32; 4]; 4],
+        model: [
+          [1., 0., 0., 0.],
+          [0., 1., 0., 0.],
+          [0., 0., 1., 0.],
+          [0., 0., 0., 1.0f32]
+        ],
         view: view,
         perspective: perspective,
         tex: &assets.textures.block_atlas
