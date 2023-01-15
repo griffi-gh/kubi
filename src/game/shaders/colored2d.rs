@@ -1,4 +1,4 @@
-use glium::{Display, Program, implement_vertex};
+use glium::implement_vertex;
 
 #[derive(Clone, Copy)]
 pub struct Vertex {

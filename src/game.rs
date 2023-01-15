@@ -24,9 +24,11 @@ pub fn run() {
     log::info!("loading assets");
     let assets = Assets::load_all_sync(&display);
     log::info!("init camera");
-    let mut camera = Camera::default();
-    camera.position = [0., 0., -1.];
-    camera.direction = [0., 0., 1.];
+    let camera = Camera {
+        position: [0., 0., -1.],
+        direction: [0., 0., 1.],
+        ..Default::default()
+    };
     log::info!("game loaded");
 
     //=======================
@@ -37,7 +39,9 @@ pub fn run() {
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     //=======================
 
+    
     event_loop.run(move |ev, _, control_flow| {
+        #[allow(clippy::single_match, clippy::collapsible_match)]
         match ev {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => {
@@ -56,7 +60,7 @@ pub fn run() {
         target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
         target.draw(
             &vertex_buffer,
-            &glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
+            glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
             &programs.chunk, 
             &uniform! { 
                 model: [[0.0f32; 4]; 4],

@@ -6,7 +6,7 @@ fn load_png(file_path: &str, display: &glium::Display) -> SrgbTexture2d {
 
     //Load file
     let data = fs::read(file_path)
-        .expect(&format!("Failed to load texture: {}", file_path));
+        .unwrap_or_else(|_| panic!("Failed to load texture: {}", file_path));
     
     //decode image data
     let image_data = image::load(

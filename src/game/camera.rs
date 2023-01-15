@@ -14,10 +14,6 @@ pub struct Camera {
     pub zfar: f32,
 }
 impl Camera {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     pub fn view_matrix(&self) -> [[f32; 4]; 4] {
         let position = self.position;
         let direction = self.direction;
