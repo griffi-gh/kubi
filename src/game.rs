@@ -21,10 +21,12 @@ pub fn run() {
     let display = init_display(&event_loop);
     log::info!("compiling shaders");
     let programs = Programs::compile_all(&display);
-    log::info!("init camera");
-    let camera = Camera::default();
     log::info!("loading assets");
     let assets = Assets::load_all_sync(&display);
+    log::info!("init camera");
+    let mut camera = Camera::default();
+    camera.position = [0., 0., -1.];
+    camera.direction = [0., 0., 1.];
     log::info!("game loaded");
 
     //=======================
