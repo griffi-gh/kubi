@@ -26,7 +26,7 @@ fn load_png(file_path: &str, display: &glium::Display) -> SrgbTexture2d {
 }
 
 pub struct Textures {
-    block_atlas: SrgbTexture2d
+    pub block_atlas: SrgbTexture2d
 }
 impl Textures {
     /// Load textures synchronously, one by one and upload them to the GPU
