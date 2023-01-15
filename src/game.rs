@@ -41,14 +41,13 @@ pub fn run() {
   let assets = Assets::load_all_sync(&display);
   log::info!("init game state");
   let mut state = State::init();
-  state.camera.position = [0., 0., 1.];
-  state.camera.direction = [0., 0., -1.];
+  state.camera.position = [0., 0., -1.];
   log::info!("game loaded");
 
   //=======================
   let vertex1 = ChunkVertex { position: [-0.5, -0.5, 0.], uv: [0., 0.], normal: [0., 1., 0.] };
   let vertex2 = ChunkVertex { position: [ 0.0,  0.5, 0.], uv: [0., 1.], normal: [0., 1., 0.] };
-  let vertex3 = ChunkVertex { position: [ 0.5, -0.25, 0.], uv: [1., 1.], normal: [0., 1., 0.] };
+  let vertex3 = ChunkVertex { position: [ 0.5, -0.5, 0.], uv: [1., 1.], normal: [0., 1., 0.] };
   let shape = vec![vertex1, vertex2, vertex3];
   let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
   //=======================
@@ -89,9 +88,7 @@ pub fn run() {
     let dt = (now - last_render).as_secs_f32();
     last_render = now;
 
-    let actions = state.controls.calculate(dt);
-    log::trace!("{}", actions.rotation[0]);
-    actions.apply_to_camera(&mut state.camera);
+    state.controls.calculate(dt).apply_to_camera(&mut state.camera);
 
     let mut target = display.draw();
     let target_dimensions = target.get_dimensions();

@@ -17,9 +17,9 @@ pub struct Actions {
 impl Actions {
   pub fn apply_to_camera(&self, camera: &mut Camera) {
     //Apply movement
-    for v in camera.position.iter_mut().zip(self.movement) {
-      *v.0 -= v.1;
-    }
+    camera.position[0] += self.movement[0];
+    camera.position[1] += self.movement[1];
+    camera.position[2] += self.movement[2];
     //Apply rotation
     camera.yaw -= self.rotation[0];
     camera.pitch -= self.rotation[1];
@@ -33,6 +33,12 @@ pub struct Controls {
   pub sensitivity: f32,
 }
 impl Controls {
+  pub fn lock(&mut self) {
+    todo!()
+  }
+  pub fn unlock(&mut self) {
+    todo!()
+  }
   pub fn process_mouse_input(&mut self, dx: f64, dy: f64) {
     self.inputs.look_h += dx as f32;
     self.inputs.look_v += dy as f32;
