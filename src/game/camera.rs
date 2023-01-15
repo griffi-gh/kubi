@@ -6,6 +6,8 @@
 use std::f32::consts::PI;
 
 pub struct Camera {
+  pub yaw: f32,
+  pub pitch: f32,
   pub position: [f32; 3],
   pub direction: [f32; 3],
   pub up: [f32; 3],
@@ -14,6 +16,15 @@ pub struct Camera {
   pub zfar: f32,
 }
 impl Camera {
+  /// Update camera direction based on yaw/pitch
+  pub fn update_direction(&mut self) {
+    self.direction = [
+      self.yaw.cos() * self.pitch.cos(),
+      self.pitch.sin(),
+      self.yaw.sin() * self.pitch.cos(),
+    ];
+  }
+
   pub fn view_matrix(&self) -> [[f32; 4]; 4] {
     let position = self.position;
     let direction = self.direction;
@@ -55,14 +66,13 @@ impl Camera {
     let aspect_ratio = height as f32 / width as f32;
     let f = 1.0 / (fov / 2.0).tan();
     [
-      [f *   aspect_ratio   ,  0.0,        0.0        ,   0.0],
-      [     0.0     ,   f ,        0.0        ,   0.0],
-      [     0.0     ,  0.0,  (zfar+znear)/(zfar-znear)  ,   1.0],
-      [     0.0     ,  0.0, -(2.0*zfar*znear)/(zfar-znear),   0.0],
+      [f*aspect_ratio, 0.0, 0.0,                            0.0],
+      [0.0,            f,   0.0,                            0.0],
+      [0.0,            0.0, (zfar+znear)/(zfar-znear),      1.0],
+      [0.0,            0.0, -(2.0*zfar*znear)/(zfar-znear), 0.0],
     ]
-  }  
+  }
 }
-
 impl Default for Camera {
   fn default() -> Self {
     Self {
@@ -72,6 +82,8 @@ impl Default for Camera {
       fov: PI / 3.,
       zfar: 1024.,
       znear: 0.1,
+      yaw: 0.,
+      pitch: 0.,
     }
   }
 }

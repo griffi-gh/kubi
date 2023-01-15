@@ -1,6 +1,6 @@
 use glium::{Surface, uniform};
 use glium::glutin::{
-  event::{Event, WindowEvent},
+  event::{Event, WindowEvent, VirtualKeyCode},
   event_loop::{EventLoop, ControlFlow},
 };
 
@@ -24,22 +24,17 @@ pub fn run() {
   log::info!("loading assets");
   let assets = Assets::load_all_sync(&display);
   log::info!("init camera");
-  let camera = Camera {
-    position: [0., 0., -1.],
-    direction: [0., 0., 1.],
-    ..Default::default()
-  };
+  let mut camera = Camera::default();
   log::info!("game loaded");
 
   //=======================
-  let vertex1 = ChunkVertex { position: [-0.5, -0.5, 1.], uv: [0., 0.], normal: [0., 1., 0.] };
-  let vertex2 = ChunkVertex { position: [ 0.0,  0.5, 1.], uv: [0., 1.], normal: [0., 1., 0.] };
-  let vertex3 = ChunkVertex { position: [ 0.5, -0.25, 1.], uv: [1., 1.], normal: [0., 1., 0.] };
+  let vertex1 = ChunkVertex { position: [-0.5, -0.5, 0.], uv: [0., 0.], normal: [0., 1., 0.] };
+  let vertex2 = ChunkVertex { position: [ 0.0,  0.5, 0.], uv: [0., 1.], normal: [0., 1., 0.] };
+  let vertex3 = ChunkVertex { position: [ 0.5, -0.25, 0.], uv: [1., 1.], normal: [0., 1., 0.] };
   let shape = vec![vertex1, vertex2, vertex3];
   let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
   //=======================
 
-  
   event_loop.run(move |ev, _, control_flow| {
     #[allow(clippy::single_match, clippy::collapsible_match)]
     match ev {
@@ -49,12 +44,45 @@ pub fn run() {
           *control_flow = ControlFlow::Exit;
           return
         },
+        WindowEvent::KeyboardInput { input, .. } => {
+          match input.virtual_keycode {
+            Some(VirtualKeyCode::Up) => {
+              camera.pitch += 0.01;
+            }
+            Some(VirtualKeyCode::Down) => {
+              camera.pitch -= 0.01;
+            }
+            Some(VirtualKeyCode::Right) => {
+              camera.yaw -= 0.01;
+            }
+            Some(VirtualKeyCode::Left) => {
+              camera.yaw += 0.01;
+            }
+            
+            Some(VirtualKeyCode::W) => {
+              camera.position[2] += 0.01;
+            }
+            Some(VirtualKeyCode::S) => {
+              camera.position[2] -= 0.01;
+            }
+            Some(VirtualKeyCode::A) => {
+              camera.position[0] -= 0.01;
+            }
+            Some(VirtualKeyCode::D) => {
+              camera.position[0] += 0.01;
+            }
+
+            _ => ()
+          }
+        }
         _ => ()
       },
       _ => ()
     }
+
     let mut target = display.draw();
     let target_dimensions = target.get_dimensions();
+    camera.update_direction();
     let perspective = camera.perspective_matrix(target_dimensions);
     let view = camera.view_matrix();
     target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
@@ -67,7 +95,7 @@ pub fn run() {
           [1., 0., 0., 0.],
           [0., 1., 0., 0.],
           [0., 0., 1., 0.],
-          [0., 0., 0., 1.0f32]
+          [0., 0., 0., 1.0_f32]
         ],
         view: view,
         perspective: perspective,
