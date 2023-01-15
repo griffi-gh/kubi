@@ -1,5 +1,5 @@
 use glium::{Surface, uniform};
-use glutin::{
+use glium::glutin::{
     event::{Event, WindowEvent},
     event_loop::{EventLoop, ControlFlow},
 };
