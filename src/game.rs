@@ -57,12 +57,21 @@ pub fn run() {
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
     match event {
-      Event::MainEventsCleared => (),
+      // Mouse motion
       Event::DeviceEvent {
         event: DeviceEvent::MouseMotion{ delta, }, ..
       } => {
         state.controls.process_mouse_input(delta.0, delta.1);
+        return
       }
+      // Keyboard input
+      Event::DeviceEvent { event: DeviceEvent::Key(input), .. } => {
+        if let Some(key) = input.virtual_keycode {
+          state.controls.process_keyboard_input(key, input.state);
+        }
+        return
+      }
+      // Window events
       Event::WindowEvent { event, .. } => {
         match event {
           WindowEvent::CloseRequested => {
@@ -70,17 +79,10 @@ pub fn run() {
             *control_flow = ControlFlow::Exit;
             return
           },
-          WindowEvent::KeyboardInput {
-            input: KeyboardInput {
-              virtual_keycode: Some(key),
-              state: el_state, ..
-            }, ..
-          } => {
-            state.controls.process_keyboard_input(key, el_state);
-          },
           _ => return
         }
       },
+      Event::MainEventsCleared => (),
       _ => return
     }
     
