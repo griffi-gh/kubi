@@ -5,6 +5,14 @@
 
 use std::f32::consts::PI;
 
+pub fn calculate_forward_direction(yaw: f32, pitch: f32) -> [f32; 3] {
+  [
+    yaw.cos() * pitch.cos(),
+    pitch.sin(),
+    yaw.sin() * pitch.cos(),
+  ]
+}
+
 pub struct Camera {
   pub yaw: f32,
   pub pitch: f32,
@@ -18,11 +26,12 @@ pub struct Camera {
 impl Camera {
   /// Update camera direction based on yaw/pitch
   pub fn update_direction(&mut self) {
-    self.direction = [
-      self.yaw.cos() * self.pitch.cos(),
-      self.pitch.sin(),
-      self.yaw.sin() * self.pitch.cos(),
-    ];
+    self.direction = calculate_forward_direction(self.yaw, self.pitch);
+  }
+  pub fn forward(&mut self, amount: f32) {
+    self.position[0] += self.direction[0] * amount;
+    self.position[1] += self.direction[1] * amount;
+    self.position[2] += self.direction[2] * amount;
   }
 
   pub fn view_matrix(&self) -> [[f32; 4]; 4] {

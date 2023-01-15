@@ -16,14 +16,20 @@ pub struct Actions {
 }
 impl Actions {
   pub fn apply_to_camera(&self, camera: &mut Camera) {
-    //Apply movement
-    camera.position[0] += self.movement[0];
-    camera.position[1] += self.movement[1];
-    camera.position[2] += self.movement[2];
     //Apply rotation
     camera.yaw -= self.rotation[0];
     camera.pitch -= self.rotation[1];
     camera.update_direction();
+    //Apply movement
+    let (yaw_sin, yaw_cos) = camera.yaw.sin_cos();
+    //forward movement
+    camera.position[0] += yaw_cos * self.movement[2];
+    camera.position[2] += yaw_sin * self.movement[2];
+    //sideways movement
+    camera.position[0] -= -yaw_sin * self.movement[0];
+    camera.position[2] -= yaw_cos * self.movement[0];
+    //up/down movement
+    camera.position[1] += self.movement[1];
   }
 }
 
