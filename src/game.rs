@@ -1,18 +1,34 @@
 use glium::{Surface, uniform};
 use glium::glutin::{
-  event::{Event, WindowEvent, VirtualKeyCode},
+  event::{Event, WindowEvent, DeviceEvent, VirtualKeyCode},
   event_loop::{EventLoop, ControlFlow},
 };
+use std::time::Instant;
 
 mod assets;
 mod display;
 mod shaders;
 mod camera;
+mod controller;
 
 use assets::Assets;
 use display::init_display;
 use shaders::{Programs, chunk::Vertex as ChunkVertex};
 use camera::Camera;
+use controller::Controls;
+
+struct State {
+  pub camera: Camera,
+  pub controls: Controls, 
+}
+impl State {
+  pub fn init() -> Self {
+    Self {
+      camera: Camera::default(),
+      controls: Controls::default(),
+    }
+  }
+}
 
 pub fn run() {
   log::info!("starting up");
@@ -23,8 +39,8 @@ pub fn run() {
   let programs = Programs::compile_all(&display);
   log::info!("loading assets");
   let assets = Assets::load_all_sync(&display);
-  log::info!("init camera");
-  let mut camera = Camera::default();
+  log::info!("init game state");
+  let mut state = State::init();
   log::info!("game loaded");
 
   //=======================
@@ -35,56 +51,42 @@ pub fn run() {
   let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
   //=======================
 
-  event_loop.run(move |ev, _, control_flow| {
-    #[allow(clippy::single_match, clippy::collapsible_match)]
-    match ev {
-      Event::WindowEvent { event, .. } => match event {
-        WindowEvent::CloseRequested => {
-          log::info!("exit requested");
-          *control_flow = ControlFlow::Exit;
-          return
-        },
-        WindowEvent::KeyboardInput { input, .. } => {
-          match input.virtual_keycode {
-            Some(VirtualKeyCode::Up) => {
-              camera.pitch += 0.01;
-            }
-            Some(VirtualKeyCode::Down) => {
-              camera.pitch -= 0.01;
-            }
-            Some(VirtualKeyCode::Right) => {
-              camera.yaw -= 0.01;
-            }
-            Some(VirtualKeyCode::Left) => {
-              camera.yaw += 0.01;
-            }
-            
-            Some(VirtualKeyCode::W) => {
-              camera.position[2] += 0.01;
-            }
-            Some(VirtualKeyCode::S) => {
-              camera.position[2] -= 0.01;
-            }
-            Some(VirtualKeyCode::A) => {
-              camera.position[0] -= 0.01;
-            }
-            Some(VirtualKeyCode::D) => {
-              camera.position[0] += 0.01;
-            }
+  let mut last_render = Instant::now();
 
-            _ => ()
-          }
+  event_loop.run(move |event, _, control_flow| {
+    *control_flow = ControlFlow::Poll;
+    match event {
+      Event::MainEventsCleared => (),
+      Event::DeviceEvent {
+        event: DeviceEvent::MouseMotion{ delta, },
+        ..
+      } => {
+        state.controls.process_mouse_input(delta.0, delta.1);
+      }
+      Event::WindowEvent { event, .. } => {
+        match event {
+          WindowEvent::CloseRequested => {
+            log::info!("exit requested");
+            *control_flow = ControlFlow::Exit;
+            return
+          },
+          _ => return
         }
-        _ => ()
       },
-      _ => ()
+      _ => return
     }
+    
+    let now = Instant::now();
+    let dt = (now - last_render).as_secs_f32();
+    last_render = now;
+
+    let actions = state.controls.calculate(dt);
+    actions.apply_to_camera(&mut state.camera);
 
     let mut target = display.draw();
     let target_dimensions = target.get_dimensions();
-    camera.update_direction();
-    let perspective = camera.perspective_matrix(target_dimensions);
-    let view = camera.view_matrix();
+    let perspective = state.camera.perspective_matrix(target_dimensions);
+    let view = state.camera.view_matrix();
     target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
     target.draw(
       &vertex_buffer,

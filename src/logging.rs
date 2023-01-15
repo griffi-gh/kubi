@@ -7,7 +7,7 @@ use std::io::Write;
 pub fn init() {
   let mut env = Env::default();
   if cfg!(debug_assertions) {
-    env = env.filter_or("RUST_LOG", "info");
+    env = env.filter_or("RUST_LOG", "trace");
   }
   Builder::from_env(env)
     .format(|buf, record| {
