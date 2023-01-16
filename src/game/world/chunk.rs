@@ -9,15 +9,7 @@ pub const CHUNK_SIZE: usize = 16;
 pub const CHUNK_HEIGHT: usize = 255;
 
 pub enum ChunkState {
-  AwaitsLoading,
-  Loaded,
-  AwaitsMesh,
-  Rendered,
-  AwaitsUnload
-}
-
-pub enum DesiredState {
-  Unloaded,
+  Nothing,
   Loaded,
   Rendered,
 }
@@ -30,7 +22,7 @@ pub struct Chunk {
   pub block_data: Option<ChunkData>,
   pub vertex_buffer: Option<ChunkMesh>,
   pub state: ChunkState,
-  pub desired: DesiredState,
+  pub desired: ChunkState,
 }
 impl Chunk {
   pub fn new(position: IVec2) -> Self {
@@ -38,8 +30,8 @@ impl Chunk {
       position,
       block_data: None,
       vertex_buffer: None,
-      state: ChunkState::AwaitsLoading,
-      desired: DesiredState::Loaded,
+      state: ChunkState::Nothing,
+      desired: ChunkState::Nothing,
     }
   }
 }

@@ -4,7 +4,7 @@ use std::{
   collections::HashMap,
   mem
 };
-use super::chunk::{ChunkData, Chunk, DesiredState};
+use super::chunk::{Chunk, ChunkData, ChunkState};
 
 mod world_gen;
 mod mesh_gen;
@@ -38,7 +38,7 @@ impl WorldThreading {
         log::warn!("load: discarded {}, reason: chunk no longer exists", position);
         return false
       }
-      if !matches!(chunks.get(position).unwrap().desired, DesiredState::Loaded | DesiredState::Rendered) {
+      if !matches!(chunks.get(position).unwrap().desired, ChunkState::Loaded | ChunkState::Rendered) {
         log::warn!("load: discarded {}, reason: state undesired", position);
         return false
       }
@@ -49,7 +49,9 @@ impl WorldThreading {
       log::info!("load: done {}", position);
       let handle = mem::take(handle).unwrap();
       let data = handle.join().unwrap();
-      chunks.get_mut(position).unwrap().block_data = Some(data);
+      let chunk = chunks.get_mut(position).unwrap();
+      chunk.block_data = Some(data);
+      chunk.state = ChunkState::Loaded;
       false
     });
   }
