@@ -11,7 +11,9 @@ pub const CHUNK_HEIGHT: usize = 255;
 pub enum ChunkState {
   Unload,
   Nothing,
+  Loading,
   Loaded,
+  Rendering,
   Rendered,
 }
 

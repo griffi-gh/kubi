@@ -59,19 +59,22 @@ impl World {
     //State up/downgrades are handled here!
     self.chunks.retain(|&position, chunk| {
       match chunk.desired {
+        // Any => Unload downgrade
         ChunkState::Unload => {
           return false
         },
+        // Any => Nothing downgrade
         ChunkState::Nothing => {
           chunk.block_data = None;
           chunk.vertex_buffer = None;
           chunk.state = ChunkState::Nothing;
         },
+        // Nothing => Loading => Loaded upgrade
         ChunkState::Loaded if matches!(chunk.state, ChunkState::Nothing) => {
-          //FIXME this keeps loading!
           self.thread.queue_load(position);
         },
-        ChunkState::Loaded if matches!(chunk.state, ChunkState::Rendered) => {
+        //Render => Loaded downgrade
+        ChunkState::Loaded if matches!(chunk.state, ChunkState::Rendering | ChunkState::Rendered) => {
           chunk.vertex_buffer = None;
           chunk.state = ChunkState::Loaded;
         },
