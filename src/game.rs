@@ -12,9 +12,9 @@ mod shaders;
 mod camera;
 mod controller;
 mod world;
-mod chunk;
 mod blocks;
 mod items;
+mod options;
 
 use assets::Assets;
 use display::init_display;
