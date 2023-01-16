@@ -7,7 +7,7 @@ pub struct Vertex {
 implement_vertex!(Vertex, position);
 
 pub const VERTEX_SHADER: &str = r#"
-  #version 140 core
+  #version 150 core
 
   in vec2 position;
 
@@ -16,7 +16,7 @@ pub const VERTEX_SHADER: &str = r#"
   }
 "#;
 pub const FRAGMENT_SHADER: &str = r#"
-  #version 140 core
+  #version 150 core
 
   out vec4 color;
   uniform vec4 u_color;
