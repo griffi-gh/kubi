@@ -36,10 +36,12 @@ impl World {
   pub fn update_loaded_chunks(&mut self, around_position: Vec2, options: &GameOptions, display: &Display) {
     let render_dist = options.render_distance as i32 + 1;
     let inside_chunk = (around_position / CHUNK_SIZE as f32).as_ivec2();
+
     //Mark all chunks for unload
     for (_, chunk) in &mut self.chunks {
       chunk.desired = ChunkState::Unload;
     }
+
     //Load new/update chunks in range
     for x in -render_dist..=render_dist {
       for z in -render_dist..=render_dist {
@@ -54,34 +56,47 @@ impl World {
         } else {
           chunk.desired = ChunkState::Rendered;
         }
+        if matches!(chunk.state, ChunkState::Nothing) {
+          self.thread.queue_load(position);
+        }
+        if matches!(chunk.state, ChunkState::Loaded) && matches!(chunk.desired, ChunkState::Rendered) {
+          fn all_some<'a>(x: [Option<&'a Chunk>; 4]) -> Option<[&'a Chunk; 4]> {
+            Some([x[0]?, x[1]?, x[2]?, x[3]?])
+          }
+          if let Some(neighbors) = all_some(self.chunk_neighbors(chunk.position)) {
+            if {
+              neighbors[0].block_data.is_some() &&
+              neighbors[1].block_data.is_some() &&
+              neighbors[2].block_data.is_some() &&
+              neighbors[3].block_data.is_some()
+            } {
+              self.thread.queue_mesh(chunk, neighbors);
+            }
+          }
+        }
       }
     }
-    //State up/downgrades are handled here!
-    self.chunks.retain(|&position, chunk| {
+
+    //Handle Unload
+    self.chunks.retain(|_, chunk| !matches!(chunk.desired, ChunkState::Unload));
+    
+    //State downgrades
+    for (_, chunk) in &mut self.chunks {
       match chunk.desired {
-        // Any => Unload downgrade
-        ChunkState::Unload => {
-          return false
-        },
         // Any => Nothing downgrade
         ChunkState::Nothing => {
           chunk.block_data = None;
-          chunk.vertex_buffer = None;
+          chunk.mesh = None;
           chunk.state = ChunkState::Nothing;
-        },
-        // Nothing => Loading => Loaded upgrade
-        ChunkState::Loaded if matches!(chunk.state, ChunkState::Nothing) => {
-          self.thread.queue_load(position);
         },
         //Render => Loaded downgrade
         ChunkState::Loaded if matches!(chunk.state, ChunkState::Rendering | ChunkState::Rendered) => {
-          chunk.vertex_buffer = None;
+          chunk.mesh = None;
           chunk.state = ChunkState::Loaded;
         },
         _ => ()
       }
-      true
-    });
+    }
     //Apply changes from threads
     self.thread.apply_tasks(&mut self.chunks, display);
   }

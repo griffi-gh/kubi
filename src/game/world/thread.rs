@@ -1,5 +1,5 @@
 use glam::IVec2;
-use glium::{Display, VertexBuffer};
+use glium::{Display, VertexBuffer, IndexBuffer, index::PrimitiveType};
 use std::{
   thread::{self, JoinHandle}, 
   collections::HashMap,
@@ -17,7 +17,7 @@ pub struct WorldThreading {
   //Options are needed here to take ownership, 
   //None values should never appear here!
   pub load_tasks: HashMap<IVec2, Option<JoinHandle<ChunkData>>>,
-  pub mesh_tasks: HashMap<IVec2, Option<JoinHandle<Vec<ChunkVertex>>>>,
+  pub mesh_tasks: HashMap<IVec2, Option<JoinHandle<(Vec<ChunkVertex>, Vec<u16>)>>>,
 }
 impl WorldThreading {
   pub fn new() -> Self {
@@ -93,11 +93,12 @@ impl WorldThreading {
       }
       log::info!("mesh: done {}", position);
       let handle = mem::take(handle).unwrap();
-      let data = handle.join().unwrap();
+      let (shape, index) = handle.join().unwrap();
       let chunk = chunks.get_mut(position).unwrap();
-      chunk.vertex_buffer = Some(( 
+      chunk.mesh = Some(( 
         true,
-        VertexBuffer::immutable(display, &data).expect("Failed to build VertexBuffer")
+        VertexBuffer::immutable(display, &shape).expect("Failed to build VertexBuffer"),
+        IndexBuffer::immutable(display, PrimitiveType::TrianglesList, &index).expect("Failed to build IndexBuffer")
       ));
       chunk.state = ChunkState::Rendered;
       false

@@ -1,5 +1,5 @@
 use glam::IVec2;
-use glium::VertexBuffer;
+use glium::{VertexBuffer, IndexBuffer};
 use crate::game::{
   blocks::Block,
   shaders::chunk::Vertex as ChunkVertex
@@ -18,12 +18,11 @@ pub enum ChunkState {
 }
 
 pub type ChunkData = [[[Block; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE];
-pub type ChunkMesh = VertexBuffer<ChunkVertex>;
 
 pub struct Chunk {
   pub position: IVec2,
   pub block_data: Option<ChunkData>,
-  pub vertex_buffer: Option<(bool, ChunkMesh)>,
+  pub mesh: Option<(bool, VertexBuffer<ChunkVertex>, IndexBuffer<u16>)>,
   pub state: ChunkState,
   pub desired: ChunkState,
 }
@@ -32,7 +31,7 @@ impl Chunk {
     Self {
       position,
       block_data: None,
-      vertex_buffer: None,
+      mesh: None,
       state: ChunkState::Nothing,
       desired: ChunkState::Nothing,
     }
