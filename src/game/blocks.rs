@@ -1,3 +1,4 @@
+use strum::{EnumIter, IntoEnumIterator};
 use crate::game::items::Item;
 
 #[derive(Clone, Copy, Debug)]
@@ -70,7 +71,7 @@ impl BlockDescriptor {
   }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, EnumIter)]
 pub enum Block {
   Air,
   Stone,
@@ -79,13 +80,16 @@ pub enum Block {
   Sand,
 }
 impl Block {
-  pub const fn get_by_id(id: &str) -> Option<Self> {
-    Some(match id {
-      "air" => Self::Air,
-      "stone" => Self::Stone,
-      _ => { return None },
-    })
-  } 
+  //TODO make this O(1) with compile-time computed maps
+  pub fn get_by_id(id: &str) -> Option<Self> {
+    for block in Self::iter() {
+      if block.descriptor().id == id {
+        return Some(block)
+      }
+    }
+    None
+  }
+
   pub const fn descriptor(self) -> BlockDescriptor {
     match self {
       Self::Air => BlockDescriptor {
@@ -120,7 +124,14 @@ impl Block {
         render: Some((RenderType::OpaqueBlock, BlockTextures::top_sides_bottom(0, 3, 2))),
         item: Some(Item::DirtBlock)
       },
-      _ => unimplemented!()
+      Self::Sand => BlockDescriptor { 
+        name: "Sand",
+        id: "sand",
+        collision: Some(CollisionType::Solid),
+        raycast_collision: true,
+        render: Some((RenderType::OpaqueBlock, BlockTextures::all(4))), //this is not a sand tex
+        item: Some(Item::StoneBlock)
+      }
     }
   }
 }

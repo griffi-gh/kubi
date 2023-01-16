@@ -1,11 +1,12 @@
 use glium::glutin::event::{VirtualKeyCode, ElementState};
+use std::f32::consts::PI;
 use crate::game::camera::Camera;
 
 #[derive(Default, Clone, Copy)]
 pub struct InputAmounts {
-  move_x: f32,
-  move_y: f32,
-  move_z: f32,
+  move_x: (f32, f32),
+  move_y: (f32, f32),
+  move_z: (f32, f32),
   look_h: f32,
   look_v: f32,
 }
@@ -19,6 +20,7 @@ impl Actions {
     //Apply rotation
     camera.yaw -= self.rotation[0];
     camera.pitch -= self.rotation[1];
+    camera.pitch = camera.pitch.clamp(-PI/2. + f32::EPSILON, PI/2. - f32::EPSILON);
     camera.update_direction();
     //Apply movement
     let (yaw_sin, yaw_cos) = camera.yaw.sin_cos();
@@ -51,39 +53,45 @@ impl Controls {
     self.inputs.look_v += dy as f32;
   }
   pub fn process_keyboard_input(&mut self, key: VirtualKeyCode, state: ElementState) {
-    if state != ElementState::Pressed { return }
+    let value = match state { 
+      ElementState::Pressed => 1.,
+      ElementState::Released => 0.,
+    };
     match key {
       VirtualKeyCode::W | VirtualKeyCode::Up => {
-        self.inputs.move_z += 1.;
+        self.inputs.move_z.0 = value;
       }
       VirtualKeyCode::S | VirtualKeyCode::Down => {
-        self.inputs.move_z -= 1.;
+        self.inputs.move_z.1 = -value;
       }
       VirtualKeyCode::A | VirtualKeyCode::Left => {
-        self.inputs.move_x -= 1.;
+        self.inputs.move_x.0 = -value;
       }
       VirtualKeyCode::D | VirtualKeyCode::Right => {
-        self.inputs.move_x += 1.;
+        self.inputs.move_x.1 = value;
       }
       VirtualKeyCode::Space => {
-        self.inputs.move_y += 1.;
+        self.inputs.move_y.0 = value;
       }
       VirtualKeyCode::LShift => {
-        self.inputs.move_y -= 1.;
+        self.inputs.move_y.1 = -value;
       }
       _ => ()
     }
   }
   pub fn calculate(&mut self, dt: f32) -> Actions {
     let movement = {
-      let magnitude = (self.inputs.move_x.powi(2) + self.inputs.move_y.powi(2) + self.inputs.move_z.powi(2)).sqrt();
+      let move_x = self.inputs.move_x.0 + self.inputs.move_x.1;
+      let move_y = self.inputs.move_y.0 + self.inputs.move_y.1;
+      let move_z = self.inputs.move_z.0 + self.inputs.move_z.1;
+      let magnitude = (move_x.powi(2) + move_y.powi(2) + move_z.powi(2)).sqrt();
       if magnitude == 0. {
         [0., 0., 0.]
       } else {
         [
-          dt * self.speed * (self.inputs.move_x / magnitude), 
-          dt * self.speed * (self.inputs.move_y / magnitude), 
-          dt * self.speed * (self.inputs.move_z / magnitude)
+          dt * self.speed * (move_x / magnitude), 
+          dt * self.speed * (move_y / magnitude), 
+          dt * self.speed * (move_z / magnitude)
         ]
       }
     };
@@ -91,7 +99,9 @@ impl Controls {
       dt * self.inputs.look_h * self.sensitivity,
       dt * self.inputs.look_v * self.sensitivity
     ];
-    self.inputs = Default::default();
+    //Only mouse related actions need to be reset
+    self.inputs.look_h = 0.;
+    self.inputs.look_v = 0.;
     Actions { movement, rotation }
   }
 }
@@ -99,7 +109,7 @@ impl Default for Controls {
   fn default() -> Self {
     Self {
       inputs: Default::default(),
-      speed: 10.,
+      speed: 1.,
       sensitivity: 2.,
     }
   }

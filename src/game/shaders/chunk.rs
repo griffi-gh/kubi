@@ -10,7 +10,7 @@ implement_vertex!(Vertex, position, normal, uv);
 
 //TODO store vertex data in a more compact way
 pub const VERTEX_SHADER: &str = r#"
-  #version 150
+  #version 150 core
 
   in vec3 position;
   in vec3 normal;
@@ -29,7 +29,7 @@ pub const VERTEX_SHADER: &str = r#"
   }
 "#;
 pub const FRAGMENT_SHADER: &str = r#"
-  #version 150
+  #version 150 core
 
   in vec2 v_uv;
   out vec4 color;
