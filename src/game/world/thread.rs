@@ -21,6 +21,9 @@ impl WorldThreading {
     self.load_tasks.is_empty() && 
     self.mesh_tasks.is_empty()
   }
+  pub fn task_amount(&self) -> usize {
+    self.load_tasks.len() + self.mesh_tasks.len()
+  }
   pub fn queue_load(&mut self, position: IVec2) {
     let handle = thread::spawn(|| {
       world_gen::generate_chunk()
