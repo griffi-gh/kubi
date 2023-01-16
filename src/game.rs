@@ -1,7 +1,7 @@
 use glium::{Surface, uniform};
 use glium::uniforms::{Sampler, MinifySamplerFilter, MagnifySamplerFilter};
 use glium::glutin::{
-  event::{Event, WindowEvent, DeviceEvent, KeyboardInput, VirtualKeyCode},
+  event::{Event, WindowEvent, DeviceEvent},
   event_loop::{EventLoop, ControlFlow},
 };
 use std::time::Instant;
@@ -21,15 +21,19 @@ use display::init_display;
 use shaders::{Programs, chunk::Vertex as ChunkVertex};
 use camera::Camera;
 use controller::Controls;
+use world::World;
+
 struct State {
   pub camera: Camera,
   pub controls: Controls, 
+  pub world: World
 }
 impl State {
   pub fn init() -> Self {
     Self {
       camera: Camera::default(),
       controls: Controls::default(),
+      world: World::new(),
     }
   }
 }
