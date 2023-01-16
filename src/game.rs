@@ -1,3 +1,4 @@
+use glam::Vec2;
 use glium::{Surface, uniform};
 use glium::uniforms::{Sampler, MinifySamplerFilter, MagnifySamplerFilter};
 use glium::glutin::{
@@ -22,6 +23,7 @@ use shaders::{Programs, chunk::Vertex as ChunkVertex};
 use camera::Camera;
 use controller::Controls;
 use world::World;
+use options::GameOptions;
 
 struct State {
   pub camera: Camera,
@@ -47,6 +49,8 @@ pub fn run() {
   let programs = Programs::compile_all(&display);
   log::info!("loading assets");
   let assets = Assets::load_all_sync(&display);
+  log::info!("init game options");
+  let options = GameOptions::default();
   log::info!("init game state");
   let mut state = State::init();
   state.camera.position = [0., 0., -1.];
@@ -100,18 +104,32 @@ pub fn run() {
       _ => return
     }
     
+    //Calculate delta time
     let now = Instant::now();
     let dt = (now - last_render).as_secs_f32();
     last_render = now;
 
+    //Update controls
     state.controls.calculate(dt).apply_to_camera(&mut state.camera);
 
+    //Load new chunks
+    
+    state.world.update_loaded_chunks(
+      Vec2::new(state.camera.position[0], state.camera.position[2]), 
+      &options, 
+      &display
+    );
+
+    //Start drawing
     let mut target = display.draw();
+    target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
+
+    //Compute camera
     let target_dimensions = target.get_dimensions();
     let perspective = state.camera.perspective_matrix(target_dimensions);
     let view = state.camera.view_matrix();
-    target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
     
+    //Draw example triangle
     target.draw(
       &vertex_buffer,
       glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
@@ -129,6 +147,8 @@ pub fn run() {
       }, 
       &Default::default()
     ).unwrap();
+
+    //Finish drawing
     target.finish().unwrap();
   });
 }

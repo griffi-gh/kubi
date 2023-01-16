@@ -9,6 +9,7 @@ pub const CHUNK_SIZE: usize = 16;
 pub const CHUNK_HEIGHT: usize = 255;
 
 pub enum ChunkState {
+  Unload,
   Nothing,
   Loaded,
   Rendered,
@@ -20,7 +21,7 @@ pub type ChunkMesh = VertexBuffer<ChunkVertex>;
 pub struct Chunk {
   pub position: IVec2,
   pub block_data: Option<ChunkData>,
-  pub vertex_buffer: Option<ChunkMesh>,
+  pub vertex_buffer: Option<(bool, ChunkMesh)>,
   pub state: ChunkState,
   pub desired: ChunkState,
 }
