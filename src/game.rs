@@ -1,4 +1,5 @@
 use glium::{Surface, uniform};
+use glium::uniforms::{Sampler, MinifySamplerFilter, MagnifySamplerFilter};
 use glium::glutin::{
   event::{Event, WindowEvent, DeviceEvent, KeyboardInput, VirtualKeyCode},
   event_loop::{EventLoop, ControlFlow},
@@ -57,6 +58,12 @@ pub fn run() {
 
   let mut last_render = Instant::now();
 
+  let sampler_nearest = glium::uniforms::SamplerBehavior {
+    minify_filter: MinifySamplerFilter::Nearest,
+    magnify_filter: MagnifySamplerFilter::Nearest,
+    ..Default::default()
+  };
+  
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
     match event {
@@ -100,6 +107,7 @@ pub fn run() {
     let perspective = state.camera.perspective_matrix(target_dimensions);
     let view = state.camera.view_matrix();
     target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
+    
     target.draw(
       &vertex_buffer,
       glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
@@ -113,7 +121,7 @@ pub fn run() {
         ],
         view: view,
         perspective: perspective,
-        tex: &assets.textures.block_atlas
+        tex: Sampler(&assets.textures.block_atlas, sampler_nearest)
       }, 
       &Default::default()
     ).unwrap();
