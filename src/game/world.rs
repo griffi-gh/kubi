@@ -68,6 +68,7 @@ impl World {
           chunk.state = ChunkState::Nothing;
         },
         ChunkState::Loaded if matches!(chunk.state, ChunkState::Nothing) => {
+          //FIXME this keeps loading!
           self.thread.queue_load(position);
         },
         ChunkState::Loaded if matches!(chunk.state, ChunkState::Rendered) => {
