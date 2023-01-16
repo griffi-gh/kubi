@@ -39,6 +39,7 @@ pub struct Controls {
   pub sensitivity: f32,
 }
 impl Controls {
+  //TODO locking controls
   pub fn lock(&mut self) {
     todo!()
   }

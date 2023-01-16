@@ -10,13 +10,16 @@ mod display;
 mod shaders;
 mod camera;
 mod controller;
+mod world;
+mod chunk;
+mod blocks;
+mod items;
 
 use assets::Assets;
 use display::init_display;
 use shaders::{Programs, chunk::Vertex as ChunkVertex};
 use camera::Camera;
 use controller::Controls;
-
 struct State {
   pub camera: Camera,
   pub controls: Controls, 
