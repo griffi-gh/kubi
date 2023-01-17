@@ -2,7 +2,8 @@ use glam::{Vec2, IVec2};
 use glium::{
   Display, Frame, Surface, 
   DrawParameters, Depth, 
-  DepthTest, uniform, 
+  DepthTest, PolygonMode,
+  uniform, 
   uniforms::{
     Sampler, SamplerBehavior, 
     MinifySamplerFilter, MagnifySamplerFilter,
@@ -55,7 +56,8 @@ impl World {
     programs: &Programs,
     assets: &Assets,
     perspective: [[f32; 4]; 4],
-    view: [[f32; 4]; 4]
+    view: [[f32; 4]; 4],
+    options: &GameOptions
   ) {
     let sampler = SamplerBehavior {
       minify_filter: MinifySamplerFilter::Linear,
@@ -69,7 +71,11 @@ impl World {
         write: true,
         ..Default::default()
       },
-      #[cfg(feature = "polygon_rendering")] polygon_mode: glium::PolygonMode::Line,
+      polygon_mode: if options.debug_wireframe_mode {
+        PolygonMode::Line
+      } else {
+        PolygonMode::Fill
+      },
       backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
       ..Default::default()
     };

@@ -15,4 +15,3 @@ simdnoise = "3.1"
 
 [features]
 default = []
-polygon_rendering = []

@@ -123,7 +123,7 @@ pub fn run() {
     let view = state.camera.view_matrix();
 
     //Draw chunks
-    state.world.render(&mut target, &programs, &assets, perspective, view);
+    state.world.render(&mut target, &programs, &assets, perspective, view, &options);
     
     //Draw example triangle
     // target.draw(
