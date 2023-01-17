@@ -65,12 +65,6 @@ pub fn run() {
   //=======================
 
   let mut last_render = Instant::now();
-
-  let sampler_nearest = glium::uniforms::SamplerBehavior {
-    minify_filter: MinifySamplerFilter::Nearest,
-    magnify_filter: MagnifySamplerFilter::Nearest,
-    ..Default::default()
-  };
   
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
@@ -130,23 +124,27 @@ pub fn run() {
     let view = state.camera.view_matrix();
     
     //Draw example triangle
-    target.draw(
-      &vertex_buffer,
-      glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
-      &programs.chunk, 
-      &uniform! { 
-        model: [
-          [1., 0., 0., 0.],
-          [0., 1., 0., 0.],
-          [0., 0., 1., 0.],
-          [0., 0., 0., 1.0_f32]
-        ],
-        view: view,
-        perspective: perspective,
-        tex: Sampler(&assets.textures.block_atlas, sampler_nearest)
-      }, 
-      &Default::default()
-    ).unwrap();
+
+    //Draw chunks
+    state.world.render(&mut target, &programs, &assets, perspective, view);
+
+    // target.draw(
+    //   &vertex_buffer,
+    //   glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 
+    //   &programs.chunk, 
+    //   &uniform! { 
+    //     model: [
+    //       [1., 0., 0., 0.],
+    //       [0., 1., 0., 0.],
+    //       [0., 0., 1., 0.],
+    //       [0., 0., 0., 1.0_f32]
+    //     ],
+    //     view: view,
+    //     perspective: perspective,
+    //     tex: Sampler(&assets.textures.block_atlas, sampler_nearest)
+    //   }, 
+    //   &Default::default()
+    // ).unwrap();
 
     //Finish drawing
     target.finish().unwrap();

@@ -1,7 +1,17 @@
 use glam::{Vec2, IVec2};
-use glium::Display;
+use glium::{
+  Display, Frame, Surface, uniform, 
+  uniforms::{
+    Sampler, SamplerBehavior, 
+    MinifySamplerFilter, MagnifySamplerFilter,
+  }
+};
 use hashbrown::HashMap;
-use crate::game::options::GameOptions;
+use crate::game::{
+  options::GameOptions,
+  shaders::Programs,
+  assets::Assets
+};
 
 mod chunk;
 mod thread;
@@ -31,6 +41,41 @@ impl World {
     Self {
       chunks: HashMap::new(),
       thread: WorldThreading::new(),
+    }
+  }
+  pub fn render(
+    &self,
+    target: &mut Frame, 
+    programs: &Programs,
+    assets: &Assets,
+    perspective: [[f32; 4]; 4],
+    view: [[f32; 4]; 4]
+  ) {
+    let sampler = SamplerBehavior {
+      minify_filter: MinifySamplerFilter::Nearest,
+      magnify_filter: MagnifySamplerFilter::Nearest,
+      ..Default::default()
+    };
+    for (&position, chunk) in &self.chunks {
+      if let Some((_, vertex, index)) = &chunk.mesh {
+        target.draw(
+          vertex,
+          index,
+          &programs.chunk, 
+          &uniform! {
+            model: [
+              [1., 0., 0., 0.],
+              [0., 1., 0., 0.],
+              [0., 0., 1., 0.],
+              [(position.x * CHUNK_SIZE as i32) as f32, 0., (position.y * CHUNK_SIZE as i32) as f32, 1.0_f32]
+            ],
+            view: view,
+            persperctive: perspective,
+            tex: Sampler(&assets.textures.block_atlas, sampler)
+          }, 
+          &Default::default()
+        ).unwrap();
+      }
     }
   }
   pub fn update_loaded_chunks(&mut self, around_position: Vec2, options: &GameOptions, display: &Display) {
