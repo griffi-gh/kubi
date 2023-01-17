@@ -3,7 +3,7 @@ use glium::{Display, VertexBuffer, IndexBuffer, index::PrimitiveType};
 use std::{mem, thread::{self, JoinHandle}};
 use hashbrown::HashMap;
 use super::chunk::{Chunk, ChunkData, ChunkState};
-use crate::game::shaders::chunk::Vertex as ChunkVertex;
+use crate::game::{shaders::chunk::Vertex as ChunkVertex, world::chunk::ChunkMesh};
 
 mod world_gen;
 mod mesh_gen;
@@ -14,7 +14,7 @@ pub struct WorldThreading {
   //Options are needed here to take ownership, 
   //None values should never appear here!
   pub load_tasks: HashMap<IVec2, Option<JoinHandle<ChunkData>>>,
-  pub mesh_tasks: HashMap<IVec2, Option<JoinHandle<(Vec<ChunkVertex>, Vec<u16>)>>>,
+  pub mesh_tasks: HashMap<IVec2, Option<JoinHandle<(Vec<ChunkVertex>, Vec<u32>)>>>,
 }
 impl WorldThreading {
   pub fn new() -> Self {
@@ -84,11 +84,11 @@ impl WorldThreading {
       let handle = mem::take(handle).unwrap();
       let (shape, index) = handle.join().unwrap();
       let chunk = chunks.get_mut(position).unwrap();
-      chunk.mesh = Some(( 
-        true,
-        VertexBuffer::immutable(display, &shape).expect("Failed to build VertexBuffer"),
-        IndexBuffer::immutable(display, PrimitiveType::TrianglesList, &index).expect("Failed to build IndexBuffer")
-      ));
+      chunk.mesh = Some(ChunkMesh {
+        is_dirty: false,
+        vertex_buffer: VertexBuffer::new(display, &shape).expect("Failed to build VertexBuffer"),
+        index_buffer: IndexBuffer::new(display, PrimitiveType::TrianglesList, &index).expect("Failed to build IndexBuffer")
+      });
       chunk.state = ChunkState::Rendered;
       false
     });

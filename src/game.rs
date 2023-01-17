@@ -1,6 +1,5 @@
 use glam::Vec2;
-use glium::{Surface, uniform};
-use glium::uniforms::{Sampler, MinifySamplerFilter, MagnifySamplerFilter};
+use glium::Surface;
 use glium::glutin::{
   event::{Event, WindowEvent, DeviceEvent},
   event_loop::{EventLoop, ControlFlow},
@@ -19,7 +18,7 @@ mod options;
 
 use assets::Assets;
 use display::init_display;
-use shaders::{Programs, chunk::Vertex as ChunkVertex};
+use shaders::Programs;
 use camera::Camera;
 use controller::Controls;
 use world::World;
@@ -53,15 +52,15 @@ pub fn run() {
   let options = GameOptions::default();
   log::info!("init game state");
   let mut state = State::init();
-  state.camera.position = [0., 0., -1.];
+  state.camera.position = [0., 260., -1.];
   log::info!("game loaded");
 
   //=======================
-  let vertex1 = ChunkVertex { position: [-0.5, -0.5, 0.], uv: [0., 0.], normal: [0., 1., 0.] };
-  let vertex2 = ChunkVertex { position: [ 0.0,  0.5, 0.], uv: [0., 1.], normal: [0., 1., 0.] };
-  let vertex3 = ChunkVertex { position: [ 0.5, -0.5, 0.], uv: [1., 1.], normal: [0., 1., 0.] };
-  let shape = vec![vertex1, vertex2, vertex3];
-  let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+  // let vertex1 = ChunkVertex { position: [-0.5, -0.5, 0.], uv: [0., 0.], normal: [0., 1., 0.] };
+  // let vertex2 = ChunkVertex { position: [ 0.0,  0.5, 0.], uv: [0., 1.], normal: [0., 1., 0.] };
+  // let vertex3 = ChunkVertex { position: [ 0.5, -0.5, 0.], uv: [1., 1.], normal: [0., 1., 0.] };
+  // let shape = vec![vertex1, vertex2, vertex3];
+  // let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
   //=======================
 
   let mut last_render = Instant::now();
@@ -122,12 +121,11 @@ pub fn run() {
     let target_dimensions = target.get_dimensions();
     let perspective = state.camera.perspective_matrix(target_dimensions);
     let view = state.camera.view_matrix();
-    
-    //Draw example triangle
 
     //Draw chunks
     state.world.render(&mut target, &programs, &assets, perspective, view);
-
+    
+    //Draw example triangle
     // target.draw(
     //   &vertex_buffer,
     //   glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList), 

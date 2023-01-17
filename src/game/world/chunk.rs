@@ -19,10 +19,16 @@ pub enum ChunkState {
 
 pub type ChunkData = Box<[[[Block; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE]>;
 
+pub struct ChunkMesh {
+  pub is_dirty: bool,
+  pub vertex_buffer: VertexBuffer<ChunkVertex>,
+  pub index_buffer: IndexBuffer<u32>,
+}
+
 pub struct Chunk {
   pub position: IVec2,
   pub block_data: Option<ChunkData>,
-  pub mesh: Option<(bool, VertexBuffer<ChunkVertex>, IndexBuffer<u16>)>,
+  pub mesh: Option<ChunkMesh>,
   pub state: ChunkState,
   pub desired: ChunkState,
 }
