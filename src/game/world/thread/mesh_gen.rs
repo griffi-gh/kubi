@@ -123,6 +123,7 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
             //TODO replace with a proper texture resolver (or calculate uvs in a shader!)
             //this is temporary!
             //also this can only resolve textures on the first row.
+
             const TEX_WIDTH: f32 = 16. / 640.;
             const TEX_HEIGHT: f32 = 16. / 404.;
             let x1 = TEX_WIDTH * texture_id as f32;

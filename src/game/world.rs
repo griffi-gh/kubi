@@ -26,7 +26,7 @@ const NEGATIVE_X_NEIGHBOR: usize = 1;
 const POSITIVE_Z_NEIGHBOR: usize = 2;
 const NEGATIVE_Z_NEIGHBOR: usize = 3;
 
-const MAX_TASKS: usize = 4;
+const MAX_TASKS: usize = 6;
 
 pub struct World {
   pub chunks: HashMap<IVec2, Chunk>,
@@ -58,8 +58,9 @@ impl World {
     view: [[f32; 4]; 4]
   ) {
     let sampler = SamplerBehavior {
-      minify_filter: MinifySamplerFilter::Nearest,
+      minify_filter: MinifySamplerFilter::Linear,
       magnify_filter: MagnifySamplerFilter::Nearest,
+      max_anisotropy: 8,
       ..Default::default()
     };
     let draw_parameters = DrawParameters {
@@ -68,6 +69,7 @@ impl World {
         write: true,
         ..Default::default()
       },
+      #[cfg(feature = "polygon_rendering")] polygon_mode: glium::PolygonMode::Line,
       backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
       ..Default::default()
     };

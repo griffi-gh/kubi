@@ -38,7 +38,10 @@ pub const FRAGMENT_SHADER: &str = r#"
   uniform sampler2D tex;
 
   void main() {
+    // base color from texture
     color = texture(tex, v_uv);
+
+    //basic lighting
     color *= vec4(vec3(abs(v_normal.x) + .8 * abs(v_normal.y) + .6 * abs(v_normal.z)), 1.);
   }
 "#;

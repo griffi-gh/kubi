@@ -13,7 +13,7 @@ pub fn generate_chunk(position: IVec2, seed: u32) -> ChunkData {
   let mut chunk = Box::new([[[Block::Air; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE]);
 
   //generate noises
-  let height_noise = NoiseBuilder::ridge_2d_offset(world_xz.x, CHUNK_SIZE, world_xz.y, CHUNK_SIZE)
+  let height_noise = NoiseBuilder::fbm_2d_offset(world_xz.x, CHUNK_SIZE, world_xz.y, CHUNK_SIZE)
     .with_freq(0.01)
     .with_octaves(4)
     .with_seed(seed as i32)
