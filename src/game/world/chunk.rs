@@ -5,7 +5,7 @@ use crate::game::{
   shaders::chunk::Vertex as ChunkVertex
 };
 
-pub const CHUNK_SIZE: usize = 16;
+pub const CHUNK_SIZE: usize = 32;
 pub const CHUNK_HEIGHT: usize = 255;
 
 pub enum ChunkState {

@@ -26,7 +26,7 @@ const NEGATIVE_X_NEIGHBOR: usize = 1;
 const POSITIVE_Z_NEIGHBOR: usize = 2;
 const NEGATIVE_Z_NEIGHBOR: usize = 3;
 
-const MAX_TASKS: usize = 8;
+const MAX_TASKS: usize = 4;
 
 pub struct World {
   pub chunks: HashMap<IVec2, Chunk>,
@@ -68,7 +68,7 @@ impl World {
         write: true,
         ..Default::default()
       },
-      //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+      backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
       ..Default::default()
     };
     for (&position, chunk) in &self.chunks {

@@ -109,7 +109,7 @@ impl Default for Controls {
   fn default() -> Self {
     Self {
       inputs: Default::default(),
-      speed: 10.,
+      speed: 40.,
       sensitivity: 2.,
     }
   }

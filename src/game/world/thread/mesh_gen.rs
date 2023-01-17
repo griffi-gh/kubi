@@ -28,14 +28,14 @@ const CUBE_FACE_VERTICES: [[Vec3A; 4]; 6] = [
   [vec3a(0., 0., 1.), vec3a(0., 1., 1.), vec3a(0., 0., 0.), vec3a(0., 1., 0.)],
   [vec3a(1., 0., 0.), vec3a(1., 1., 0.), vec3a(1., 0., 1.), vec3a(1., 1., 1.)],
   [vec3a(1., 0., 1.), vec3a(1., 1., 1.), vec3a(0., 0., 1.), vec3a(0., 1., 1.)],
-  [vec3a(0., 0., 1.), vec3a(0., 0., 0.), vec3a(1., 0., 1.), vec3a(1., 0., 0.)]
+  [vec3a(0., 0., 1.), vec3a(0., 0., 0.), vec3a(1., 0., 1.), vec3a(1., 0., 0.)],
 ];
 pub const CUBE_FACE_NORMALS: [[f32; 3]; 6] = [
-  [0., 1., 0.],
-  [0., 0., -1.],
+  [0.,  1., 0.],
+  [0.,  0., -1.],
   [-1., 0., 0.],
-  [1., 0., 0.],
-  [0., 0., 1.],
+  [1.,  0., 0.],
+  [0.,  0., 1.],
   [0., -1., 0.]
 ];
 pub const CUBE_FACE_INDICES: [u32; 6] = [0, 1, 2, 2, 1, 3];
@@ -98,7 +98,8 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
     for y in 0..CHUNK_HEIGHT {
       for z in 0..CHUNK_SIZE {
         let coord = ivec3(x as i32, y as i32, z as i32);
-        if get_block(coord).descriptor().render.is_none() {
+        let descriptor = get_block(coord).descriptor();
+        if descriptor.render.is_none() {
           continue
         }
         for face in CubeFace::iter() {
@@ -110,11 +111,29 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
             get_block(facing_coord).descriptor().render.is_none()
           };
           if show {
+            let texures = descriptor.render.unwrap().1;
+            let texture_id = match face {
+              CubeFace::Top    => texures.top,
+              CubeFace::Front  => texures.front,
+              CubeFace::Left   => texures.left,
+              CubeFace::Right  => texures.right,
+              CubeFace::Back   => texures.back,
+              CubeFace::Bottom => texures.bottom,
+            };
+            //TODO replace with a proper texture resolver (or calculate uvs in a shader!)
+            //this is temporary!
+            //also this can only resolve textures on the first row.
+            const TEX_WIDTH: f32 = 16. / 640.;
+            const TEX_HEIGHT: f32 = 16. / 404.;
+            let x1 = TEX_WIDTH * texture_id as f32;
+            let x2 = x1 + TEX_WIDTH as f32;
+            let y1 = 1. - TEX_HEIGHT;
+            let y2 = 1.;
             builer.add_face(face, coord, [
-              vec2(0., 0.),
-              vec2(0., 1.),
-              vec2(1., 0.),
-              vec2(1., 1.),
+              vec2(x1, y1),
+              vec2(x1, y2),
+              vec2(x2, y1),
+              vec2(x2, y2),
             ]);
           }
         }

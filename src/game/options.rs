@@ -5,7 +5,7 @@ pub struct GameOptions {
 impl Default for GameOptions {
   fn default() -> Self {
     Self {
-      render_distance: 8,
+      render_distance: 16,
     }
   }
 }

@@ -28,8 +28,8 @@ impl WorldThreading {
     self.load_tasks.len() + self.mesh_tasks.len()
   }
   pub fn queue_load(&mut self, position: IVec2) {
-    let handle = thread::spawn(|| {
-      world_gen::generate_chunk()
+    let handle = thread::spawn(move || {
+      world_gen::generate_chunk(position, 0xdead_cafe)
     });
     if self.load_tasks.insert(position, Some(handle)).is_some() {
       log::warn!("load: discarded {}, reason: new task started", position);
