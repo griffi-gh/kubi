@@ -17,7 +17,7 @@ pub enum ChunkState {
   Rendered,
 }
 
-pub type ChunkData = [[[Block; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE];
+pub type ChunkData = Box<[[[Block; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE]>;
 
 pub struct Chunk {
   pub position: IVec2,

@@ -1,10 +1,7 @@
 use glam::IVec2;
 use glium::{Display, VertexBuffer, IndexBuffer, index::PrimitiveType};
-use std::{
-  thread::{self, JoinHandle}, 
-  collections::HashMap,
-  mem
-};
+use std::{mem, thread::{self, JoinHandle}};
+use hashbrown::HashMap;
 use super::chunk::{Chunk, ChunkData, ChunkState};
 use crate::game::shaders::chunk::Vertex as ChunkVertex;
 
@@ -38,20 +35,12 @@ impl WorldThreading {
       log::warn!("load: discarded {}, reason: new task started", position);
     }
   }
-  pub fn queue_mesh(&mut self, chunk: &Chunk, neighbors: [&Chunk; 4]) {
-    let position = chunk.position;
-    let data = chunk.block_data.expect("Chunk has no mesh!");
-    let neighbor_data = [
-      neighbors[0].block_data.expect("Chunk has no mesh!"),
-      neighbors[1].block_data.expect("Chunk has no mesh!"),
-      neighbors[2].block_data.expect("Chunk has no mesh!"),
-      neighbors[3].block_data.expect("Chunk has no mesh!"),
-    ];
+  pub fn queue_mesh(&mut self, position: IVec2, chunk: ChunkData, neighbor_data: [ChunkData; 4]) {
     let handle = thread::spawn(move || {
-      mesh_gen::generate_mesh(position, data, neighbor_data)
+      mesh_gen::generate_mesh(position, chunk, neighbor_data)
     });
-    if self.mesh_tasks.insert(chunk.position, Some(handle)).is_some() {
-      log::warn!("mesh: discarded {}, reason: new task started", chunk.position);
+    if self.mesh_tasks.insert(position, Some(handle)).is_some() {
+      log::warn!("mesh: discarded {}, reason: new task started", position);
     }
   }
   pub fn apply_tasks(&mut self, chunks: &mut HashMap<IVec2, Chunk>, display: &Display) {

@@ -4,5 +4,5 @@ use crate::game::{
 };
 
 pub fn generate_chunk() -> ChunkData {
-  [[[Block::Stone; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE]
+  Box::new([[[Block::Stone; CHUNK_SIZE]; CHUNK_HEIGHT]; CHUNK_SIZE])
 }

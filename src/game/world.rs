@@ -1,6 +1,6 @@
 use glam::{Vec2, IVec2};
 use glium::Display;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use crate::game::options::GameOptions;
 
 mod chunk;
@@ -50,16 +50,20 @@ impl World {
         if !self.chunks.contains_key(&position) {
           self.chunks.insert(position, Chunk::new(position));
         }
-        let chunk = self.chunks.get_mut(&position).unwrap();
-        if x == 0 || z == 0 || x == render_dist || z == render_dist {
-          chunk.desired = ChunkState::Loaded;
-        } else {
-          chunk.desired = ChunkState::Rendered;
+        {
+          //we only need mutable reference here:
+          let chunk = self.chunks.get_mut(&position).unwrap();
+          if x == 0 || z == 0 || x == render_dist || z == render_dist {
+            chunk.desired = ChunkState::Loaded;
+          } else {
+            chunk.desired = ChunkState::Rendered;
+          } 
         }
-        if matches!(chunk.state, ChunkState::Nothing) {
+        //borrow chunk immutably
+        let chunk = self.chunks.get(&position).unwrap();
+        if matches!(chunk.state, ChunkState::Nothing) && matches!(chunk.desired, ChunkState::Loaded | ChunkState::Rendered) {
           self.thread.queue_load(position);
-        }
-        if matches!(chunk.state, ChunkState::Loaded) && matches!(chunk.desired, ChunkState::Rendered) {
+        } else if matches!(chunk.state, ChunkState::Loaded) && matches!(chunk.desired, ChunkState::Rendered) {
           fn all_some<'a>(x: [Option<&'a Chunk>; 4]) -> Option<[&'a Chunk; 4]> {
             Some([x[0]?, x[1]?, x[2]?, x[3]?])
           }
@@ -70,33 +74,43 @@ impl World {
               neighbors[2].block_data.is_some() &&
               neighbors[3].block_data.is_some()
             } {
-              self.thread.queue_mesh(chunk, neighbors);
+              self.thread.queue_mesh(
+                position,
+                chunk.block_data.clone().unwrap(), 
+                [
+                  neighbors[0].block_data.clone().unwrap(),
+                  neighbors[1].block_data.clone().unwrap(),
+                  neighbors[2].block_data.clone().unwrap(),
+                  neighbors[3].block_data.clone().unwrap(),
+                ]
+              );
             }
           }
         }
       }
     }
 
-    //Handle Unload
-    self.chunks.retain(|_, chunk| !matches!(chunk.desired, ChunkState::Unload));
-    
-    //State downgrades
-    for (_, chunk) in &mut self.chunks {
+    //Unloads and state downgrades
+    self.chunks.retain(|_, chunk| {
       match chunk.desired {
+        // Chunk unload
+        ChunkState::Unload => false,
         // Any => Nothing downgrade
         ChunkState::Nothing => {
           chunk.block_data = None;
           chunk.mesh = None;
           chunk.state = ChunkState::Nothing;
+          true
         },
         //Render => Loaded downgrade
         ChunkState::Loaded if matches!(chunk.state, ChunkState::Rendering | ChunkState::Rendered) => {
           chunk.mesh = None;
           chunk.state = ChunkState::Loaded;
+          true
         },
-        _ => ()
+        _ => true
       }
-    }
+    });
     //Apply changes from threads
     self.thread.apply_tasks(&mut self.chunks, display);
   }
