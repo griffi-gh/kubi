@@ -23,9 +23,17 @@ impl BasicPhysicsActor {
     self.position += self.velocity;
     loop {
       let block_pos = self.position.floor().as_ivec3();
+      let block_pos_f = block_pos.as_vec3a();
       if let Some(block) = world.try_get(block_pos) {
         match block.descriptor().collision {
           Some(super::blocks::CollisionType::Solid) => {
+            let position_delta = self.position - block_pos_f;
+            let distance_to_zero = position_delta.abs();
+            let distance_to_one = (vec3a(1., 1., 1.) - position_delta).abs();
+
+            // let mut max_distance = 0;
+            // let mut max_distance_normal = 0;
+            // distance_to_one.x
             //todo compute restitution here
           }
           _ => break
