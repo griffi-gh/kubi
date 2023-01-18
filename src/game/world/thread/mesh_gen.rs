@@ -120,7 +120,7 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
           };
           if show {
             let texures = descriptor.render.unwrap().1;
-            let texture_index = match face {
+            let block_texture = match face {
               CubeFace::Top    => texures.top,
               CubeFace::Front  => texures.front,
               CubeFace::Left   => texures.left,
@@ -128,7 +128,7 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
               CubeFace::Back   => texures.back,
               CubeFace::Bottom => texures.bottom,
             };
-            builer.add_face(face, coord, texture_index);
+            builer.add_face(face, coord, block_texture as u8);
           }
         }
       }

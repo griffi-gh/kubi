@@ -1,5 +1,9 @@
 use strum::{EnumIter, IntoEnumIterator};
-use crate::game::items::Item;
+use crate::game::{
+  items::Item,
+  assets::textures::BlockTexture,
+};
+
 
 #[derive(Clone, Copy, Debug)]
 pub enum CollisionType {
@@ -18,15 +22,15 @@ pub enum RenderType {
 
 #[derive(Clone, Copy, Debug)]
 pub struct BlockTextures {
-  pub top: u8,
-  pub bottom: u8,
-  pub left: u8,
-  pub right: u8,
-  pub back: u8,
-  pub front: u8,
+  pub top: BlockTexture,
+  pub bottom: BlockTexture,
+  pub left: BlockTexture,
+  pub right: BlockTexture,
+  pub back: BlockTexture,
+  pub front: BlockTexture,
 }
 impl BlockTextures {
-  pub const fn all(tex: u8) -> Self {
+  pub const fn all(tex: BlockTexture) -> Self {
     Self {
       top: tex,
       bottom: tex,
@@ -36,7 +40,7 @@ impl BlockTextures {
       front: tex,
     }
   }
-  pub const fn top_sides_bottom(top: u8, sides: u8, bottom: u8) -> Self {
+  pub const fn top_sides_bottom(top: BlockTexture, sides: BlockTexture, bottom: BlockTexture) -> Self {
     Self {
       top,
       bottom,
@@ -65,7 +69,7 @@ impl BlockDescriptor {
       id: "default",
       collision: Some(CollisionType::Solid),
       raycast_collision: true,
-      render: Some((RenderType::OpaqueBlock, BlockTextures::all(0))),
+      render: Some((RenderType::OpaqueBlock, BlockTextures::all(BlockTexture::Stone))),
       item: None
     }
   }
@@ -105,7 +109,7 @@ impl Block {
         id: "stone",
         collision: Some(CollisionType::Solid),
         raycast_collision: true,
-        render: Some((RenderType::OpaqueBlock, BlockTextures::all(1))),
+        render: Some((RenderType::OpaqueBlock, BlockTextures::all(BlockTexture::Stone))),
         item: Some(Item::StoneBlock)
       },
       Self::Dirt => BlockDescriptor {
@@ -113,7 +117,7 @@ impl Block {
         id: "dirt",
         collision: Some(CollisionType::Solid),
         raycast_collision: true,
-        render: Some((RenderType::OpaqueBlock, BlockTextures::all(2))),
+        render: Some((RenderType::OpaqueBlock, BlockTextures::all(BlockTexture::Dirt))),
         item: Some(Item::DirtBlock)
       },
       Self::Grass => BlockDescriptor {
@@ -121,7 +125,7 @@ impl Block {
         id: "grass",
         collision: Some(CollisionType::Solid),
         raycast_collision: true,
-        render: Some((RenderType::OpaqueBlock, BlockTextures::top_sides_bottom(0, 3, 2))),
+        render: Some((RenderType::OpaqueBlock, BlockTextures::top_sides_bottom(BlockTexture::GrassTop, BlockTexture::GrassSide, BlockTexture::Dirt))),
         item: Some(Item::DirtBlock)
       },
       Self::Sand => BlockDescriptor { 
@@ -129,7 +133,7 @@ impl Block {
         id: "sand",
         collision: Some(CollisionType::Solid),
         raycast_collision: true,
-        render: Some((RenderType::OpaqueBlock, BlockTextures::all(4))), //this is not a sand tex
+        render: Some((RenderType::OpaqueBlock, BlockTextures::all(BlockTexture::Sand))), //this is not a sand tex
         item: Some(Item::StoneBlock)
       }
     }

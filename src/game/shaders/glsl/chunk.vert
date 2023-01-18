@@ -7,12 +7,13 @@ in uint tex_index;
 out vec2 v_uv;
 out vec3 v_normal;
 flat out uint v_tex_index;
-uniform vec3 position_offset;
+uniform vec2 position_offset;
 uniform mat4 perspective;
 uniform mat4 view;
 
 void main() {
   v_normal = normal;
   v_tex_index = tex_index;
-  gl_Position = perspective * view * vec4(position, 1.0) * vec4(position_offset, 1.0);
+  v_uv = uv;
+  gl_Position = perspective * view * (vec4(position, 1.0) + vec4(position_offset.x, 0., position_offset.y, 0.));
 }

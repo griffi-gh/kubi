@@ -78,3 +78,19 @@ impl Textures {
     }
   }
 }
+
+#[derive(Clone, Copy, Debug)]
+#[repr(u8)]
+pub enum BlockTexture {
+  Stone = 0,
+  Dirt = 1,
+  GrassTop = 2,
+  GrassSide = 3,
+  Sand = 4,
+  Bedrock = 5,
+  Tree = 6,
+  TreeTop = 7,
+  Leaf = 8,
+  Torch = 9,
+  TallGrass = 10,
+}

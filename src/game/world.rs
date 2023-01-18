@@ -86,13 +86,7 @@ impl World {
           &mesh.index_buffer,
           &programs.chunk, 
           &uniform! {
-            model: [
-              [1., 0., 0., 0.],
-              [0., 1., 0., 0.],
-              [0., 0., 1., 0.],
-              //[0., 0., 0., 1.0_f32]
-              [(position.x * CHUNK_SIZE as i32) as f32, 0., (position.y * CHUNK_SIZE as i32) as f32, 1.0_f32]
-            ],
+            position_offset: (position.as_vec2() * CHUNK_SIZE as f32).to_array(),
             view: view,
             perspective: perspective,
             tex: Sampler(&assets.textures.blocks, sampler)
