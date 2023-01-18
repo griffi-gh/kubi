@@ -26,12 +26,14 @@ use options::GameOptions;
 
 struct State {
   pub camera: Camera,
+  pub first_draw: bool,
   pub controls: Controls, 
   pub world: World
 }
 impl State {
   pub fn init() -> Self {
     Self {
+      first_draw: true,
       camera: Camera::default(),
       controls: Controls::default(),
       world: World::new(),
@@ -90,6 +92,9 @@ pub fn run() {
             *control_flow = ControlFlow::Exit;
             return
           },
+          WindowEvent::Resized(size) => {
+            state.camera.update_perspective_matrix((size.width, size.height));
+          },
           _ => return
         }
       },
@@ -118,8 +123,11 @@ pub fn run() {
     target.clear_color_and_depth((0.5, 0.5, 1., 1.), 1.);
 
     //Compute camera
-    let target_dimensions = target.get_dimensions();
-    let perspective = state.camera.perspective_matrix(target_dimensions);
+    if state.first_draw {
+      let target_dimensions = target.get_dimensions();
+      state.camera.update_perspective_matrix(target_dimensions);
+    }
+    let perspective = state.camera.perspective_matrix;
     let view = state.camera.view_matrix();
 
     //Draw chunks
@@ -146,5 +154,7 @@ pub fn run() {
 
     //Finish drawing
     target.finish().unwrap();
+
+    state.first_draw = false;
   });
 }

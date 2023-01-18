@@ -22,6 +22,7 @@ pub struct Camera {
   pub fov: f32,
   pub znear: f32,
   pub zfar: f32,
+  pub perspective_matrix: [[f32; 4]; 4],
 }
 impl Camera {
   /// Update camera direction based on yaw/pitch
@@ -67,20 +68,67 @@ impl Camera {
     ]
   }
   
-  pub fn perspective_matrix(&self, target_dimensions: (u32, u32)) -> [[f32; 4]; 4] {
+  pub fn update_perspective_matrix(&mut self, target_dimensions: (u32, u32)) {
     let znear = self.znear;
     let zfar = self.zfar;
     let fov = self.fov;
     let (width, height) = target_dimensions;
     let aspect_ratio = height as f32 / width as f32;
     let f = 1.0 / (fov / 2.0).tan();
-    [
+    self.perspective_matrix = [
       [f*aspect_ratio, 0.0, 0.0,                            0.0],
       [0.0,            f,   0.0,                            0.0],
       [0.0,            0.0, (zfar+znear)/(zfar-znear),      1.0],
       [0.0,            0.0, -(2.0*zfar*znear)/(zfar-znear), 0.0],
-    ]
+    ];
   }
+
+  // https://web.archive.org/web/20070226173353/https://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf
+  pub fn frustum_planes(&self, normalized: bool) -> [[f32; 4]; 6] {
+    let mut p_planes = [[0.0_f32; 4]; 6];
+    let matrix = self.perspective_matrix;
+    fn normalize_plane(mut plane: [f32; 4]) -> [f32; 4] {
+      let mag = (plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]).sqrt();
+      plane[0] = plane[0] / mag;
+      plane[1] = plane[1] / mag;
+      plane[2] = plane[2] / mag;
+      plane[3] = plane[3] / mag;
+      plane
+    }
+    // Left clipping plane
+    p_planes[0][0] = matrix[3][0] + matrix[0][0];
+    p_planes[0][1] = matrix[3][1] + matrix[0][1];
+    p_planes[0][2] = matrix[3][2] + matrix[0][2];
+    p_planes[0][3] = matrix[3][3] + matrix[0][3];
+    // Right clipping plane
+    p_planes[1][0] = matrix[3][0] - matrix[0][0];
+    p_planes[1][1] = matrix[3][1] - matrix[0][1];
+    p_planes[1][2] = matrix[3][2] - matrix[0][2];
+    p_planes[1][3] = matrix[3][3] - matrix[0][3];
+    // Top clipping plane
+    p_planes[2][0] = matrix[3][0] - matrix[1][0];
+    p_planes[2][1] = matrix[3][1] - matrix[1][1];
+    p_planes[2][2] = matrix[3][2] - matrix[1][2];
+    p_planes[2][3] = matrix[3][3] - matrix[1][3];
+    // Bottom clipping plane
+    p_planes[3][0] = matrix[3][0] + matrix[1][0];
+    p_planes[3][1] = matrix[3][1] + matrix[1][1];
+    p_planes[3][2] = matrix[3][2] + matrix[1][2];
+    p_planes[3][3] = matrix[3][3] + matrix[1][3];
+    // Near clipping plane
+    p_planes[4][0] = matrix[3][0] + matrix[3][0];
+    p_planes[4][1] = matrix[3][1] + matrix[3][1];
+    p_planes[4][2] = matrix[3][2] + matrix[3][2];
+    p_planes[4][3] = matrix[3][3] + matrix[3][3];
+    // Far clipping plane
+    p_planes[5][0] = matrix[3][0] - matrix[3][0];
+    p_planes[5][1] = matrix[3][1] - matrix[3][1];
+    p_planes[5][2] = matrix[3][2] - matrix[3][2];
+    p_planes[5][3] = matrix[3][3] - matrix[3][3];
+
+    p_planes
+  }
+
 }
 impl Default for Camera {
   fn default() -> Self {
@@ -93,6 +141,7 @@ impl Default for Camera {
       znear: 0.1,
       yaw: 0.,
       pitch: 0.,
+      perspective_matrix: [[0.; 4]; 4]
     }
   }
 }

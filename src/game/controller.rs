@@ -110,7 +110,7 @@ impl Default for Controls {
     Self {
       inputs: Default::default(),
       speed: 40.,
-      sensitivity: 2.,
+      sensitivity: 1.24,
     }
   }
 }

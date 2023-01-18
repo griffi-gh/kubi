@@ -14,7 +14,7 @@ pub fn generate_chunk(position: IVec2, seed: u32) -> ChunkData {
 
   //generate noises
   let height_noise = NoiseBuilder::fbm_2d_offset(world_xz.x, CHUNK_SIZE, world_xz.y, CHUNK_SIZE)
-    .with_freq(0.01)
+    .with_freq(0.025)
     .with_octaves(4)
     .with_seed(seed as i32)
     .generate_scaled(TERRAIN_HEIGHT_MIN, TERRAIN_HEIGHT_MAX);
