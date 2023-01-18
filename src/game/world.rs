@@ -1,4 +1,4 @@
-use glam::{Vec2, IVec2};
+use glam::{Vec2, IVec2, IVec3, Vec3Swizzles};
 use glium::{
   Display, Frame, Surface, 
   DrawParameters, Depth, 
@@ -13,7 +13,8 @@ use hashbrown::HashMap;
 use crate::game::{
   options::GameOptions,
   shaders::Programs,
-  assets::Assets
+  assets::Assets,
+  blocks::Block,
 };
 
 mod chunk;
@@ -41,6 +42,19 @@ impl World {
       self.chunks.get(&(position + IVec2::new(0, 1))),
       self.chunks.get(&(position - IVec2::new(0, 1))),
     ]
+  }
+
+  pub fn try_get(&self, position: IVec3) -> Option<Block> {
+    let chunk_coord = IVec2::new(position.x, position.z) / CHUNK_SIZE as i32;
+    let chunk = self.chunks.get(&chunk_coord)?;
+    let block_data = chunk.block_data.as_ref()?;
+    let block_position = position - (chunk_coord * CHUNK_SIZE as i32).extend(0).xzy();
+    Some(
+      *block_data
+        .get(block_position.x as usize)?
+        .get(block_position.y as usize)?
+        .get(block_position.z as usize)?
+    )
   }
 
   pub fn new() -> Self {
