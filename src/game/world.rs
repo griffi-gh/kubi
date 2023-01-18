@@ -95,7 +95,7 @@ impl World {
             ],
             view: view,
             perspective: perspective,
-            tex: Sampler(&assets.textures.block_atlas, sampler)
+            tex: Sampler(&assets.textures.blocks, sampler)
           }, 
           &draw_parameters
         ).unwrap();

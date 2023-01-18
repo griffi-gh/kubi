@@ -30,7 +30,7 @@ const CUBE_FACE_VERTICES: [[Vec3A; 4]; 6] = [
   [vec3a(1., 0., 1.), vec3a(1., 1., 1.), vec3a(0., 0., 1.), vec3a(0., 1., 1.)],
   [vec3a(0., 0., 1.), vec3a(0., 0., 0.), vec3a(1., 0., 1.), vec3a(1., 0., 0.)],
 ];
-pub const CUBE_FACE_NORMALS: [[f32; 3]; 6] = [
+const CUBE_FACE_NORMALS: [[f32; 3]; 6] = [
   [0.,  1., 0.],
   [0.,  0., -1.],
   [-1., 0., 0.],
@@ -38,7 +38,14 @@ pub const CUBE_FACE_NORMALS: [[f32; 3]; 6] = [
   [0.,  0., 1.],
   [0., -1., 0.]
 ];
-pub const CUBE_FACE_INDICES: [u32; 6] = [0, 1, 2, 2, 1, 3];
+const CUBE_FACE_INDICES: [u32; 6] = [0, 1, 2, 2, 1, 3];
+const UV_COORDS: [[f32; 2]; 4] = [
+  [0., 0.],
+  [0., 1.],
+  [1., 0.],
+  [1., 1.],
+];
+
 
 #[derive(Default)]
 struct MeshBuilder {
@@ -51,7 +58,7 @@ impl MeshBuilder {
     Self::default()
   }
 
-  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, uvs: [Vec2; 4]) {
+  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u8) {
     let coord = coord.as_vec3a();
     let face_index = face as usize;
     
@@ -63,7 +70,8 @@ impl MeshBuilder {
       self.vertex_buffer.push(Vertex {
         position: (coord + vert[i]).to_array(),
         normal: norm,
-        uv: uvs[i].to_array()
+        uv: UV_COORDS[i], 
+        tex_index: texture
       });
     }
 
@@ -112,7 +120,7 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
           };
           if show {
             let texures = descriptor.render.unwrap().1;
-            let texture_id = match face {
+            let texture_index = match face {
               CubeFace::Top    => texures.top,
               CubeFace::Front  => texures.front,
               CubeFace::Left   => texures.left,
@@ -120,22 +128,7 @@ pub fn generate_mesh(position: IVec2, chunk_data: ChunkData, neighbors: [ChunkDa
               CubeFace::Back   => texures.back,
               CubeFace::Bottom => texures.bottom,
             };
-            //TODO replace with a proper texture resolver (or calculate uvs in a shader!)
-            //this is temporary!
-            //also this can only resolve textures on the first row.
-
-            const TEX_WIDTH: f32 = 16. / 640.;
-            const TEX_HEIGHT: f32 = 16. / 404.;
-            let x1 = TEX_WIDTH * texture_id as f32;
-            let x2 = x1 + TEX_WIDTH as f32;
-            let y1 = 1. - TEX_HEIGHT;
-            let y2 = 1.;
-            builer.add_face(face, coord, [
-              vec2(x1, y1),
-              vec2(x1, y2),
-              vec2(x2, y1),
-              vec2(x2, y2),
-            ]);
+            builer.add_face(face, coord, texture_index);
           }
         }
       }
