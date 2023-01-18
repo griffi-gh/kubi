@@ -31,11 +31,11 @@ fn load_png(file_path: &str, display: &glium::Display) -> SrgbTexture2d {
 fn load_png_array(file_paths: &[PathBuf], display: &glium::Display) -> SrgbTexture2dArray {
   let counter = AtomicU16::new(0);
   let raw_images: Vec<RawImage2d<u8>> = file_paths.par_iter().enumerate().map(|(_, file_path)| {
-    let counter = counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-    log::info!("loading texture {}/{}: {}", counter, file_paths.len(), file_path.to_str().unwrap());
+    
+    let fname: &str = file_path.file_name().unwrap_or_default().to_str().unwrap();
 
     //Load file
-    let data = fs::read(file_path).expect("Failed to load texture");
+    let data = fs::read(file_path).expect(&format!("Failed to load texture {}", fname));
 
     //decode image data
     let image_data = image::load(
@@ -49,6 +49,9 @@ fn load_png_array(file_paths: &[PathBuf], display: &glium::Display) -> SrgbTextu
       &image_data.into_raw(), 
       image_dimensions
     );
+
+    let counter = counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+    log::info!("loaded texture {}/{}: {}", counter, file_paths.len(), fname);
 
     raw_image
   }).collect();
@@ -65,15 +68,17 @@ impl Textures {
       blocks: load_png_array(&[
         "./assets/blocks/stone.png".into(),
         "./assets/blocks/dirt.png".into(),
-        "./assets/blocks/grass.png".into(),
+        "./assets/blocks/grass_top.png".into(),
         "./assets/blocks/grass_side.png".into(),
         "./assets/blocks/sand.png".into(),
         "./assets/blocks/bedrock.png".into(),
-        "./assets/blocks/tree.png".into(),
-        "./assets/blocks/tree_top.png".into(),
+        "./assets/blocks/wood.png".into(),
+        "./assets/blocks/wood_top.png".into(),
         "./assets/blocks/leaf.png".into(),
         "./assets/blocks/torch.png".into(),
         "./assets/blocks/tall_grass.png".into(),
+        "./assets/blocks/snow.png".into(),
+        "./assets/blocks/grass_side_snow.png".into(),
       ], display)
     }
   }
@@ -88,9 +93,11 @@ pub enum BlockTexture {
   GrassSide = 3,
   Sand = 4,
   Bedrock = 5,
-  Tree = 6,
-  TreeTop = 7,
+  Wood = 6,
+  WoodTop = 7,
   Leaf = 8,
   Torch = 9,
   TallGrass = 10,
+  Snow = 11,
+  GrassSideSnow = 12,
 }
