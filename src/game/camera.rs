@@ -83,6 +83,7 @@ impl Camera {
     ];
   }
 
+  // https://www.flipcode.com/archives/Frustum_Culling.shtml
   // https://web.archive.org/web/20070226173353/https://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf
   pub fn frustum_planes(&self, normalized: bool) -> [[f32; 4]; 6] {
     let mut p_planes = [[0.0_f32; 4]; 6];
