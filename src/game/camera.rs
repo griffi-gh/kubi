@@ -13,6 +13,15 @@ pub fn calculate_forward_direction(yaw: f32, pitch: f32) -> [f32; 3] {
   ]
 }
 
+fn normalize_plane(mut plane: [f32; 4]) -> [f32; 4] {
+  let mag = (plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]).sqrt();
+  plane[0] = plane[0] / mag;
+  plane[1] = plane[1] / mag;
+  plane[2] = plane[2] / mag;
+  plane[3] = plane[3] / mag;
+  plane
+}
+
 pub struct Camera {
   pub yaw: f32,
   pub pitch: f32,
@@ -88,14 +97,7 @@ impl Camera {
   pub fn frustum_planes(&self, normalized: bool) -> [[f32; 4]; 6] {
     let mut p_planes = [[0.0_f32; 4]; 6];
     let matrix = self.perspective_matrix;
-    fn normalize_plane(mut plane: [f32; 4]) -> [f32; 4] {
-      let mag = (plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]).sqrt();
-      plane[0] = plane[0] / mag;
-      plane[1] = plane[1] / mag;
-      plane[2] = plane[2] / mag;
-      plane[3] = plane[3] / mag;
-      plane
-    }
+    
     // Left clipping plane
     p_planes[0][0] = matrix[3][0] + matrix[0][0];
     p_planes[0][1] = matrix[3][1] + matrix[0][1];
@@ -126,6 +128,13 @@ impl Camera {
     p_planes[5][1] = matrix[3][1] - matrix[3][1];
     p_planes[5][2] = matrix[3][2] - matrix[3][2];
     p_planes[5][3] = matrix[3][3] - matrix[3][3];
+
+    //Normalize planes
+    if normalized {
+      for plane in &mut p_planes {
+        *plane = normalize_plane(*plane);
+      }
+    }
 
     p_planes
   }
