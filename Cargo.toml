@@ -3,6 +3,9 @@ name = "kubi"
 version = "0.1.0"
 edition = "2021"
 
+[profile.dev.package.noise]
+opt-level = 3
+
 [dependencies]
 glium = "0.32"
 image = { version = "0.24", default_features = false, features = ["png"] }
