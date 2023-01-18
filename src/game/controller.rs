@@ -95,9 +95,9 @@ impl Controls {
         ]
       }
     };
-    let rotation = [
-      dt * self.inputs.look_h * self.sensitivity,
-      dt * self.inputs.look_v * self.sensitivity
+    let rotation = [ //Do mouse inputs need to be multiplied by dt?
+      self.inputs.look_h * self.sensitivity * 0.01, //* dt
+      self.inputs.look_v * self.sensitivity * 0.01  //* dt
     ];
     //Only mouse related actions need to be reset
     self.inputs.look_h = 0.;
