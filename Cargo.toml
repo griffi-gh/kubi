@@ -16,7 +16,4 @@ glam = { version = "0.22", features = ["debug-glam-assert", "mint", "fast-math"]
 hashbrown = "0.13"
 noise = "0.8"
 rayon = "1.6"
-specs = { version =  "0.18", features = ["specs-derive"] }
-
-[features]
-default = []
+shipyard = { version = "0.6", features = ["thread_local"] }
