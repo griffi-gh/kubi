@@ -1,4 +1,8 @@
-use shipyard::{World, Workload, IntoWorkload, View, UniqueView, NonSendSync};
+use shipyard::{
+  World, Workload, IntoWorkload, 
+  UniqueView, UniqueViewMut, 
+  NonSendSync, Unique
+};
 use glium::{
   Surface,
   glutin::{
@@ -6,14 +10,24 @@ use glium::{
     event::{Event, WindowEvent}
   }
 };
+use glam::vec3;
+use std::time::{Instant, Duration};
 
 mod logging;
-mod rendering;
+pub(crate) mod rendering;
+pub(crate) mod player;
+pub(crate) mod world;
 
-use rendering::{Rederer, RenderTarget};
+use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
+
+#[derive(Unique)]
+pub(crate) struct DeltaTime(Duration);
 
 fn render() -> Workload {
-  (||()).into_workload()
+  (
+    clear_background,
+
+  ).into_workload()
 }
 fn update() -> Workload {
   (||()).into_workload()
@@ -29,6 +43,8 @@ fn main() {
   let world = World::new();
 
   //Add systems and uniques
+  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+  world.add_unique(DeltaTime(Duration::default()));
   world.add_unique_non_send_sync(
     Rederer::init(&event_loop)
   );
@@ -36,24 +52,41 @@ fn main() {
   world.add_workload(render);
 
   //Run the event loop
+  let mut last_update = Instant::now();
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
     match event {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
+          log::info!("exit requested");
           *control_flow = ControlFlow::Exit;
         },
         _ => (),
       },
       Event::MainEventsCleared => {
+        //Update delta time (maybe move this into a system?)
+        {
+          let mut dt_view = world.borrow::<UniqueViewMut<DeltaTime>>().unwrap();
+          let now = Instant::now();
+          dt_view.0 = now - last_update;
+          last_update = now;
+        }
+        
+        //Run update workflow
         world.run_workload(update).unwrap();
+
+        //Start rendering
         let mut target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Rederer>>>().unwrap();
           renderer.display.draw()
         };
         target.clear_color_and_depth((0., 0., 0., 1.), 1.);
         world.add_unique_non_send_sync(RenderTarget(target));
+
+        //Run render workflow
         world.run_workload(render).unwrap();
+
+        //Finish rendering
         let target = world.remove_unique::<RenderTarget>().unwrap(); 
         target.0.finish().unwrap();
       },
