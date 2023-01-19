@@ -16,7 +16,7 @@ glam = { version = "0.22", features = ["debug-glam-assert", "mint", "fast-math"]
 hashbrown = "0.13"
 noise = "0.8"
 rayon = "1.6"
-#ordered-float = "3.4"
+specs = { version =  "0.18", features = ["specs-derive"] }
 
 [features]
 default = []
