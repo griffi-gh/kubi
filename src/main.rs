@@ -17,8 +17,10 @@ mod logging;
 pub(crate) mod rendering;
 pub(crate) mod player;
 pub(crate) mod world;
+pub(crate) mod prefabs;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
+use prefabs::load_prefabs;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -42,12 +44,15 @@ fn main() {
   //Create a shipyard world
   let world = World::new();
 
-  //Add systems and uniques
-  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
-  world.add_unique(DeltaTime(Duration::default()));
+  //Init and load things
   world.add_unique_non_send_sync(
     Rederer::init(&event_loop)
   );
+  load_prefabs(&world);
+
+  //Add systems and uniques
+  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+  world.add_unique(DeltaTime(Duration::default()));
   world.add_workload(update);
   world.add_workload(render);
 
