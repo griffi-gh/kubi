@@ -21,20 +21,27 @@ pub(crate) mod prefabs;
 pub(crate) mod transform;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
-use world::GameWorld;
+use player::spawn_player;
+use world::{GameWorld, loading::load_world_around_player};
 use prefabs::load_prefabs;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
 
-fn render() -> Workload {
+fn startup() -> Workload {
   (
-    clear_background,
-
+    spawn_player,
   ).into_workload()
 }
 fn update() -> Workload {
-  (||()).into_workload()
+  (
+    load_world_around_player
+  ).into_workload()
+}
+fn render() -> Workload {
+  (
+    clear_background,
+  ).into_workload()
 }
 
 fn main() {
@@ -56,8 +63,14 @@ fn main() {
   );
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
+
+  //Register workloads
+  world.add_workload(startup);
   world.add_workload(update);
   world.add_workload(render);
+
+  //Run startup systems
+  world.run_workload(startup).unwrap();
 
   //Run the event loop
   let mut last_update = Instant::now();

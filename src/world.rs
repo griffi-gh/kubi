@@ -6,12 +6,12 @@ pub mod chunk;
 pub mod block;
 pub mod render;
 pub mod tasks;
+pub mod loading;
 
 use chunk::Chunk;
 
 //TODO separate world struct for render data
 // because this is not send-sync
-
 
 pub struct AllChunksNeighbors<'a> {
   pub center: &'a Chunk,
@@ -96,10 +96,4 @@ impl GameWorld {
       back:   std::mem::take(&mut refs[6]).unwrap(),
     })
   }
-}
-
-fn update_world(
-  
-) {
-  
 }
