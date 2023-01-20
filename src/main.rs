@@ -80,7 +80,7 @@ fn main() {
         //Run update workflow
         world.run_workload(update).unwrap();
 
-        //Start rendering
+        //Start rendering (maybe use custom views for this?)
         let mut target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Rederer>>>().unwrap();
           renderer.display.draw()
