@@ -1,6 +1,6 @@
 use shipyard::{World, NonSendSync, UniqueView, Unique};
-use strum::{EnumIter, IntoEnumIterator};
-use glium::{texture::{SrgbTexture2dArray, RawImage2d}, backend::Facade, Program};
+use glium::{texture::SrgbTexture2dArray, Program};
+use strum::EnumIter;
 use crate::rendering::Rederer;
 
 mod texture;
@@ -49,8 +49,6 @@ impl AssetPaths for BlockTextures {
     }
   }
 }
-
-
 
 #[derive(Unique)]
 pub struct BlockTexturesPrefab(SrgbTexture2dArray);

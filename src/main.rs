@@ -20,6 +20,7 @@ pub(crate) mod world;
 pub(crate) mod prefabs;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
+use world::GameWorld;
 use prefabs::load_prefabs;
 
 #[derive(Unique)]
@@ -44,13 +45,14 @@ fn main() {
   //Create a shipyard world
   let world = World::new();
 
-  //Init and load things
+  //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(
     Rederer::init(&event_loop)
   );
   load_prefabs(&world);
-
-  //Add systems and uniques
+  world.add_unique_non_send_sync(
+    GameWorld::new()
+  );
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_workload(update);

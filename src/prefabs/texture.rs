@@ -4,7 +4,10 @@ use std::{fs::File, path::PathBuf, io::BufReader};
 use glium::{texture::{SrgbTexture2dArray, RawImage2d}, backend::Facade};
 use super::AssetPaths;
 
-pub fn load_texture2darray_prefab<T: AssetPaths + IntoEnumIterator, E: Facade>(
+pub fn load_texture2darray_prefab<
+  T: AssetPaths + IntoEnumIterator, 
+  E: Facade
+>(
   directory: PathBuf, 
   facade: &E
 ) -> SrgbTexture2dArray {
