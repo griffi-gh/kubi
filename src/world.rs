@@ -5,9 +5,9 @@ use hashbrown::HashMap;
 pub mod chunk;
 pub mod block;
 pub mod render;
+pub mod tasks;
 
 use chunk::Chunk;
-
 
 //TODO separate world struct for render data
 // because this is not send-sync

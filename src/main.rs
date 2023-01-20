@@ -18,6 +18,7 @@ pub(crate) mod rendering;
 pub(crate) mod player;
 pub(crate) mod world;
 pub(crate) mod prefabs;
+pub(crate) mod transform;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
 use world::GameWorld;
