@@ -62,6 +62,9 @@ fn main() {
     *control_flow = ControlFlow::Poll;
     match event {
       Event::WindowEvent { event, .. } => match event {
+        WindowEvent::Resized(size) => {
+          // todo ...
+        }
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
           *control_flow = ControlFlow::Exit;

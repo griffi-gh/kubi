@@ -1,11 +1,15 @@
 use shipyard::{World, NonSendSync, UniqueView, Unique};
 use strum::{EnumIter, IntoEnumIterator};
-use rayon::prelude::*;
-use glium::{texture::{SrgbTexture2dArray, RawImage2d}, backend::Facade};
-use std::{fs::File, path::PathBuf, io::BufReader};
+use glium::{texture::{SrgbTexture2dArray, RawImage2d}, backend::Facade, Program};
 use crate::rendering::Rederer;
 
-trait AssetPaths {
+mod texture;
+mod shaders;
+
+use texture::load_texture2darray_prefab;
+use shaders::include_shader_prefab;
+
+pub trait AssetPaths {
   fn file_name(self) -> &'static str;
 }
 
@@ -46,43 +50,27 @@ impl AssetPaths for BlockTextures {
   }
 }
 
-fn load_texture2darray_prefab<T: AssetPaths + IntoEnumIterator, E: Facade>(directory: PathBuf, facade: &E) -> SrgbTexture2dArray {
-  //Load raw images
-  let tex_files: Vec<&'static str> = T::iter().map(|x| x.file_name()).collect();
-  let raw_images: Vec<RawImage2d<u8>> = tex_files.par_iter().map(|&file_name| {
-    log::info!("loading texture {}", file_name);
-    //Get path to the image and open the file
-    let reader = {
-      let path = directory.join(file_name);
-      BufReader::new(File::open(path).expect("Failed to open texture file"))
-    };
-    //Parse image data
-    let (image_data, dimensions) = {
-      let image =image::load(
-        reader,
-        image::ImageFormat::Png
-      ).unwrap().to_rgba8();
-      let dimensions = image.dimensions();
-      (image.into_raw(), dimensions)
-    };
-    //Create a glium RawImage
-    RawImage2d::from_raw_rgba_reversed(
-      &image_data, 
-      dimensions
-    )
-  }).collect();
-  log::info!("done loading texture files, uploading to the gpu");
-  //Upload images to the GPU
-  SrgbTexture2dArray::new(facade, raw_images)
-    .expect("Failed to upload texture array to GPU")
-}
+
 
 #[derive(Unique)]
 pub struct BlockTexturesPrefab(SrgbTexture2dArray);
 
+#[derive(Unique)]
+pub struct ChunkShaderPrefab(Program);
+
 pub fn load_prefabs(world: &World) {
   let renderer = world.borrow::<NonSendSync<UniqueView<Rederer>>>().unwrap();
   world.add_unique_non_send_sync(BlockTexturesPrefab(
-    load_texture2darray_prefab::<BlockTextures, _>("./assets/blocks/".into(), &renderer.display)
+    load_texture2darray_prefab::<BlockTextures, _>(
+      "./assets/blocks/".into(), 
+      &renderer.display
+    )
+  ));
+  world.add_unique_non_send_sync(ChunkShaderPrefab(
+    include_shader_prefab!(
+      "../shaders/world.vert",
+      "../shaders/world.frag",
+      &renderer.display
+    )
   ));
 }

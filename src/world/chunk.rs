@@ -1,6 +1,6 @@
 use glam::IVec3;
 use glium::{VertexBuffer, IndexBuffer};
-use super::block::Block;
+use super::{block::Block, render::ChunkVertex};
 
 pub const CHUNK_SIZE: usize = 32;
 
@@ -26,9 +26,9 @@ pub struct ChunkMesh {
 pub enum ChunkState {
   ToUnload,  //desired only
   Nothing,
-  Loading, //current only
+  Loading,   //current only
   Loaded,
-  Meshing, //current only
+  Meshing,   //current only
   Rendered
 }
 
