@@ -1,7 +1,7 @@
 use glam::ivec3;
-use shipyard::{View, UniqueView, UniqueViewMut, NonSendSync, IntoIter, Workload, IntoWorkload};
+use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload};
 use crate::{player::LocalPlayer, transform::Transform, settings::GameSettings};
-use super::{GameWorld, chunk::{ChunkState, CHUNK_SIZE}};
+use super::{ChunkStorage, chunk::{ChunkState, CHUNK_SIZE}};
 
 pub fn load_world_around_player() -> Workload {
   (
@@ -13,7 +13,7 @@ pub fn mark_chunks(
   v_settings: UniqueView<GameSettings>,
   v_local_player: View<LocalPlayer>,
   v_transform: View<Transform>,
-  mut vm_world: NonSendSync<UniqueViewMut<GameWorld>>,
+  mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {
   //Read game settings
   let load_distance = (v_settings.render_distance + 1) as i32;

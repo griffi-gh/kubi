@@ -23,7 +23,7 @@ pub(crate) mod settings;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
 use player::spawn_player;
-use world::{GameWorld, loading::load_world_around_player};
+use world::{ChunkStorage, loading::load_world_around_player};
 use prefabs::load_prefabs;
 use settings::GameSettings;
 
@@ -60,9 +60,7 @@ fn main() {
     Rederer::init(&event_loop)
   );
   load_prefabs(&world);
-  world.add_unique_non_send_sync(
-    GameWorld::new()
-  );
+  world.add_unique(ChunkStorage::new());
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());

@@ -17,3 +17,5 @@ hashbrown = "0.13"
 noise = "0.8"
 rayon = "1.6"
 shipyard = { version = "0.6", features = ["thread_local"] }
+nohash-hasher = "0.2.0"
+anyhow = "1.0"

@@ -1,14 +1,17 @@
+use nohash_hasher::BuildNoHashHasher;
 use shipyard::Unique;
 use glam::{IVec3, ivec3};
 use hashbrown::HashMap;
+use anyhow::{Result, Context};
 
 pub mod chunk;
 pub mod block;
 pub mod render;
 pub mod tasks;
 pub mod loading;
+pub mod mesh;
 
-use chunk::Chunk;
+use chunk::{Chunk, ChunkMesh};
 
 //TODO separate world struct for render data
 // because this is not send-sync
@@ -55,10 +58,10 @@ impl<'a> ChunksNeighbors<'a> {
 }
 
 #[derive(Default, Unique)]
-pub struct GameWorld {
+pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>
 }
-impl GameWorld {
+impl ChunkStorage {
   pub fn new() -> Self {
     Self::default()
   }
@@ -95,5 +98,32 @@ impl GameWorld {
       front:  std::mem::take(&mut refs[5]).unwrap(),
       back:   std::mem::take(&mut refs[6]).unwrap(),
     })
+  }
+}
+
+pub struct ChunkMeshStorage {
+  meshes: HashMap<u64, ChunkMesh, BuildNoHashHasher<u64>>,
+  index: u64,
+}
+impl ChunkMeshStorage {
+  pub fn new() -> Self {
+    Self {
+      meshes: HashMap::with_capacity_and_hasher(250, BuildNoHashHasher::default()),
+      index: 0,
+    }
+  }
+  pub fn insert(&mut self, mesh: ChunkMesh) -> u64 {
+    let index = self.index;
+    self.meshes.insert_unique_unchecked(index, mesh);
+    self.index += 1;
+    index
+  }
+  pub fn update(&mut self, key: u64, mesh: ChunkMesh) -> Result<()> {
+    *self.meshes.get_mut(&key).context("Chunk doesn't exist")? = mesh;
+    Ok(())
+  }
+  pub fn remove(&mut self, key: u64) -> Result<()> {
+    self.meshes.remove(&key).context("Chunk doesn't exist")?;
+    Ok(())
   }
 }

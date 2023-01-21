@@ -28,13 +28,14 @@ pub enum ChunkState {
   Loading,   //current only
   Loaded,
   Meshing,   //current only
-  Rendered
+  Rendered,
+  RecalculatingMesh //current only
 }
 
 pub struct Chunk {
   pub position: IVec3,
   pub block_data: Option<ChunkData>,
-  pub mesh: Option<ChunkMesh>,
+  pub mesh_index: Option<usize>,
   pub current_state: ChunkState,
   pub desired_state: ChunkState,
 }
