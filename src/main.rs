@@ -25,6 +25,7 @@ use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
 use player::spawn_player;
 use world::{GameWorld, loading::load_world_around_player};
 use prefabs::load_prefabs;
+use settings::GameSettings;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -64,6 +65,7 @@ fn main() {
   );
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
+  world.add_unique(GameSettings::default());
 
   //Register workloads
   world.add_workload(startup);
