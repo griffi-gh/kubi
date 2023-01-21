@@ -37,8 +37,11 @@ pub fn mark_chunks(
     for y in -load_distance..=load_distance {
       for z in -load_distance..=load_distance {
         let chunk_pos_offset = ivec3(x, y, z);
-        let is_border = chunk_pos_offset.to_array()
-          .iter().any(|x| x.abs() == load_distance);
+        let is_border = {
+          chunk_pos_offset.x.abs() == load_distance ||
+          chunk_pos_offset.y.abs() == load_distance ||
+          chunk_pos_offset.z.abs() == load_distance
+        };
         let desired = match is_border {
           true  => ChunkState::Loaded,
           false => ChunkState::Rendered,
