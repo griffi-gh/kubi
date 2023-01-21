@@ -19,6 +19,7 @@ pub(crate) mod player;
 pub(crate) mod world;
 pub(crate) mod prefabs;
 pub(crate) mod transform;
+pub(crate) mod settings;
 
 use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
 use player::spawn_player;
