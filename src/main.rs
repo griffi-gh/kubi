@@ -21,9 +21,9 @@ pub(crate) mod prefabs;
 pub(crate) mod transform;
 pub(crate) mod settings;
 
-use rendering::{Rederer, RenderTarget, BackgroundColor, clear_background};
+use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
 use player::spawn_player;
-use world::{ChunkStorage, loading::load_world_around_player};
+use world::{ChunkStorage, ChunkMeshStorage, loading::load_world_around_player};
 use prefabs::load_prefabs;
 use settings::GameSettings;
 
@@ -56,14 +56,13 @@ fn main() {
   let world = World::new();
 
   //Add systems and uniques, Init and load things
-  world.add_unique_non_send_sync(
-    Rederer::init(&event_loop)
-  );
-  load_prefabs(&world);
+  world.add_unique_non_send_sync(Renderer::init(&event_loop));
   world.add_unique(ChunkStorage::new());
+  world.add_unique_non_send_sync(ChunkMeshStorage::new());
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());
+  load_prefabs(&world);
 
   //Register workloads
   world.add_workload(startup);
@@ -102,7 +101,7 @@ fn main() {
 
         //Start rendering (maybe use custom views for this?)
         let mut target = {
-          let renderer = world.borrow::<NonSendSync<UniqueView<Rederer>>>().unwrap();
+          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
           renderer.display.draw()
         };
         target.clear_color_and_depth((0., 0., 0., 1.), 1.);

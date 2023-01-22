@@ -1,7 +1,7 @@
 use shipyard::{World, NonSendSync, UniqueView, Unique};
 use glium::{texture::SrgbTexture2dArray, Program};
 use strum::EnumIter;
-use crate::rendering::Rederer;
+use crate::rendering::Renderer;
 
 mod texture;
 mod shaders;
@@ -57,7 +57,7 @@ pub struct BlockTexturesPrefab(SrgbTexture2dArray);
 pub struct ChunkShaderPrefab(Program);
 
 pub fn load_prefabs(world: &World) {
-  let renderer = world.borrow::<NonSendSync<UniqueView<Rederer>>>().unwrap();
+  let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
   world.add_unique_non_send_sync(BlockTexturesPrefab(
     load_texture2darray_prefab::<BlockTextures, _>(
       "./assets/blocks/".into(), 

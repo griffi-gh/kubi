@@ -21,9 +21,10 @@ pub struct ChunkMesh {
   pub index_buffer: IndexBuffer<u32>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ChunkState {
   ToUnload,  //desired only
+  #[default]
   Nothing,
   Loading,   //current only
   Loaded,
@@ -38,4 +39,15 @@ pub struct Chunk {
   pub mesh_index: Option<usize>,
   pub current_state: ChunkState,
   pub desired_state: ChunkState,
+}
+impl Chunk {
+  pub fn new(position: IVec3) -> Self {
+    Self {
+      position,
+      block_data: None,
+      mesh_index: None,
+      current_state: Default::default(),
+      desired_state: Default::default(),
+    }
+  }
 }

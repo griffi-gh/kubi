@@ -16,10 +16,10 @@ pub struct RenderTarget(pub glium::Frame);
 pub struct BackgroundColor(pub Vec3);
 
 #[derive(Unique)]
-pub struct Rederer {
+pub struct Renderer {
   pub display: Display
 }
-impl Rederer {
+impl Renderer {
   pub fn init(event_loop: &EventLoop<()>) -> Self {
     log::info!("initializing display");
     let wb = WindowBuilder::new()

@@ -58,6 +58,7 @@ impl<'a> ChunksNeighbors<'a> {
 }
 
 #[derive(Default, Unique)]
+#[track(Modification)]
 pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>
 }
@@ -101,9 +102,11 @@ impl ChunkStorage {
   }
 }
 
+
+#[derive(Default, Unique)]
 pub struct ChunkMeshStorage {
-  meshes: HashMap<u64, ChunkMesh, BuildNoHashHasher<u64>>,
-  index: u64,
+  meshes: HashMap<usize, ChunkMesh, BuildNoHashHasher<usize>>,
+  index: usize,
 }
 impl ChunkMeshStorage {
   pub fn new() -> Self {
@@ -112,17 +115,17 @@ impl ChunkMeshStorage {
       index: 0,
     }
   }
-  pub fn insert(&mut self, mesh: ChunkMesh) -> u64 {
+  pub fn insert(&mut self, mesh: ChunkMesh) -> usize {
     let index = self.index;
     self.meshes.insert_unique_unchecked(index, mesh);
     self.index += 1;
     index
   }
-  pub fn update(&mut self, key: u64, mesh: ChunkMesh) -> Result<()> {
+  pub fn update(&mut self, key: usize, mesh: ChunkMesh) -> Result<()> {
     *self.meshes.get_mut(&key).context("Chunk doesn't exist")? = mesh;
     Ok(())
   }
-  pub fn remove(&mut self, key: u64) -> Result<()> {
+  pub fn remove(&mut self, key: usize) -> Result<()> {
     self.meshes.remove(&key).context("Chunk doesn't exist")?;
     Ok(())
   }
