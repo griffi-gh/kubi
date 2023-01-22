@@ -92,31 +92,31 @@ impl super::ChunkStorage {
       bottom: self.chunks.get(&(coords + ivec3(0, 1, 0))),
       left:   self.chunks.get(&(coords - ivec3(1, 0, 0))),
       right:  self.chunks.get(&(coords + ivec3(1, 0, 0))),
-      front:  self.chunks.get(&(coords - ivec3(0, 0, 1))),
-      back:   self.chunks.get(&(coords + ivec3(0, 0, 1))),
+      front:  self.chunks.get(&(coords + ivec3(0, 0, 1))),
+      back:   self.chunks.get(&(coords - ivec3(0, 0, 1))),
     }
   }
   pub fn neighbors_all(&self, coords: IVec3) -> Option<AllChunkNeighbors> {
     self.neighbors(coords).all()
   }
   pub fn neighbors_all_mut(&mut self, coords: IVec3) -> Option<AllChunkNeighborsMut> {
-    let mut refs = self.chunks.get_many_mut([
+    let [
+      center, 
+      top, 
+      bottom, 
+      left, 
+      right, 
+      front, 
+      back
+    ] = self.chunks.get_many_mut([
       &coords,
       &(coords - ivec3(0, 1, 0)),
       &(coords + ivec3(0, 1, 0)),
       &(coords - ivec3(1, 0, 0)),
       &(coords + ivec3(1, 0, 0)),
-      &(coords - ivec3(0, 0, 1)),
       &(coords + ivec3(0, 0, 1)),
-    ])?.map(Some);
-    Some(AllChunkNeighborsMut {
-      center: std::mem::take(&mut refs[0]).unwrap(),
-      top:    std::mem::take(&mut refs[1]).unwrap(),
-      bottom: std::mem::take(&mut refs[2]).unwrap(),
-      left:   std::mem::take(&mut refs[3]).unwrap(),
-      right:  std::mem::take(&mut refs[4]).unwrap(),
-      front:  std::mem::take(&mut refs[5]).unwrap(),
-      back:   std::mem::take(&mut refs[6]).unwrap(),
-    })
+      &(coords - ivec3(0, 0, 1)),
+    ])?;
+    Some(AllChunkNeighborsMut { center, top, bottom, left, right, front, back })
   }
 }
