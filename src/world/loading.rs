@@ -3,7 +3,7 @@ use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload
 use crate::{player::LocalPlayer, transform::Transform, settings::GameSettings};
 use super::{ChunkStorage, chunk::{Chunk, ChunkState, CHUNK_SIZE}, ChunkMeshStorage};
 
-pub fn load_world_around_player() -> Workload {
+pub fn update_loaded_world_around_player() -> Workload {
   (
     update_chunks_if_player_moved,
     unload_marked_chunks
@@ -16,7 +16,8 @@ pub fn update_chunks_if_player_moved(
   v_transform: View<Transform>,
   mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {
-  //Check if the player actually moved
+  //Check if the player actually moved 
+  //TODO fix this also triggers on rotation, only activate when the player crosses the chnk border
   let Some((_, transform)) = (&v_local_player, v_transform.inserted_or_modified()).iter().next() else {
     return
   };
@@ -80,4 +81,10 @@ fn unload_marked_chunks(
       true
     }
   })
+}
+
+fn process_tasks(
+
+) {
+  
 }

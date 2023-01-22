@@ -15,17 +15,20 @@ use std::time::{Instant, Duration};
 
 mod logging;
 pub(crate) mod rendering;
-pub(crate) mod player;
 pub(crate) mod world;
+pub(crate) mod player;
 pub(crate) mod prefabs;
 pub(crate) mod transform;
 pub(crate) mod settings;
+pub(crate) mod state;
+pub(crate) mod camera;
 
 use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
+use world::{ChunkStorage, ChunkMeshStorage, loading::update_loaded_world_around_player};
 use player::spawn_player;
-use world::{ChunkStorage, ChunkMeshStorage, loading::load_world_around_player};
 use prefabs::load_prefabs;
 use settings::GameSettings;
+use camera::compute_cameras;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -37,13 +40,14 @@ fn startup() -> Workload {
 }
 fn update() -> Workload {
   (
-    load_world_around_player
+    update_loaded_world_around_player,
+    compute_cameras,
   ).into_workload()
 }
 fn render() -> Workload {
   (
     clear_background,
-  ).into_workload()
+  ).into_sequential_workload()
 }
 
 fn main() {
@@ -57,8 +61,8 @@ fn main() {
 
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
-  world.add_unique(ChunkStorage::new());
   world.add_unique_non_send_sync(ChunkMeshStorage::new());
+  world.add_unique(ChunkStorage::new());
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());
