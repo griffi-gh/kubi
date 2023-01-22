@@ -4,9 +4,10 @@ use super::{block::Block, render::ChunkVertex};
 
 pub const CHUNK_SIZE: usize = 32;
 
-type ChunkBlockData = Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>;
+pub type BlockData = Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>;
+
 pub struct ChunkData {
-  pub blocks: ChunkBlockData,
+  pub blocks: BlockData,
   pub has_renderable_blocks: bool,
 }
 impl ChunkData {

@@ -81,6 +81,8 @@ pub fn draw_world(
       write: true,
       ..Default::default()
     },
+    polygon_mode: PolygonMode::Fill, //Change to Line for wireframe
+    backface_culling: BackfaceCullingMode::CullCounterClockwise,
     ..Default::default()
   };
   let texture_sampler = Sampler(&texture.0, SamplerBehavior {
