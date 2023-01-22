@@ -23,8 +23,8 @@ pub(crate) mod settings;
 pub(crate) mod state;
 pub(crate) mod camera;
 
-use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background, draw_world};
-use world::{ChunkStorage, ChunkMeshStorage, loading::update_loaded_world_around_player};
+use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
+use world::{ChunkStorage, ChunkMeshStorage, loading::update_loaded_world_around_player, render::draw_world};
 use player::spawn_player;
 use prefabs::load_prefabs;
 use settings::GameSettings;

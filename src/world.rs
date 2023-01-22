@@ -11,13 +11,12 @@ pub mod tasks;
 pub mod loading;
 pub mod mesh;
 pub mod neighbors;
+pub mod worldgen;
 
 use chunk::{Chunk, ChunkMesh};
 
 //TODO separate world struct for render data
 // because this is not send-sync
-
-
 
 #[derive(Default, Unique)]
 #[track(Modification)]
@@ -30,6 +29,10 @@ impl ChunkStorage {
   }
 }
 
+#[derive(Unique)]
+pub struct WorldInfo {
+  pub seed: u32,
+}
 
 #[derive(Default, Unique)]
 pub struct ChunkMeshStorage {
