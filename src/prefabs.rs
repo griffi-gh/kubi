@@ -51,10 +51,10 @@ impl AssetPaths for BlockTextures {
 }
 
 #[derive(Unique)]
-pub struct BlockTexturesPrefab(SrgbTexture2dArray);
+pub struct BlockTexturesPrefab(pub SrgbTexture2dArray);
 
 #[derive(Unique)]
-pub struct ChunkShaderPrefab(Program);
+pub struct ChunkShaderPrefab(pub Program);
 
 pub fn load_prefabs(world: &World) {
   let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();

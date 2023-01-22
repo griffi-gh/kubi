@@ -129,4 +129,7 @@ impl ChunkMeshStorage {
     self.meshes.remove(&key).context("Chunk doesn't exist")?;
     Ok(())
   }
+  pub fn get(&self, key: usize) -> Option<&ChunkMesh> {
+    self.meshes.get(&key)
+  }
 }

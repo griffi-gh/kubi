@@ -1,5 +1,6 @@
-use glam::{Mat4, Vec3, Vec3A};
+use glam::{Mat4, Vec3};
 use shipyard::{Component, ViewMut, View, IntoIter, Workload, IntoWorkload};
+use std::f32::consts::PI;
 use crate::transform::Transform;
 
 #[derive(Component)]
@@ -10,6 +11,20 @@ pub struct Camera {
   pub fov: f32,
   pub z_near: f32,
   pub z_far: f32,
+}
+impl Camera {
+  pub fn new(fov: f32, z_near: f32, z_far: f32, up: Vec3) -> Self {
+    Self {
+      fov, z_near, z_far, up,
+      perspective_matrix: Mat4::default(),
+      view_matrix: Mat4::default(),
+    }
+  }
+}
+impl Default for Camera {
+  fn default() -> Self {
+    Self::new(PI / 3., 0.1, 1024., Vec3::Y)
+  }
 }
 
 pub fn compute_cameras() -> Workload {
@@ -31,12 +46,11 @@ fn update_view_matrix(
 }
 
 fn update_perspective_matrix(
-  mut vm_camera: ViewMut<Camera>,
-  v_transform: View<Transform>
+  mut vm_camera: ViewMut<Camera>
 ) {
   //todo compute this on win resize!
   const ASPECT_RATIO: f32 = 9. / 16.;
-  for (camera, transform) in (&mut vm_camera, &v_transform).iter() {
+  for camera in (&mut vm_camera).iter() {
     camera.perspective_matrix = Mat4::perspective_rh_gl(
       camera.fov, 
       ASPECT_RATIO, 

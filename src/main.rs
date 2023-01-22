@@ -23,7 +23,7 @@ pub(crate) mod settings;
 pub(crate) mod state;
 pub(crate) mod camera;
 
-use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
+use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background, draw_world};
 use world::{ChunkStorage, ChunkMeshStorage, loading::update_loaded_world_around_player};
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -47,6 +47,7 @@ fn update() -> Workload {
 fn render() -> Workload {
   (
     clear_background,
+    draw_world,
   ).into_sequential_workload()
 }
 
