@@ -6,7 +6,8 @@ use glium::{
     Sampler, 
     SamplerBehavior, 
     MinifySamplerFilter, 
-    MagnifySamplerFilter
+    MagnifySamplerFilter, 
+    SamplerWrapFunction
   },
   draw_parameters::{
     Depth,
@@ -89,6 +90,7 @@ pub fn draw_world(
     minify_filter: MinifySamplerFilter::Linear,
     magnify_filter: MagnifySamplerFilter::Nearest,
     max_anisotropy: 8,
+    wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
     ..Default::default()
   });
   let view = camera.view_matrix.to_cols_array_2d();

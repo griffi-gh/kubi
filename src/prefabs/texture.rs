@@ -1,7 +1,7 @@
 use strum::IntoEnumIterator;
 use rayon::prelude::*;
 use std::{fs::File, path::PathBuf, io::BufReader};
-use glium::{texture::{SrgbTexture2dArray, RawImage2d}, backend::Facade};
+use glium::{texture::{SrgbTexture2dArray, RawImage2d, MipmapsOption}, backend::Facade};
 use super::AssetPaths;
 
 pub fn load_texture2darray_prefab<
@@ -9,7 +9,8 @@ pub fn load_texture2darray_prefab<
   E: Facade
 >(
   directory: PathBuf, 
-  facade: &E
+  facade: &E,
+  mipmaps: MipmapsOption,
 ) -> SrgbTexture2dArray {
   log::info!("↓↓↓ loading textures {} ↓↓↓", directory.as_os_str().to_str().unwrap());
   //Load raw images
@@ -38,6 +39,6 @@ pub fn load_texture2darray_prefab<
   }).collect();
   log::info!("done loading texture files, uploading to the gpu");
   //Upload images to the GPU
-  SrgbTexture2dArray::new(facade, raw_images)
+  SrgbTexture2dArray::with_mipmaps(facade, raw_images, mipmaps)
     .expect("Failed to upload texture array to GPU")
 }
