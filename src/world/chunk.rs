@@ -8,12 +8,12 @@ pub type BlockData = Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>;
 
 pub struct ChunkData {
   pub blocks: BlockData,
-  pub has_renderable_blocks: bool,
+  //pub has_renderable_blocks: bool,
 }
 impl ChunkData {
-  pub fn update_metadata(&mut self) {
-    todo!()
-  }
+  // pub fn update_metadata(&mut self) {
+  //   todo!()
+  // }
 }
 
 pub struct ChunkMesh {
@@ -22,24 +22,33 @@ pub struct ChunkMesh {
   pub index_buffer: IndexBuffer<u32>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub enum ChunkState {
-  ToUnload,  //desired only
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum CurrentChunkState {
   #[default]
   Nothing,
-  Loading,   //current only
+  Loading,
   Loaded,
-  Meshing,   //current only
+  CalculatingMesh,
   Rendered,
-  RecalculatingMesh //current only
+  RecalculatingMesh, 
+  Unloading,      
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum DesiredChunkState {
+  #[default]
+  Nothing,
+  Loaded,
+  Rendered,
+  ToUnload,
 }
 
 pub struct Chunk {
   pub position: IVec3,
   pub block_data: Option<ChunkData>,
   pub mesh_index: Option<usize>,
-  pub current_state: ChunkState,
-  pub desired_state: ChunkState,
+  pub current_state: CurrentChunkState,
+  pub desired_state: DesiredChunkState,
 }
 impl Chunk {
   pub fn new(position: IVec3) -> Self {

@@ -1,5 +1,6 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
+use shipyard::Unique;
 use super::{
   chunk::BlockData,
   render::ChunkVertex, 
@@ -29,19 +30,20 @@ pub enum ChunkTaskResponse {
   },
 }
 
+#[derive(Unique)]
 pub struct ChunkTaskManager {
   channel: (Sender<ChunkTaskResponse>, Receiver<ChunkTaskResponse>),
 }
 impl ChunkTaskManager {
   pub fn new() -> Self {
     Self {
-      channel: flume::bounded::<ChunkTaskResponse>(0),
+      channel: flume::unbounded::<ChunkTaskResponse>(), //maybe put a bound or even bound(0)?
     }
   }
   pub fn spawn_task(&self, task: ChunkTask) {
     let sender = self.channel.0.clone();
     rayon::spawn(move || {
-      sender.send(match task {
+      let _ = sender.send(match task {
         ChunkTask::GenerateMesh { position, data } => {
           todo!()
         },
@@ -51,5 +53,8 @@ impl ChunkTaskManager {
         }
       });
     });
+  }
+  pub fn receive(&self) -> Option<ChunkTaskResponse> {
+    self.channel.1.try_recv().ok()
   }
 }

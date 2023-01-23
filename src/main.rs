@@ -20,11 +20,10 @@ pub(crate) mod player;
 pub(crate) mod prefabs;
 pub(crate) mod transform;
 pub(crate) mod settings;
-pub(crate) mod state;
 pub(crate) mod camera;
 
 use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
-use world::{ChunkStorage, ChunkMeshStorage, loading::update_loaded_world_around_player, render::draw_world};
+use world::{loading::update_loaded_world_around_player, render::draw_world, init_world};
 use player::spawn_player;
 use prefabs::load_prefabs;
 use settings::GameSettings;
@@ -62,12 +61,11 @@ fn main() {
 
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
-  world.add_unique_non_send_sync(ChunkMeshStorage::new());
-  world.add_unique(ChunkStorage::new());
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());
   load_prefabs(&world);
+  init_world(&world);
 
   //Register workloads
   world.add_workload(startup);

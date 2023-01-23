@@ -1,6 +1,6 @@
 use nohash_hasher::BuildNoHashHasher;
-use shipyard::Unique;
-use glam::{IVec3, ivec3};
+use shipyard::{Unique, World};
+use glam::IVec3;
 use hashbrown::HashMap;
 use anyhow::{Result, Context};
 
@@ -14,6 +14,7 @@ pub mod neighbors;
 pub mod worldgen;
 
 use chunk::{Chunk, ChunkMesh};
+use tasks::ChunkTaskManager;
 
 //TODO separate world struct for render data
 // because this is not send-sync
@@ -63,4 +64,10 @@ impl ChunkMeshStorage {
   pub fn get(&self, key: usize) -> Option<&ChunkMesh> {
     self.meshes.get(&key)
   }
+}
+
+pub fn init_world(world: &World) {
+  world.add_unique_non_send_sync(ChunkMeshStorage::new());
+  world.add_unique(ChunkStorage::new());
+  world.add_unique(ChunkTaskManager::new());
 }
