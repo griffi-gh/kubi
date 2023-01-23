@@ -4,7 +4,6 @@ use shipyard::{
   NonSendSync, Unique
 };
 use glium::{
-  Surface,
   glutin::{
     event_loop::{EventLoop, ControlFlow},
     event::{Event, WindowEvent}
@@ -81,7 +80,7 @@ fn main() {
     *control_flow = ControlFlow::Poll;
     match event {
       Event::WindowEvent { event, .. } => match event {
-        WindowEvent::Resized(size) => {
+        WindowEvent::Resized(_size) => {
           // todo ...
         }
         WindowEvent::CloseRequested => {

@@ -1,6 +1,6 @@
 use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
-use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, Nothing};
+use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync};
 use crate::{
   player::LocalPlayer,
   transform::Transform,
