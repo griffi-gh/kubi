@@ -8,7 +8,7 @@ pub struct GameSettings {
 impl Default for GameSettings {
   fn default() -> Self {
     Self {
-      render_distance: 5
+      render_distance: 2
     }
   }
 }

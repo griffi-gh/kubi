@@ -1,5 +1,6 @@
 use strum::{EnumIter, IntoEnumIterator};
-use glam::{Vec3A, vec3a};
+use glam::{Vec3A, vec3a, IVec3, ivec3};
+use super::{render::ChunkVertex, chunk::CHUNK_SIZE, block::Block};
 
 pub mod data;
 use data::MeshGenData;
@@ -38,6 +39,95 @@ const UV_COORDS: [[f32; 2]; 4] = [
   [1., 1.],
 ];
 
-pub fn generate_mesh(data: MeshGenData) {
-  
+#[derive(Default)]
+struct MeshBuilder {
+  vertex_buffer: Vec<ChunkVertex>,
+  index_buffer: Vec<u32>,
+  idx_counter: u32,
+}
+impl MeshBuilder {
+  pub fn new() -> Self {
+    Self::default()
+  }
+
+  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u8) {
+    let coord = coord.as_vec3a();
+    let face_index = face as usize;
+    
+    //Push vertexes
+    let norm = CUBE_FACE_NORMALS[face_index];
+    let vert = CUBE_FACE_VERTICES[face_index];
+    self.vertex_buffer.reserve(4);
+    for i in 0..4 {
+      self.vertex_buffer.push(ChunkVertex {
+        position: (coord + vert[i]).to_array(),
+        normal: norm.to_array(),
+        uv: UV_COORDS[i], 
+        tex_index: texture
+      });
+    }
+
+    //Push indices
+    self.index_buffer.extend_from_slice(&CUBE_FACE_INDICES.map(|x| x + self.idx_counter));
+    self.idx_counter += 4;
+  }
+
+  pub fn finish(self) -> (Vec<ChunkVertex>, Vec<u32>) {
+    (self.vertex_buffer, self.index_buffer)
+  }
+}
+
+pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
+  let get_block = |pos: IVec3| -> Block {
+    if pos.x < 0 {
+      data.block_data_neg_x[(CHUNK_SIZE as i32 + pos.x) as usize][pos.y as usize][pos.z as usize]
+    } else if pos.x >= CHUNK_SIZE as i32 {
+      data.block_data_pos_x[pos.x as usize - CHUNK_SIZE][pos.y as usize][pos.z as usize]
+    } else if pos.y < 0 {
+      data.block_data_neg_y[pos.x as usize][(CHUNK_SIZE as i32 + pos.y) as usize][pos.z as usize]
+    } else if pos.y >= CHUNK_SIZE as i32 {
+      data.block_data_pos_y[pos.x as usize][pos.y as usize - CHUNK_SIZE][pos.z as usize]
+    } else if pos.z < 0 {
+      data.block_data_neg_z[pos.x as usize][pos.y as usize][(CHUNK_SIZE as i32 + pos.z) as usize]
+    } else if pos.z >= CHUNK_SIZE as i32 {
+      data.block_data_pos_z[pos.x as usize][pos.y as usize][pos.z as usize - CHUNK_SIZE]
+    } else {
+      data.block_data[pos.x as usize][pos.y as usize][pos.z as usize]
+    }
+  };
+
+  let mut builder = MeshBuilder::new();
+
+  for x in 0..CHUNK_SIZE {
+    for y in 0..CHUNK_SIZE {
+      for z in 0..CHUNK_SIZE {
+        let coord = ivec3(x as i32, y as i32, z as i32);
+        let block = get_block(coord);
+        if block == Block::Air {
+          continue
+        }
+        for face in CubeFace::iter() {
+          let facing = CUBE_FACE_NORMALS[face as usize].as_ivec3();
+          let facing_coord = coord + facing;
+          let show = {
+            get_block(facing_coord) == Block::Air
+          };
+          if show {
+            // let texures = descriptor.render.unwrap().1;
+            // let block_texture = match face {
+            //   CubeFace::Top    => texures.top,
+            //   CubeFace::Front  => texures.front,
+            //   CubeFace::Left   => texures.left,
+            //   CubeFace::Right  => texures.right,
+            //   CubeFace::Back   => texures.back,
+            //   CubeFace::Bottom => texures.bottom,
+            // };
+            builder.add_face(face, coord, 0);
+          }
+        }
+      }
+    }
+  }
+
+  builder.finish()
 }

@@ -49,7 +49,7 @@ fn update_perspective_matrix(
   mut vm_camera: ViewMut<Camera>
 ) {
   //todo compute this on win resize!
-  const ASPECT_RATIO: f32 = 9. / 16.;
+  const ASPECT_RATIO: f32 = 16. / 9.;
   for camera in (&mut vm_camera).iter() {
     camera.perspective_matrix = Mat4::perspective_rh_gl(
       camera.fov, 

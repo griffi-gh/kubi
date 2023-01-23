@@ -153,8 +153,8 @@ fn process_completed_tasks(
         };
 
         //check if chunk still wants it
-        if matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
-          log::warn!("block data discarded: state undesirable");
+        if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
+          log::warn!("block data discarded: state undesirable: {:?}", chunk.desired_state);
           return
         }
 
@@ -175,7 +175,7 @@ fn process_completed_tasks(
 
         //check if chunk still wants it
         if chunk.desired_state != DesiredChunkState::Rendered {
-          log::warn!("mesh discarded: state undesirable");
+          log::warn!("mesh discarded: state undesirable: {:?}", chunk.desired_state);
           return
         }
 

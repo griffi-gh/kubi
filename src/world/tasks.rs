@@ -4,7 +4,7 @@ use shipyard::Unique;
 use super::{
   chunk::BlockData,
   render::ChunkVertex, 
-  mesh::data::MeshGenData,
+  mesh::{generate_mesh, data::MeshGenData},
   worldgen::generate_world,
 };
 
@@ -45,7 +45,8 @@ impl ChunkTaskManager {
     rayon::spawn(move || {
       let _ = sender.send(match task {
         ChunkTask::GenerateMesh { position, data } => {
-          todo!()
+          let (vertices, indexes) = generate_mesh(data);
+          ChunkTaskResponse::GeneratedMesh { position, vertices, indexes }
         },
         ChunkTask::LoadChunk { position, seed } => {
           let chunk_data = generate_world(position, seed);
