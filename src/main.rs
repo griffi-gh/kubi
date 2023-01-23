@@ -107,7 +107,6 @@ fn main() {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
           renderer.display.draw()
         };
-        target.clear_color_and_depth((0., 0., 0., 1.), 1.);
         world.add_unique_non_send_sync(RenderTarget(target));
 
         //Run render workflow
