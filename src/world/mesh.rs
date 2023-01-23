@@ -23,12 +23,12 @@ const CUBE_FACE_VERTICES: [[Vec3A; 4]; 6] = [
   [vec3a(1., 0., 1.), vec3a(1., 1., 1.), vec3a(0., 0., 1.), vec3a(0., 1., 1.)],
   [vec3a(0., 0., 1.), vec3a(0., 0., 0.), vec3a(1., 0., 1.), vec3a(1., 0., 0.)],
 ];
-const CUBE_FACE_NORMALS: [Vec3A; 6] = [ //this is likely incorrect for a right handed system
+const CUBE_FACE_NORMALS: [Vec3A; 6] = [ 
   vec3a(0., 1., 0.),
-  vec3a(0., 0., 1.),
+  vec3a(0., 0., -1.),
   vec3a(-1.,0., 0.),
   vec3a(1., 0., 0.),
-  vec3a(0., 0., -1.),
+  vec3a(0., 0., 1.),
   vec3a(0., -1.,0.)
 ];
 const CUBE_FACE_INDICES: [u32; 6] = [0, 1, 2, 2, 1, 3];
