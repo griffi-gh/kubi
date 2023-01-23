@@ -103,7 +103,7 @@ fn main() {
         world.run_workload(update).unwrap();
 
         //Start rendering (maybe use custom views for this?)
-        let mut target = {
+        let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
           renderer.display.draw()
         };
