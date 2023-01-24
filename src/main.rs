@@ -20,6 +20,8 @@ pub(crate) mod prefabs;
 pub(crate) mod transform;
 pub(crate) mod settings;
 pub(crate) mod camera;
+pub(crate) mod input;
+pub(crate) mod fly_controller;
 
 use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
 use world::{loading::update_loaded_world_around_player, render::draw_world, init_world};
