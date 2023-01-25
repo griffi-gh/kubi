@@ -20,28 +20,36 @@ pub(crate) mod prefabs;
 pub(crate) mod transform;
 pub(crate) mod settings;
 pub(crate) mod camera;
+pub(crate) mod events;
 pub(crate) mod input;
 pub(crate) mod fly_controller;
 
 use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
-use world::{loading::update_loaded_world_around_player, render::draw_world, init_world};
+use world::{loading::update_loaded_world_around_player, render::draw_world, init_game_world};
 use player::spawn_player;
 use prefabs::load_prefabs;
 use settings::GameSettings;
 use camera::compute_cameras;
+use events::{clear_events, process_glutin_events};
+use input::{init_input, process_inputs};
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
 
 fn startup() -> Workload {
   (
+    load_prefabs,
+    init_input,
+    init_game_world,
     spawn_player,
   ).into_workload()
 }
 fn update() -> Workload {
   (
+    process_inputs,
     update_loaded_world_around_player,
     compute_cameras,
+    clear_events
   ).into_workload()
 }
 fn render() -> Workload {
@@ -58,15 +66,13 @@ fn main() {
   let event_loop = EventLoop::new();
 
   //Create a shipyard world
-  let world = World::new();
+  let mut world = World::new();
 
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
   world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());
-  load_prefabs(&world);
-  init_world(&world);
 
   //Register workloads
   world.add_workload(startup);
@@ -80,6 +86,7 @@ fn main() {
   let mut last_update = Instant::now();
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
+    process_glutin_events(&mut world, &event);
     match event {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::Resized(_size) => {

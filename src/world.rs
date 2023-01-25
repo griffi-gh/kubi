@@ -1,5 +1,5 @@
 use nohash_hasher::BuildNoHashHasher;
-use shipyard::{Unique, World};
+use shipyard::{Unique, AllStoragesView};
 use glam::IVec3;
 use hashbrown::HashMap;
 use anyhow::{Result, Context};
@@ -66,8 +66,10 @@ impl ChunkMeshStorage {
   }
 }
 
-pub fn init_world(world: &World) {
-  world.add_unique_non_send_sync(ChunkMeshStorage::new());
-  world.add_unique(ChunkStorage::new());
-  world.add_unique(ChunkTaskManager::new());
+pub fn init_game_world(
+  storages: AllStoragesView,
+) {
+  storages.add_unique_non_send_sync(ChunkMeshStorage::new());
+  storages.add_unique(ChunkStorage::new());
+  storages.add_unique(ChunkTaskManager::new());
 }
