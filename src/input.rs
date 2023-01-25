@@ -38,7 +38,7 @@ pub fn process_events(
         }
       },
       DeviceEvent::Button { button, state } => {
-        println!("Button {button} {state:?}");
+        //log::debug!("Button {button} {state:?}");
       },
       _ => ()
     }
