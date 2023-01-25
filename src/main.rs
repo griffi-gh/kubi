@@ -32,6 +32,7 @@ use settings::GameSettings;
 use camera::compute_cameras;
 use events::{clear_events, process_glutin_events};
 use input::{init_input, process_inputs};
+use fly_controller::update_controllers;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -47,9 +48,9 @@ fn startup() -> Workload {
 fn update() -> Workload {
   (
     process_inputs,
+    update_controllers,
     update_loaded_world_around_player,
-    compute_cameras,
-    clear_events
+    compute_cameras
   ).into_workload()
 }
 fn render() -> Workload {
@@ -57,6 +58,11 @@ fn render() -> Workload {
     clear_background,
     draw_world,
   ).into_sequential_workload()
+}
+fn after_frame_end() -> Workload {
+  (
+    clear_events,
+  ).into_workload()
 }
 
 fn main() {
@@ -78,6 +84,7 @@ fn main() {
   world.add_workload(startup);
   world.add_workload(update);
   world.add_workload(render);
+  world.add_workload(after_frame_end);
 
   //Run startup systems
   world.run_workload(startup).unwrap();
@@ -123,6 +130,9 @@ fn main() {
         //Finish rendering
         let target = world.remove_unique::<RenderTarget>().unwrap(); 
         target.0.finish().unwrap();
+
+        //FrameEnd
+        world.run_workload(after_frame_end).unwrap();
       },
       _ => (),
     };
