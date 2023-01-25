@@ -15,7 +15,7 @@ pub struct InputDeviceEvent{
 }
 
 #[derive(Component, Clone, Copy, Debug, Default)]
-pub struct WindowResizedEvent(UVec2);
+pub struct WindowResizedEvent(pub UVec2);
 
 pub fn process_glutin_events(world: &mut World, event: &Event<'_, ()>) {
   #[allow(clippy::collapsible_match, clippy::single_match)]
