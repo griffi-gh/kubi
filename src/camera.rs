@@ -1,4 +1,4 @@
-use glam::{Mat4, Vec3};
+use glam::{Mat4, Vec3, EulerRot};
 use shipyard::{Component, ViewMut, View, IntoIter, Workload, IntoWorkload};
 use std::f32::consts::PI;
 use crate::{transform::Transform, events::WindowResizedEvent};
@@ -40,8 +40,14 @@ fn update_view_matrix(
 ) {
   for (camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();
-    let dir = rotation * Vec3::Z; //this may be incorrect!
-    camera.view_matrix = Mat4::look_to_rh(translation, dir, camera.up);
+    //let direction = rotation * Vec3::Z; //this may be incorrect!
+    let (yaw, pitch, _) = rotation.to_euler(EulerRot::YXZ);
+    let direction= Vec3::new(
+      yaw.cos() * pitch.cos(),
+      pitch.sin(),
+      yaw.sin() * pitch.cos()
+    );
+    camera.view_matrix = Mat4::look_to_rh(translation, direction, camera.up);
   }
 }
 

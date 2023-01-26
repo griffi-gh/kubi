@@ -9,6 +9,7 @@ pub fn generate_world(_position: IVec3, _seed: u32) -> BlockData {
   blocks[0][0][0] = Block::Stone;
   blocks[1][0][0] = Block::Stone;
   blocks[0][1][0] = Block::Stone;
+  blocks[0][2][0] = Block::Stone;
   blocks[0][0][1] = Block::Stone;
   //TODO actual world generation
   blocks
