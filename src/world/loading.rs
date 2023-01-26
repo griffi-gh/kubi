@@ -16,7 +16,7 @@ use super::{
 pub fn update_loaded_world_around_player() -> Workload {
   (
     update_chunks_if_player_moved,
-    unload_marked_chunks,
+    unload_downgrade_chunks,
     start_required_tasks,
     process_completed_tasks,
   ).into_workload()
@@ -76,13 +76,14 @@ pub fn update_chunks_if_player_moved(
   }
 }
 
-fn unload_marked_chunks(
+fn unload_downgrade_chunks(
   mut vm_world: UniqueViewMut<ChunkStorage>,
   mut vm_meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>
 ) {
   if !vm_world.is_modified() {
     return
   }
+  //TODO refactor this
   vm_world.chunks.retain(|_, chunk| {
     if chunk.desired_state == DesiredChunkState::ToUnload {
       if let Some(mesh_index) = chunk.mesh_index {
@@ -90,6 +91,16 @@ fn unload_marked_chunks(
       }
       false
     } else {
+      match chunk.desired_state {
+        DesiredChunkState::Loaded if matches!(chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::CalculatingMesh) => {
+          if let Some(mesh_index) = chunk.mesh_index {
+            vm_meshes.remove(mesh_index).unwrap();
+          }
+          chunk.mesh_index = None;
+          chunk.current_state = CurrentChunkState::Loaded;
+        },
+        _ => (),
+      }
       true
     }
   })
@@ -99,6 +110,9 @@ fn start_required_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut world: UniqueViewMut<ChunkStorage>,
 ) {
+  if !world.is_modified() {
+    return
+  }
   //HACK: cant iterate over chunks.keys() or chunk directly!
   let hashmap_keys: Vec<IVec3> = world.chunks.keys().copied().collect();
   for position in hashmap_keys {

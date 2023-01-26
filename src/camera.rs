@@ -1,4 +1,4 @@
-use glam::{Mat4, Vec3, EulerRot};
+use glam::{Mat4, Vec3};
 use shipyard::{Component, ViewMut, View, IntoIter, Workload, IntoWorkload};
 use std::f32::consts::PI;
 use crate::{transform::Transform, events::WindowResizedEvent};
