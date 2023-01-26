@@ -25,6 +25,28 @@ impl Block {
         collision: CollisionType::Solid, 
         raycast_collision: true, 
       },
+      Self::Dirt => BlockDescriptor { 
+        name: "dirt", 
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Dirt)), 
+        collision: CollisionType::Solid, 
+        raycast_collision: true, 
+      },
+      Self::Grass => BlockDescriptor { 
+        name: "grass", 
+        render: RenderType::SolidBlock(CubeTexture::top_sides_bottom(
+          BlockTexture::GrassTop, 
+          BlockTexture::GrassSide, 
+          BlockTexture::Dirt
+        )), 
+        collision: CollisionType::Solid, 
+        raycast_collision: true, 
+      },
+      Self::Sand => BlockDescriptor { 
+        name: "sand", 
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Sand)), 
+        collision: CollisionType::Solid, 
+        raycast_collision: true, 
+      },
       _ => todo!()
     }
   }

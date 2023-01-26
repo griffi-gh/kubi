@@ -1,6 +1,6 @@
 use strum::{EnumIter, IntoEnumIterator};
 use glam::{Vec3A, vec3a, IVec3, ivec3};
-use super::{render::ChunkVertex, chunk::CHUNK_SIZE, block::Block};
+use super::{render::ChunkVertex, chunk::CHUNK_SIZE, block::{Block, RenderType}};
 
 pub mod data;
 use data::MeshGenData;
@@ -103,26 +103,29 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
       for z in 0..CHUNK_SIZE {
         let coord = ivec3(x as i32, y as i32, z as i32);
         let block = get_block(coord);
-        if block == Block::Air {
+        let descriptor = block.descriptor();
+        if matches!(descriptor.render, RenderType::None) {
           continue
         }
         for face in CubeFace::iter() {
           let facing = CUBE_FACE_NORMALS[face as usize].as_ivec3();
           let facing_coord = coord + facing;
-          let show = {
-            get_block(facing_coord) == Block::Air
-          };
+          let show = matches!(get_block(facing_coord).descriptor().render, RenderType::None);
           if show {
-            // let texures = descriptor.render.unwrap().1;
-            // let block_texture = match face {
-            //   CubeFace::Top    => texures.top,
-            //   CubeFace::Front  => texures.front,
-            //   CubeFace::Left   => texures.left,
-            //   CubeFace::Right  => texures.right,
-            //   CubeFace::Back   => texures.back,
-            //   CubeFace::Bottom => texures.bottom,
-            // };
-            builder.add_face(face, coord, 0);
+            match descriptor.render {
+              RenderType::SolidBlock(textures) => {
+                let face_texture = match face {
+                  CubeFace::Top    => textures.top,
+                  CubeFace::Front  => textures.front,
+                  CubeFace::Left   => textures.left,
+                  CubeFace::Right  => textures.right,
+                  CubeFace::Back   => textures.back,
+                  CubeFace::Bottom => textures.bottom,
+                };
+                builder.add_face(face, coord, face_texture as u8);
+              },
+              _ => unimplemented!()
+            }
           }
         }
       }
