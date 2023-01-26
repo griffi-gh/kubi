@@ -73,18 +73,20 @@ pub fn draw_world(
     if let Some(key) = chunk.mesh_index {
       let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
       let world_position = (position.as_vec3() * CHUNK_SIZE as f32).to_array();
-      target.0.draw(
-        &mesh.vertex_buffer,
-        &mesh.index_buffer,
-        &program.0,
-        &uniform! {
-          position_offset: world_position,
-          view: view,
-          perspective: perspective,
-          tex: texture_sampler
-        },
-        &draw_parameters
-      ).unwrap();
+      if mesh.index_buffer.len() > 0 { //maybe this is a bit hacky?
+        target.0.draw(
+          &mesh.vertex_buffer,
+          &mesh.index_buffer,
+          &program.0,
+          &uniform! {
+            position_offset: world_position,
+            view: view,
+            perspective: perspective,
+            tex: texture_sampler
+          },
+          &draw_parameters
+        ).unwrap();
+      }
     }
   }
 }
