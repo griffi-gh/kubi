@@ -13,6 +13,14 @@ pub fn generate_world(position: IVec3, _seed: u32) -> BlockData {
         blocks[x][0][z] = Block::Grass;
       }
     }
+  } else if position.y < -1 {
+    for x in 0..CHUNK_SIZE {
+      for y in 0..CHUNK_SIZE {
+        for z in 0..CHUNK_SIZE {
+          blocks[x][y][z] = Block::Dirt;
+        }
+      }
+    }
   }
   blocks
 }
