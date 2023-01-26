@@ -40,13 +40,7 @@ fn update_view_matrix(
 ) {
   for (camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();
-    //let direction = rotation * Vec3::Z; //this may be incorrect!
-    let (yaw, pitch, _) = rotation.to_euler(EulerRot::YXZ);
-    let direction= Vec3::new(
-      yaw.cos() * pitch.cos(),
-      pitch.sin(),
-      yaw.sin() * pitch.cos()
-    );
+    let direction = rotation * Vec3::NEG_Z;
     camera.view_matrix = Mat4::look_to_rh(translation, direction, camera.up);
   }
 }

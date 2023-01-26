@@ -1,35 +1,51 @@
-use glam::{Vec3, Mat4, Quat, EulerRot};
-use shipyard::{Component, View, ViewMut, IntoIter, UniqueView};
+use glam::{Vec3, Mat4, Quat, EulerRot, Vec2};
+use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWorkload};
+use std::f32::consts::PI;
 use crate::{transform::Transform, input::Inputs, settings::GameSettings};
 
 #[derive(Component)]
 pub struct FlyController;
 
-pub fn update_controllers(
+pub fn update_controllers() -> Workload {
+  (
+    update_look,
+    update_movement
+  ).into_workload()
+}
+
+const MAX_PITCH: f32 = PI/2. - 0.001;
+
+fn update_look(
   controllers: View<FlyController>,
   mut transforms: ViewMut<Transform>,
   inputs: UniqueView<Inputs>,
   settings: UniqueView<GameSettings>,
 ) {
+  let look = inputs.look * settings.mouse_sensitivity;
+  if look == Vec2::ZERO { return }
   for (_, mut transform) in (&controllers, &mut transforms).iter() {
-    let (scale, mut rotation, mut translation) = transform.0.to_scale_rotation_translation();
-    let look = inputs.look * settings.mouse_sensitivity;
+    let (scale, mut rotation, translation) = transform.0.to_scale_rotation_translation();
+    let (mut yaw, mut pitch, _roll) = rotation.to_euler(EulerRot::YXZ);
+    yaw -= look.x;
+    pitch -= look.y;
+    pitch = pitch.clamp(-MAX_PITCH, MAX_PITCH);
+    rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.);
+    transform.0 = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+  }
+}
 
-    //rotation *= Quat::from_axis_angle(Vec3::Y, look.x);
-
-    //old way
-    // rotation = rotation.normalize();
-    // rotation *= Quat::from_euler(EulerRot::ZYX, 0., look.x, look.y).normalize();
-    // rotation = rotation.normalize();
-
-    // let direction = (rotation * Vec3::Z).normalize();
-    // let camera_right = Vec3::Y.cross(direction).normalize();
-    // let camera_up = direction.cross(camera_right);
-    // rotation *= Quat::from_axis_angle(Vec3::Y, look.x);
-    // rotation *= Quat::from_axis_angle(camera_right, look.y);
-    
-    //translation += (rotation * Vec3::X) / 4.;
-
+fn update_movement(
+  controllers: View<FlyController>,
+  mut transforms: ViewMut<Transform>,
+  inputs: UniqueView<Inputs>,
+  settings: UniqueView<GameSettings>,
+) {
+  let movement = inputs.movement;
+  if movement == Vec2::ZERO { return }
+  for (_, mut transform) in (&controllers, &mut transforms).iter() {
+    let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
+    translation += (rotation * Vec3::NEG_Z) * movement.y;
+    translation += (rotation * Vec3::X) * movement.x;
     transform.0 = Mat4::from_scale_rotation_translation(scale, rotation, translation);
   }
 }
