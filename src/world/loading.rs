@@ -13,6 +13,9 @@ use super::{
   tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
 };
 
+//todo limit task starts insted
+const MAX_CHUNK_RECV: usize = 8;
+
 pub fn update_loaded_world_around_player() -> Workload {
   (
     update_chunks_if_player_moved,
@@ -121,7 +124,7 @@ fn start_required_tasks(
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         //start load task
         task_manager.spawn_task(ChunkTask::LoadChunk {
-          seed: 0xdead_cafe,
+          seed: 0xbeef_face_dead_cafe,
           position
         });
         //Update chunk state
@@ -157,54 +160,56 @@ fn process_completed_tasks(
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
   renderer: NonSendSync<UniqueView<Renderer>>
 ) {
-  while let Some(res) = task_manager.receive() {
-    match res {
-      ChunkTaskResponse::LoadedChunk { position, chunk_data } => {
-        //check if chunk exists
-        let Some(chunk) = world.chunks.get_mut(&position) else {
-          log::warn!("blocks data discarded: chunk doesn't exist");
-          return
-        };
+  for _ in 0..MAX_CHUNK_OPS {
+    if let Some(res) = task_manager.receive() {
+      match res {
+        ChunkTaskResponse::LoadedChunk { position, chunk_data } => {
+          //check if chunk exists
+          let Some(chunk) = world.chunks.get_mut(&position) else {
+            log::warn!("blocks data discarded: chunk doesn't exist");
+            return
+          };
 
-        //check if chunk still wants it
-        if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
-          log::warn!("block data discarded: state undesirable: {:?}", chunk.desired_state);
-          return
+          //check if chunk still wants it
+          if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
+            log::warn!("block data discarded: state undesirable: {:?}", chunk.desired_state);
+            return
+          }
+
+          //set the block data
+          chunk.block_data = Some(ChunkData {
+            blocks: chunk_data
+          });
+
+          //update chunk state
+          chunk.current_state = CurrentChunkState::Loaded;
+        },
+        ChunkTaskResponse::GeneratedMesh { position, vertices, indexes } => {
+          //check if chunk exists
+          let Some(chunk) = world.chunks.get_mut(&position) else {
+            log::warn!("mesh discarded: chunk doesn't exist");
+            return
+          };
+
+          //check if chunk still wants it
+          if chunk.desired_state != DesiredChunkState::Rendered {
+            log::warn!("mesh discarded: state undesirable: {:?}", chunk.desired_state);
+            return
+          }
+
+          //apply the mesh
+          let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
+          let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
+          let mesh_index = meshes.insert(ChunkMesh {
+            is_dirty: false,
+            vertex_buffer,
+            index_buffer,
+          });
+          chunk.mesh_index = Some(mesh_index);
+
+          //update chunk state
+          chunk.current_state = CurrentChunkState::Rendered;
         }
-
-        //set the block data
-        chunk.block_data = Some(ChunkData {
-          blocks: chunk_data
-        });
-
-        //update chunk state
-        chunk.current_state = CurrentChunkState::Loaded;
-      },
-      ChunkTaskResponse::GeneratedMesh { position, vertices, indexes } => {
-        //check if chunk exists
-        let Some(chunk) = world.chunks.get_mut(&position) else {
-          log::warn!("mesh discarded: chunk doesn't exist");
-          return
-        };
-
-        //check if chunk still wants it
-        if chunk.desired_state != DesiredChunkState::Rendered {
-          log::warn!("mesh discarded: state undesirable: {:?}", chunk.desired_state);
-          return
-        }
-
-        //apply the mesh
-        let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
-        let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
-        let mesh_index = meshes.insert(ChunkMesh {
-          is_dirty: false,
-          vertex_buffer,
-          index_buffer,
-        });
-        chunk.mesh_index = Some(mesh_index);
-
-        //update chunk state
-        chunk.current_state = CurrentChunkState::Rendered;
       }
     }
   }
