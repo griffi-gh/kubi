@@ -60,7 +60,7 @@ pub fn draw_world(
     ..Default::default()
   };
   let texture_sampler = Sampler(&texture.0, SamplerBehavior {
-    minify_filter: MinifySamplerFilter::Linear,
+    minify_filter: MinifySamplerFilter::LinearMipmapLinear,
     magnify_filter: MagnifySamplerFilter::Nearest,
     max_anisotropy: 8,
     wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),

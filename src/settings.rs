@@ -9,7 +9,7 @@ pub struct GameSettings {
 impl Default for GameSettings {
   fn default() -> Self {
     Self {
-      render_distance: 2,
+      render_distance: 5,
       mouse_sensitivity: 0.01,
     }
   }
