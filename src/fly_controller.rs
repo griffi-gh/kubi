@@ -37,8 +37,7 @@ fn update_look(
 fn update_movement(
   controllers: View<FlyController>,
   mut transforms: ViewMut<Transform>,
-  inputs: UniqueView<Inputs>,
-  settings: UniqueView<GameSettings>,
+  inputs: UniqueView<Inputs>
 ) {
   let movement = inputs.movement;
   if movement == Vec2::ZERO { return }
