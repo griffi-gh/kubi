@@ -11,9 +11,10 @@ env_logger = "0.10"
 strum = { version = "0.24", features = ["derive"] }
 glam = { version = "0.22", features = ["debug-glam-assert", "mint", "fast-math"] }
 hashbrown = "0.13"
-noise = "0.8"
 rayon = "1.6"
 shipyard = { version = "0.6", features = ["thread_local"] }
 nohash-hasher = "0.2.0"
 anyhow = "1.0"
 flume = "0.10"
+#once_cell = "1.17"
+bracket-noise = "0.8"

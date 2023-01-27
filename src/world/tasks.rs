@@ -10,7 +10,7 @@ use super::{
 
 pub enum ChunkTask {
   LoadChunk {
-    seed: u32,
+    seed: u64,
     position: IVec3
   },
   GenerateMesh {

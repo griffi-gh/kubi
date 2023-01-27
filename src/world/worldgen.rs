@@ -1,26 +1,29 @@
-use glam::IVec3;
+use glam::{IVec3, ivec3};
+use bracket_noise::prelude::*;
 use super::{
   chunk::{BlockData, CHUNK_SIZE},
   block::Block
 };
 
-pub fn generate_world(position: IVec3, _seed: u32) -> BlockData {
+pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
+  let offset = chunk_position * CHUNK_SIZE as i32;
+  let mut noise = FastNoise::seeded(seed);
+  noise.set_fractal_type(FractalType::FBM);
+  noise.set_frequency(0.1);
+
   let mut blocks = Box::new([[[Block::Air; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]);
-  //TODO actual world generation
-  if position.y == -1 {
-    for x in 0..CHUNK_SIZE {
+
+  for x in 0..CHUNK_SIZE {
+    for y in 0..CHUNK_SIZE {
       for z in 0..CHUNK_SIZE {
-        blocks[x][0][z] = Block::Grass;
-      }
-    }
-  } else if position.y < -1 {
-    for x in 0..CHUNK_SIZE {
-      for y in 0..CHUNK_SIZE {
-        for z in 0..CHUNK_SIZE {
-          blocks[x][y][z] = Block::Dirt;
+        let position = ivec3(x as i32, y as i32, z as i32) + offset;
+        let noise = noise.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+        if noise > 0.8 {
+          blocks[x][y][z] = Block::Stone;
         }
       }
     }
   }
+  
   blocks
 }
