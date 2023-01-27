@@ -7,10 +7,9 @@
 //       [ http://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm ]
 // three layers of stolen code, yay!
 
-use glam::{Vec3A, Vec4, Mat3A, vec3a};
-
+use glam::{Vec3A, Vec4, Mat3A, vec3a, Vec3, vec4};
+use shipyard::{ViewMut, IntoIter};
 use super::Camera;
-
 
 #[repr(usize)]
 enum FrustumPlane {
@@ -26,7 +25,8 @@ const PLANE_COUNT: usize = 6;
 const PLANE_COMBINATIONS: usize = PLANE_COUNT * (PLANE_COUNT - 1) / 2;
 const POINT_COUNT: usize = 8;
 
-struct Frustum {
+#[derive(Default)]
+pub struct Frustum {
   planes: [Vec4; PLANE_COUNT],
   points: [Vec3A; POINT_COUNT]
 }
@@ -77,8 +77,59 @@ impl Frustum {
 
     Self { planes, points }
   }
-}
 
+  //this may be broken
+  pub fn intersect_box(&self, minp: Vec3, maxp: Vec3) -> bool {
+    // check box outside/inside of frustum
+    for i in 0..PLANE_COUNT {
+      if self.planes[i].dot(vec4(minp.x, minp.y, minp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(maxp.x, minp.y, minp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(minp.x, maxp.y, minp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(maxp.x, maxp.y, minp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(minp.x, minp.y, maxp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(maxp.x, minp.y, maxp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(minp.x, maxp.y, maxp.z, 1.)) < 0. &&
+         self.planes[i].dot(vec4(maxp.x, maxp.y, maxp.z, 1.)) < 0.
+      {
+        return false
+      }
+    }
+
+    // check frustum outside/inside box
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].x > maxp.x) as u8;
+      if out == 8 { return false }
+    }
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].x < minp.x) as u8;
+      if out == 8 { return false }
+    }
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].y > maxp.y) as u8;
+      if out == 8 { return false }
+    }
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].y < minp.y) as u8;
+      if out == 8 { return false }
+    }
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].z > maxp.z) as u8;
+      if out == 8 { return false }
+    }
+    let mut out: u8 = 0;
+    for i in 0..POINT_COUNT {
+      out += (self.points[i].z < minp.z) as u8;
+      if out == 8 { return false }
+    }
+
+    true
+  }
+}
 
 const fn ij2k<const I: usize, const J: usize>() -> usize {
   I * (9 - I) / 2 + J - 1 
@@ -91,4 +142,12 @@ fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; 
     crosses[ij2k::<A, B>()],
   ) * vec3a(planes[A].w, planes[B].w, planes[C].w);
   res * (-1. / d)
+}
+
+pub fn update_frustum(
+  mut cameras: ViewMut<Camera>,
+) {
+  for camera in (&mut cameras).iter() {
+    camera.frustum = Frustum::compute(camera);
+  }
 }
