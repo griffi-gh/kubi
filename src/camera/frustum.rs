@@ -7,7 +7,7 @@
 //       [ http://iquilezles.org/www/articles/frustumcorrect/frustumcorrect.htm ]
 // three layers of stolen code, yay!
 
-use glam::{Vec3, Vec4, Vec4Swizzles};
+use glam::{Vec3A, Vec4, Mat3A, vec3a};
 
 use super::Camera;
 
@@ -21,12 +21,14 @@ enum FrustumPlane {
   Near,
   Far,
 }
+
 const PLANE_COUNT: usize = 6;
 const PLANE_COMBINATIONS: usize = PLANE_COUNT * (PLANE_COUNT - 1) / 2;
+const POINT_COUNT: usize = 8;
 
 struct Frustum {
   planes: [Vec4; PLANE_COUNT],
-  crosses: [Vec3; PLANE_COMBINATIONS],
+  points: [Vec3A; POINT_COUNT]
 }
 impl Frustum {
   pub fn compute(camera: &Camera) -> Self {
@@ -44,23 +46,49 @@ impl Frustum {
 
     //compute crosses
     let crosses = [
-      planes[FrustumPlane::Left as usize].xyz().cross(planes[FrustumPlane::Right as usize].xyz()),
-      planes[FrustumPlane::Left as usize].xyz().cross(planes[FrustumPlane::Bottom as usize].xyz()),
-      planes[FrustumPlane::Left as usize].xyz().cross(planes[FrustumPlane::Top as usize].xyz()),
-      planes[FrustumPlane::Left as usize].xyz().cross(planes[FrustumPlane::Near as usize].xyz()),
-      planes[FrustumPlane::Left as usize].xyz().cross(planes[FrustumPlane::Far as usize].xyz()),
-      planes[FrustumPlane::Right as usize].xyz().cross(planes[FrustumPlane::Bottom as usize].xyz()),
-      planes[FrustumPlane::Right as usize].xyz().cross(planes[FrustumPlane::Top as usize].xyz()),
-      planes[FrustumPlane::Right as usize].xyz().cross(planes[FrustumPlane::Near as usize].xyz()),
-      planes[FrustumPlane::Right as usize].xyz().cross(planes[FrustumPlane::Far as usize].xyz()),
-      planes[FrustumPlane::Bottom as usize].xyz().cross(planes[FrustumPlane::Top as usize].xyz()),
-      planes[FrustumPlane::Bottom as usize].xyz().cross(planes[FrustumPlane::Near as usize].xyz()),
-      planes[FrustumPlane::Bottom as usize].xyz().cross(planes[FrustumPlane::Far as usize].xyz()),
-      planes[FrustumPlane::Top as usize].xyz().cross(planes[FrustumPlane::Near as usize].xyz()),
-      planes[FrustumPlane::Top as usize].xyz().cross(planes[FrustumPlane::Far as usize].xyz()),
-      planes[FrustumPlane::Near as usize].xyz().cross(planes[FrustumPlane::Far as usize].xyz()),
+      Vec3A::from(planes[FrustumPlane::Left as usize]).cross(planes[FrustumPlane::Right as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Left as usize]).cross(planes[FrustumPlane::Bottom as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Left as usize]).cross(planes[FrustumPlane::Top as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Left as usize]).cross(planes[FrustumPlane::Near as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Left as usize]).cross(planes[FrustumPlane::Far as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Right as usize]).cross(planes[FrustumPlane::Bottom as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Right as usize]).cross(planes[FrustumPlane::Top as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Right as usize]).cross(planes[FrustumPlane::Near as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Right as usize]).cross(planes[FrustumPlane::Far as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Bottom as usize]).cross(planes[FrustumPlane::Top as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Bottom as usize]).cross(planes[FrustumPlane::Near as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Bottom as usize]).cross(planes[FrustumPlane::Far as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Top as usize]).cross(planes[FrustumPlane::Near as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Top as usize]).cross(planes[FrustumPlane::Far as usize].into()),
+      Vec3A::from(planes[FrustumPlane::Near as usize]).cross(planes[FrustumPlane::Far as usize].into()),
     ];
-    
-    Self { planes, crosses }
+
+    //compute points
+    let points = [
+      intersection::<{FrustumPlane::Left as usize},  {FrustumPlane::Bottom as usize}, {FrustumPlane::Near as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Left as usize},  {FrustumPlane::Top as usize},    {FrustumPlane::Near as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Right as usize}, {FrustumPlane::Bottom as usize}, {FrustumPlane::Near as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Right as usize}, {FrustumPlane::Top as usize},    {FrustumPlane::Near as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Left as usize},  {FrustumPlane::Bottom as usize}, {FrustumPlane::Far as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Left as usize},  {FrustumPlane::Top as usize},    {FrustumPlane::Far as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Right as usize}, {FrustumPlane::Bottom as usize}, {FrustumPlane::Far as usize}>(&planes, &crosses),
+      intersection::<{FrustumPlane::Right as usize}, {FrustumPlane::Top as usize},    {FrustumPlane::Far as usize}>(&planes, &crosses),
+    ];
+
+    Self { planes, points }
   }
+}
+
+
+const fn ij2k<const I: usize, const J: usize>() -> usize {
+  I * (9 - I) / 2 + J - 1 
+}
+fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; PLANE_COUNT], crosses: &[Vec3A; PLANE_COMBINATIONS]) -> Vec3A {
+	let d = Vec3A::from(planes[A]).dot(crosses[ij2k::<B, C>()]);
+	let res = Mat3A::from_cols(
+    crosses[ij2k::<B, C>()], 
+    crosses[ij2k::<A, C>()], 
+    crosses[ij2k::<A, B>()],
+  ) * vec3a(planes[A].w, planes[B].w, planes[C].w);
+  res * (-1. / d)
 }
