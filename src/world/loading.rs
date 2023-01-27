@@ -131,7 +131,7 @@ fn start_required_tasks(
         let chunk = world.chunks.get_mut(&position).unwrap();
         chunk.current_state = CurrentChunkState::Loading;
         // ===========
-        log::info!("Started loading chunk {position}");
+        //log::trace!("Started loading chunk {position}");
       },
       DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Loaded => {
         //get needed data
@@ -147,7 +147,7 @@ fn start_required_tasks(
         let chunk = world.chunks.get_mut(&position).unwrap();
         chunk.current_state = CurrentChunkState::CalculatingMesh;
         // ===========
-        log::info!("Started generating mesh for chunk {position}");
+        //log::trace!("Started generating mesh for chunk {position}");
       }
       _ => ()
     }
