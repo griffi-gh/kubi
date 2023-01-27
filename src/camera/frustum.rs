@@ -78,18 +78,17 @@ impl Frustum {
     Self { planes, points }
   }
 
-  //this may be broken
   pub fn is_box_visible(&self, minp: Vec3, maxp: Vec3) -> bool {
     // check box outside/inside of frustum
-    for i in 0..PLANE_COUNT {
-      if self.planes[i].dot(vec4(minp.x, minp.y, minp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(maxp.x, minp.y, minp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(minp.x, maxp.y, minp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(maxp.x, maxp.y, minp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(minp.x, minp.y, maxp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(maxp.x, minp.y, maxp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(minp.x, maxp.y, maxp.z, 1.)) < 0. &&
-         self.planes[i].dot(vec4(maxp.x, maxp.y, maxp.z, 1.)) < 0.
+    for plane in self.planes {
+      if (plane.dot(vec4(minp.x, minp.y, minp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(maxp.x, minp.y, minp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(minp.x, maxp.y, minp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(maxp.x, maxp.y, minp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(minp.x, minp.y, maxp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(maxp.x, minp.y, maxp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(minp.x, maxp.y, maxp.z, 1.)) < 0.) &&
+         (plane.dot(vec4(maxp.x, maxp.y, maxp.z, 1.)) < 0.)
       {
         return false
       }
@@ -97,35 +96,40 @@ impl Frustum {
 
     // check frustum outside/inside box
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].x > maxp.x) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.x > maxp.x) as u8;
     }
+    if out == 8 { return false }
+
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].x < minp.x) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.x < minp.x) as u8;
     }
+    if out == 8 { return false }
+
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].y > maxp.y) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.y > maxp.y) as u8;
     }
+    if out == 8 { return false }
+
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].y < minp.y) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.y < minp.y) as u8;
     }
+    if out == 8 { return false }
+
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].z > maxp.z) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.z > maxp.z) as u8;
     }
+    if out == 8 { return false }
+
     let mut out: u8 = 0;
-    for i in 0..POINT_COUNT {
-      out += (self.points[i].z < minp.z) as u8;
-      if out == 8 { return false }
+    for point in self.points {
+      out += (point.z < minp.z) as u8;
     }
+    if out == 8 { return false }
 
     true
   }
@@ -138,7 +142,7 @@ fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; 
 	let d = Vec3A::from(planes[A]).dot(crosses[ij2k::<B, C>()]);
 	let res = Mat3A::from_cols(
     crosses[ij2k::<B, C>()], 
-    crosses[ij2k::<A, C>()], 
+    -crosses[ij2k::<A, C>()], 
     crosses[ij2k::<A, B>()],
   ) * vec3a(planes[A].w, planes[B].w, planes[C].w);
   res * (-1. / d)
