@@ -79,7 +79,7 @@ impl Frustum {
   }
 
   //this may be broken
-  pub fn intersect_box(&self, minp: Vec3, maxp: Vec3) -> bool {
+  pub fn is_box_visible(&self, minp: Vec3, maxp: Vec3) -> bool {
     // check box outside/inside of frustum
     for i in 0..PLANE_COUNT {
       if self.planes[i].dot(vec4(minp.x, minp.y, minp.z, 1.)) < 0. &&

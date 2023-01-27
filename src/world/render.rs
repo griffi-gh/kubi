@@ -69,22 +69,15 @@ pub fn draw_world(
   });
   let view = camera.view_matrix.to_cols_array_2d();
   let perspective = camera.perspective_matrix.to_cols_array_2d();
-  let camera_mat = camera.perspective_matrix * camera.view_matrix;
 
   for (&position, chunk) in &chunks.chunks {
     if let Some(key) = chunk.mesh_index {
       let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
-      let world_position = position.as_vec3a() * CHUNK_SIZE as f32;
+      let world_position = position.as_vec3() * CHUNK_SIZE as f32;
       if mesh.index_buffer.len() == 0 {
         continue
       }
-
-      //basic culling
-      // let chunk_center = world_position + Vec3A::splat(CHUNK_SIZE as f32) * 0.5;
-      // let cull_point = camera_mat * chunk_center.extend(1.);
-      // if (cull_point.xyz() / cull_point.w).abs().cmpgt(Vec3::splat(1.)).any() {
-      //   continue
-      // }
+      let debug = !camera.frustum.is_box_visible(world_position, world_position + Vec3::splat(CHUNK_SIZE as f32));
 
       target.0.draw(
         &mesh.vertex_buffer,
@@ -94,7 +87,8 @@ pub fn draw_world(
           position_offset: world_position.to_array(),
           view: view,
           perspective: perspective,
-          tex: texture_sampler
+          tex: texture_sampler,
+          debug: debug
         },
         &draw_parameters
       ).unwrap();
