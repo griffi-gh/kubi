@@ -1,6 +1,7 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
 use shipyard::Unique;
+use rayon::{ThreadPool, ThreadPoolBuilder};
 use super::{
   chunk::BlockData,
   render::ChunkVertex, 
@@ -33,16 +34,18 @@ pub enum ChunkTaskResponse {
 #[derive(Unique)]
 pub struct ChunkTaskManager {
   channel: (Sender<ChunkTaskResponse>, Receiver<ChunkTaskResponse>),
+  pool: ThreadPool,
 }
 impl ChunkTaskManager {
   pub fn new() -> Self {
     Self {
       channel: flume::unbounded::<ChunkTaskResponse>(), //maybe put a bound or even bound(0)?
+      pool: ThreadPoolBuilder::new().num_threads(4).build().unwrap()
     }
   }
   pub fn spawn_task(&self, task: ChunkTask) {
     let sender = self.channel.0.clone();
-    rayon::spawn(move || {
+    self.pool.spawn(move || {
       let _ = sender.send(match task {
         ChunkTask::GenerateMesh { position, data } => {
           let (vertices, indexes) = generate_mesh(data);

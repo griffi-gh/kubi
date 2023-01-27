@@ -18,7 +18,7 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
       for z in 0..CHUNK_SIZE {
         let position = ivec3(x as i32, y as i32, z as i32) + offset;
         let noise = noise.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
-        if noise > 0.8 {
+        if (0.7..0.8).contains(&noise) {
           blocks[x][y][z] = Block::Stone;
         }
       }
