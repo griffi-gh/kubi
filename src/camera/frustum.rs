@@ -8,7 +8,8 @@
 // three layers of stolen code, yay!
 
 use glam::{Vec3A, Vec4, Mat3A, vec3a, Vec3, vec4};
-use shipyard::{ViewMut, IntoIter};
+use shipyard::{ViewMut, IntoIter, View};
+use crate::transform::Transform;
 use super::Camera;
 
 #[repr(usize)]
@@ -150,8 +151,9 @@ fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; 
 
 pub fn update_frustum(
   mut cameras: ViewMut<Camera>,
+  transforms: View<Transform>
 ) {
-  for camera in (&mut cameras).iter() {
+  for (camera, _) in (&mut cameras, transforms.inserted_or_modified()).iter() {
     camera.frustum = Frustum::compute(camera);
   }
 }
