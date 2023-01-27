@@ -14,7 +14,7 @@ use super::{
 };
 
 //todo limit task starts insted
-const MAX_CHUNK_RECV: usize = 8;
+const MAX_CHUNK_OPS: usize = 8;
 
 pub fn update_loaded_world_around_player() -> Workload {
   (
