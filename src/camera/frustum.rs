@@ -96,42 +96,13 @@ impl Frustum {
     }
 
     // check frustum outside/inside box
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.x > maxp.x) as u8;
-    }
-    if out == 8 { return false }
-
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.x < minp.x) as u8;
-    }
-    if out == 8 { return false }
-
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.y > maxp.y) as u8;
-    }
-    if out == 8 { return false }
-
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.y < minp.y) as u8;
-    }
-    if out == 8 { return false }
-
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.z > maxp.z) as u8;
-    }
-    if out == 8 { return false }
-
-    let mut out: u8 = 0;
-    for point in self.points {
-      out += (point.z < minp.z) as u8;
-    }
-    if out == 8 { return false }
-
+    if self.points.iter().all(|point| point.x > maxp.x) { return false }
+    if self.points.iter().all(|point| point.x < minp.x) { return false }
+    if self.points.iter().all(|point| point.y > maxp.y) { return false }
+    if self.points.iter().all(|point| point.y < minp.y) { return false }
+    if self.points.iter().all(|point| point.z > maxp.z) { return false }
+    if self.points.iter().all(|point| point.z < minp.z) { return false }
+    
     true
   }
 }
