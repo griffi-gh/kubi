@@ -74,11 +74,22 @@ pub fn draw_world(
     if let Some(key) = chunk.mesh_index {
       let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
       let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+      
+      //Skip mesh if its empty
       if mesh.index_buffer.len() == 0 {
         continue
       }
-      let debug = !camera.frustum.is_box_visible(world_position, world_position + Vec3::splat(CHUNK_SIZE as f32));
 
+      //Frustum culling
+      {
+        let minp = world_position;
+        let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
+        if !camera.frustum.is_box_visible(minp, maxp) {
+          continue
+        }
+      }
+
+      //Draw chunk mesh
       target.0.draw(
         &mesh.vertex_buffer,
         &mesh.index_buffer,
@@ -88,7 +99,6 @@ pub fn draw_world(
           view: view,
           perspective: perspective,
           tex: texture_sampler,
-          debug: debug
         },
         &draw_parameters
       ).unwrap();
