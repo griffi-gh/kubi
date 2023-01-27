@@ -19,9 +19,10 @@ fn update_look(
   controllers: View<FlyController>,
   mut transforms: ViewMut<Transform>,
   inputs: UniqueView<Inputs>,
-  settings: UniqueView<GameSettings>
+  settings: UniqueView<GameSettings>,
+  dt: UniqueView<DeltaTime>,
 ) {
-  let look = inputs.look * settings.mouse_sensitivity;
+  let look = inputs.look * settings.mouse_sensitivity * dt.0.as_secs_f32();
   if look == Vec2::ZERO { return }
   for (_, mut transform) in (&controllers, &mut transforms).iter() {
     let (scale, mut rotation, translation) = transform.0.to_scale_rotation_translation();

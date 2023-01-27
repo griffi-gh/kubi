@@ -10,7 +10,7 @@ impl Default for GameSettings {
   fn default() -> Self {
     Self {
       render_distance: 5,
-      mouse_sensitivity: 0.01,
+      mouse_sensitivity: 1.,
     }
   }
 }
