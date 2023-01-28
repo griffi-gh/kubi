@@ -13,6 +13,9 @@ pub struct Inputs {
   pub action_b: bool,
 }
 
+#[derive(Unique, Clone, Copy, Default, Debug)]
+pub struct PrevInputs(pub Inputs);
+
 #[derive(Unique, Clone, Default, Debug)]
 pub struct RawInputState {
   pub keyboard_state: HashSet<VirtualKeyCode, BuildNoHashHasher<u32>>,
@@ -51,7 +54,9 @@ pub fn process_events(
 pub fn update_input_states (
   raw_inputs: UniqueView<RawInputState>,
   mut inputs: UniqueViewMut<Inputs>,
+  mut prev_inputs: UniqueViewMut<PrevInputs>,
 ) {
+  prev_inputs.0 = *inputs;
   inputs.movement = Vec2::new(
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::D) as u32 as f32 -
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::A) as u32 as f32,
@@ -67,6 +72,7 @@ pub fn init_input (
   storages: AllStoragesView
 ) {
   storages.add_unique(Inputs::default());
+  storages.add_unique(PrevInputs::default());
   storages.add_unique(RawInputState::default());
 }
 

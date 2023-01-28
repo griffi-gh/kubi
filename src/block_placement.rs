@@ -3,24 +3,23 @@ use shipyard::{UniqueViewMut, UniqueView, View, IntoIter};
 use crate::{
   player::MainPlayer, 
   world::{raycast::LookingAtBlock, ChunkStorage, block::Block}, 
-  input::Inputs
+  input::{Inputs, PrevInputs}
 };
 
 pub fn block_placement_system(
   main_player: View<MainPlayer>,
   raycast: View<LookingAtBlock>,
   input: UniqueView<Inputs>,
+  prev_input: UniqueView<PrevInputs>,
   mut world: UniqueViewMut<ChunkStorage>
 ) {
-  if input.action_a && input.action_b {
-    return
-  }
-  if input.action_a || input.action_b {
+  let action_place = input.action_b && !prev_input.0.action_b;
+  let action_break = input.action_a && !prev_input.0.action_a;
+  if action_place ^ action_break {
     //get raycast info
     let Some(ray) = (&main_player, &raycast).iter().next().unwrap().1/**/.0 else { return };
     //update block
-    let is_place = input.action_b;
-    let place_position = if is_place {
+    let place_position = if action_place {
       let position = (ray.position - ray.direction * 0.5).floor().as_ivec3();
       let Some(block) = world.get_block_mut(position) else { return };
       *block = Block::Dirt;
