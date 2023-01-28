@@ -12,7 +12,9 @@ pub fn block_placement_system(
   input: UniqueView<Inputs>,
   mut world: UniqueViewMut<ChunkStorage>
 ) {
-  //this cant process both place and break btw
+  if input.action_a && input.action_b {
+    return
+  }
   if input.action_a || input.action_b {
     //get raycast info
     let Some(ray) = (&main_player, &raycast).iter().next().unwrap().1/**/.0 else { return };
