@@ -7,9 +7,7 @@ use glium::{
   VertexBuffer, uniform, 
   DrawParameters, 
   BackfaceCullingMode, 
-  Blend, BlendingFunction, 
-  LinearBlendingFactor, 
-  Depth, DepthTest,
+  Blend, Depth, DepthTest,
 };
 use crate::{
   world::raycast::LookingAtBlock, 
@@ -62,36 +60,27 @@ pub fn render_selection_box(
     &display.display,
     BOX_VERTICES
   ).unwrap();
+
   let index = IndexBuffer::new(
     &display.display,
     PrimitiveType::TrianglesList, 
     CUBE_INDICES
   ).unwrap();
 
+  //Darken block
   target.0.draw(
     &vert,
     &index,
     &program.0,
     &uniform! {
-      color: [0., 0., 0., 1.],
+      u_color: [0., 0., 0., 0.5_f32],
       u_position: lookat.block_position.as_vec3().to_array(),
       perspective: camera.perspective_matrix.to_cols_array_2d(),
       view: camera.view_matrix.to_cols_array_2d(),
     },
     &DrawParameters {
       backface_culling: BackfaceCullingMode::CullClockwise,
-      blend: Blend {
-        //for some reason only constant alpha works???
-        color: BlendingFunction::Addition {
-          source: LinearBlendingFactor::ConstantAlpha,
-          destination: LinearBlendingFactor::OneMinusConstantAlpha,
-        },
-        alpha: BlendingFunction::Addition {
-          source: LinearBlendingFactor::ConstantAlpha,
-          destination: LinearBlendingFactor::OneMinusConstantAlpha
-        },
-        constant_value: (0.0, 0.0, 0.0, 0.5)
-      },
+      blend: Blend::alpha_blending(),
       depth: Depth {
         test: DepthTest::IfLessOrEqual, //this may be unreliable!
         ..Default::default()
