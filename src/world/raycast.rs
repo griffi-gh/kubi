@@ -50,6 +50,6 @@ pub fn update_player_raycast(
   for (_, transform, report) in (&main_player, transform.inserted_or_modified(), &mut raycast).iter() {
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
     let direction = rotation * Vec3::NEG_Z;
-    *report = LookingAtBlock(world.raycast(position, direction, Some(10.)));
+    *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));
   }
 }
