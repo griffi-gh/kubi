@@ -9,6 +9,7 @@ use glium::{
 };
 use glam::Vec3;
 
+pub mod primitives;
 pub mod world;
 pub mod selection_box;
 

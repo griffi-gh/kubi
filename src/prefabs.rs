@@ -56,6 +56,9 @@ pub struct BlockTexturesPrefab(pub SrgbTexture2dArray);
 #[derive(Unique)]
 pub struct ChunkShaderPrefab(pub Program);
 
+#[derive(Unique)]
+pub struct SelBoxShaderPrefab(pub Program);
+
 pub fn load_prefabs(
   storages: AllStoragesView,
   renderer: NonSendSync<UniqueView<Renderer>>
@@ -71,6 +74,13 @@ pub fn load_prefabs(
     include_shader_prefab!(
       "../shaders/world.vert",
       "../shaders/world.frag",
+      &renderer.display
+    )
+  ));
+  storages.add_unique_non_send_sync(SelBoxShaderPrefab(
+    include_shader_prefab!(
+      "../shaders/selection_box.vert",
+      "../shaders/selection_box.frag",
       &renderer.display
     )
   ));

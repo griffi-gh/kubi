@@ -1,12 +1,16 @@
 use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut};
-use glium::Surface;
+use glium::{Surface, implement_vertex};
 use crate::{
   world::raycast::LookingAtBlock, 
   camera::Camera
 };
 use super::RenderTarget;
 
-const CUBE_VERTICES: &[f32] = &[0.0];
+#[derive(Clone, Copy)]
+pub struct SelBoxVertex {
+  pub position: [f32; 3],
+}
+implement_vertex!(SelBoxVertex, position);
 
 //wip
 pub fn render_selection_box(
