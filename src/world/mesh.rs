@@ -1,5 +1,6 @@
 use strum::{EnumIter, IntoEnumIterator};
 use glam::{Vec3A, vec3a, IVec3, ivec3};
+use std::mem::discriminant;
 use super::{chunk::CHUNK_SIZE, block::{Block, RenderType}};
 use crate::rendering::world::ChunkVertex;
 
@@ -111,7 +112,7 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
         for face in CubeFace::iter() {
           let facing = CUBE_FACE_NORMALS[face as usize].as_ivec3();
           let facing_coord = coord + facing;
-          let show = matches!(get_block(facing_coord).descriptor().render, RenderType::None);
+          let show = discriminant(&get_block(facing_coord).descriptor().render) != discriminant(&descriptor.render);
           if show {
             match descriptor.render {
               RenderType::SolidBlock(textures) => {
