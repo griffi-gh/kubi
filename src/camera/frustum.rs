@@ -111,8 +111,8 @@ const fn ij2k<const I: usize, const J: usize>() -> usize {
   I * (9 - I) / 2 + J - 1 
 }
 fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; PLANE_COUNT], crosses: &[Vec3A; PLANE_COMBINATIONS]) -> Vec3A {
-	let d = Vec3A::from(planes[A]).dot(crosses[ij2k::<B, C>()]);
-	let res = Mat3A::from_cols(
+  let d = Vec3A::from(planes[A]).dot(crosses[ij2k::<B, C>()]);
+  let res = Mat3A::from_cols(
     crosses[ij2k::<B, C>()], 
     -crosses[ij2k::<A, C>()], 
     crosses[ij2k::<A, B>()],

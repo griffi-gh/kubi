@@ -51,6 +51,16 @@ impl ChunkStorage {
       .get(block.z as usize)?;
     Some(*block)
   }
+  pub fn get_block_mut(&mut self, position: IVec3) -> Option<&mut Block> {
+    let (chunk, block) = Self::to_chunk_coords(position);
+    let block = self.chunks
+      .get_mut(&chunk)?
+      .block_data.as_mut()?
+      .blocks.get_mut(block.x as usize)?
+      .get_mut(block.y as usize)?
+      .get_mut(block.z as usize)?;
+    Some(block)
+  }
   pub fn new() -> Self {
     Self::default()
   }

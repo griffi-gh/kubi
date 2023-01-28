@@ -18,7 +18,6 @@ impl ChunkData {
 }
 
 pub struct ChunkMesh {
-  pub is_dirty: bool,
   pub vertex_buffer: VertexBuffer<ChunkVertex>,
   pub index_buffer: IndexBuffer<u32>,
 }
@@ -50,6 +49,7 @@ pub struct Chunk {
   pub mesh_index: Option<usize>,
   pub current_state: CurrentChunkState,
   pub desired_state: DesiredChunkState,
+  pub dirty: bool,
 }
 impl Chunk {
   pub fn new(position: IVec3) -> Self {
@@ -59,6 +59,7 @@ impl Chunk {
       mesh_index: None,
       current_state: Default::default(),
       desired_state: Default::default(),
+      dirty: false,
     }
   }
 }

@@ -1,4 +1,4 @@
-use glam::{vec3a, Vec3A, Vec4Swizzles, Vec3};
+use glam::Vec3;
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter};
 use glium::{
   implement_vertex, uniform,

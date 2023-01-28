@@ -95,7 +95,7 @@ fn unload_downgrade_chunks(
       false
     } else {
       match chunk.desired_state {
-        DesiredChunkState::Loaded if matches!(chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::CalculatingMesh) => {
+        DesiredChunkState::Loaded if matches!(chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::CalculatingMesh | CurrentChunkState::RecalculatingMesh) => {
           if let Some(mesh_index) = chunk.mesh_index {
             vm_meshes.remove(mesh_index).unwrap();
           }
@@ -133,7 +133,7 @@ fn start_required_tasks(
         // ===========
         //log::trace!("Started loading chunk {position}");
       },
-      DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Loaded => {
+      DesiredChunkState::Rendered if (chunk.current_state == CurrentChunkState::Loaded || chunk.dirty) => {
         //get needed data
         let Some(neighbors) = world.neighbors_all(position) else {
           continue
@@ -145,7 +145,12 @@ fn start_required_tasks(
         task_manager.spawn_task(ChunkTask::GenerateMesh { data, position });
         //Update chunk state
         let chunk = world.chunks.get_mut(&position).unwrap();
-        chunk.current_state = CurrentChunkState::CalculatingMesh;
+        if chunk.dirty {
+          chunk.current_state = CurrentChunkState::RecalculatingMesh;
+          chunk.dirty = false;
+        } else {
+          chunk.current_state = CurrentChunkState::CalculatingMesh;
+        }
         // ===========
         //log::trace!("Started generating mesh for chunk {position}");
       }
@@ -201,7 +206,6 @@ fn process_completed_tasks(
           let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
           let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
           let mesh_index = meshes.insert(ChunkMesh {
-            is_dirty: false,
             vertex_buffer,
             index_buffer,
           });

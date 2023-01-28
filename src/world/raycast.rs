@@ -1,6 +1,6 @@
 use glam::{Vec3, IVec3};
-use shipyard::{View, Component, ViewMut, IntoIter, UniqueView};
-use crate::{player::MainPlayer, transform::Transform};
+use shipyard::{View, Component, ViewMut, IntoIter, UniqueView, UniqueViewMut};
+use crate::{player::MainPlayer, transform::Transform, input::Inputs};
 
 use super::{ChunkStorage, block::Block};
 
@@ -46,9 +46,31 @@ pub fn update_raycasts(
   mut raycast: ViewMut<LookingAtBlock>,
   world: UniqueView<ChunkStorage>,
 ) {
-  for (transform, report) in (transform.inserted_or_modified(), &mut raycast).iter() {
+  //idk if this check is even needed
+  if !(world.is_inserted_or_modified() || (transform.inserted_or_modified(), &raycast).iter().next().is_some()) {
+    return
+  }
+  for (transform, report) in (&transform, &mut raycast).iter() {
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
     let direction = rotation * Vec3::NEG_Z;
     *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));
+  }
+}
+
+pub fn break_block_test_only(
+  raycast: View<LookingAtBlock>,
+  input: UniqueView<Inputs>,
+  mut world: UniqueViewMut<ChunkStorage>
+) {
+  if input.action_a {
+    //get raycast info
+    let Some(ray) = raycast.iter().next().unwrap().0 else { return };
+    //update block
+    let Some(block) = world.get_block_mut(ray.block_position) else { return };
+    *block = Block::Air;
+    //mark chunk as dirty
+    let (chunk_pos, _) = ChunkStorage::to_chunk_coords(ray.block_position);
+    let chunk = world.chunks.get_mut(&chunk_pos).unwrap();
+    chunk.dirty = true;
   }
 }
