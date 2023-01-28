@@ -72,6 +72,7 @@ fn render() -> Workload {
   (
     clear_background,
     draw_world,
+    render_selection_box,
   ).into_sequential_workload()
 }
 fn after_frame_end() -> Workload {
