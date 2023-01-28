@@ -41,13 +41,12 @@ impl ChunkStorage {
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct LookingAtBlock(pub Option<RaycastReport>);
 
-pub fn update_player_raycast(
-  main_player: View<MainPlayer>,
+pub fn update_raycasts(
   transform: View<Transform>,
   mut raycast: ViewMut<LookingAtBlock>,
   world: UniqueView<ChunkStorage>,
 ) {
-  for (_, transform, report) in (&main_player, transform.inserted_or_modified(), &mut raycast).iter() {
+  for (transform, report) in (transform.inserted_or_modified(), &mut raycast).iter() {
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
     let direction = rotation * Vec3::NEG_Z;
     *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));

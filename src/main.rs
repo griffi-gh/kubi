@@ -34,7 +34,7 @@ use rendering::{
 use world::{
   init_game_world,
   loading::update_loaded_world_around_player, 
-  raycast::update_player_raycast
+  raycast::update_raycasts
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -64,7 +64,7 @@ fn update() -> Workload {
     process_inputs,
     update_controllers,
     update_loaded_world_around_player,
-    update_player_raycast,
+    update_raycasts,
     compute_cameras
   ).into_workload()
 }
