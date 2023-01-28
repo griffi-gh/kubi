@@ -18,8 +18,8 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
 
   let mut blocks = Box::new([[[Block::Air; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]);
 
-  if chunk_position.y > 0 {
-    if chunk_position.y == 1 {
+  if chunk_position.y >= 0 {
+    if chunk_position.y == 0 {
       for x in 0..CHUNK_SIZE {
         for z in 0..CHUNK_SIZE {
           blocks[x][0][z] = Block::Dirt;
