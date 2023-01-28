@@ -24,6 +24,7 @@ pub(crate) mod camera;
 pub(crate) mod events;
 pub(crate) mod input;
 pub(crate) mod fly_controller;
+pub(crate) mod block_placement;
 
 use rendering::{
   Renderer, 
@@ -34,7 +35,7 @@ use rendering::{
 use world::{
   init_game_world,
   loading::update_loaded_world_around_player, 
-  raycast::{update_raycasts, break_block_test_only}
+  raycast::update_raycasts
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -47,6 +48,7 @@ use rendering::{
   selection_box::render_selection_box,
   world::draw_world,
 };
+use block_placement::block_placement_system;
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -65,7 +67,7 @@ fn update() -> Workload {
     update_controllers,
     update_loaded_world_around_player,
     update_raycasts,
-    break_block_test_only,
+    block_placement_system,
     compute_cameras
   ).into_workload()
 }

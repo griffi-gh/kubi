@@ -42,7 +42,12 @@ pub fn update_chunks_if_player_moved(
 
   //If it did, get it's position and current chunk
   let player_position = transform.0.to_scale_rotation_translation().2;
-  let player_at_chunk = player_position.as_ivec3() / CHUNK_SIZE as i32;
+  let player_position_ivec3 = player_position.as_ivec3();
+  let player_at_chunk = ivec3(
+    player_position_ivec3.x.div_euclid(CHUNK_SIZE as i32),
+    player_position_ivec3.y.div_euclid(CHUNK_SIZE as i32),
+    player_position_ivec3.z.div_euclid(CHUNK_SIZE as i32),
+  );
 
   //Then, mark *ALL* chunks with ToUnload
   for (_, chunk) in &mut vm_world.chunks {

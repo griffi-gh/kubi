@@ -47,7 +47,6 @@ impl Block {
         collision: CollisionType::Solid, 
         raycast_collision: true, 
       },
-      _ => todo!()
     }
   }
 }
@@ -59,11 +58,11 @@ pub struct BlockDescriptor {
   pub collision: CollisionType,
   pub raycast_collision: bool,
 }
-impl BlockDescriptor {
-  pub fn of(block: Block) -> Self {
-    block.descriptor()
-  }
-}
+// impl BlockDescriptor {
+//   pub fn of(block: Block) -> Self {
+//     block.descriptor()
+//   }
+// }
 
 #[derive(Clone, Copy, Debug)]
 pub struct CubeTexture {

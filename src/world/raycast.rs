@@ -1,6 +1,6 @@
 use glam::{Vec3, IVec3};
-use shipyard::{View, Component, ViewMut, IntoIter, UniqueView, UniqueViewMut};
-use crate::{player::MainPlayer, transform::Transform, input::Inputs};
+use shipyard::{View, Component, ViewMut, IntoIter, UniqueView};
+use crate::transform::Transform;
 
 use super::{ChunkStorage, block::Block};
 
@@ -10,6 +10,7 @@ const RAYCAST_STEP: f32 = 0.25;
 pub struct RaycastReport {
   pub length: f32,
   pub position: Vec3,
+  pub direction: Vec3,
   pub block_position: IVec3,
   pub block: Block,
 }
@@ -24,7 +25,13 @@ impl ChunkStorage {
       let block_position = position.floor().as_ivec3();
       if let Some(block) = self.get_block(block_position) {
         if block.descriptor().raycast_collision {
-          return Some(RaycastReport { length, position, block_position, block });
+          return Some(RaycastReport { 
+            length,
+            position,
+            direction,
+            block_position,
+            block
+          });
         }
       }
       length += RAYCAST_STEP;
@@ -54,23 +61,5 @@ pub fn update_raycasts(
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
     let direction = rotation * Vec3::NEG_Z;
     *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));
-  }
-}
-
-pub fn break_block_test_only(
-  raycast: View<LookingAtBlock>,
-  input: UniqueView<Inputs>,
-  mut world: UniqueViewMut<ChunkStorage>
-) {
-  if input.action_a {
-    //get raycast info
-    let Some(ray) = raycast.iter().next().unwrap().0 else { return };
-    //update block
-    let Some(block) = world.get_block_mut(ray.block_position) else { return };
-    *block = Block::Air;
-    //mark chunk as dirty
-    let (chunk_pos, _) = ChunkStorage::to_chunk_coords(ray.block_position);
-    let chunk = world.chunks.get_mut(&chunk_pos).unwrap();
-    chunk.dirty = true;
   }
 }
