@@ -1,5 +1,14 @@
 use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
-use glium::{Surface, implement_vertex, IndexBuffer, index::PrimitiveType, VertexBuffer, uniform, DrawParameters, Blend, BackfaceCullingMode};
+use glium::{
+  Surface, 
+  implement_vertex, 
+  IndexBuffer, 
+  index::PrimitiveType, 
+  VertexBuffer, uniform, 
+  DrawParameters, 
+  BackfaceCullingMode, 
+  PolygonMode, Blend, BlendingFunction, LinearBlendingFactor, Depth, DepthTest
+};
 use crate::{
   world::raycast::LookingAtBlock, 
   camera::Camera, prefabs::SelBoxShaderPrefab
@@ -62,14 +71,29 @@ pub fn render_selection_box(
     &index,
     &program.0,
     &uniform! {
-      color: [0., 0., 0., 0.5_f32],
+      color: [0., 0., 0., 1.],
       u_position: lookat.block_position.as_vec3().to_array(),
       perspective: camera.perspective_matrix.to_cols_array_2d(),
       view: camera.view_matrix.to_cols_array_2d(),
     },
     &DrawParameters {
-      blend: Blend::alpha_blending(),
       backface_culling: BackfaceCullingMode::CullClockwise,
+      blend: Blend {
+        //for some reason only constant alpha works???
+        color: BlendingFunction::Addition {
+          source: LinearBlendingFactor::ConstantAlpha,
+          destination: LinearBlendingFactor::OneMinusConstantAlpha,
+        },
+        alpha: BlendingFunction::Addition {
+          source: LinearBlendingFactor::ConstantAlpha,
+          destination: LinearBlendingFactor::OneMinusConstantAlpha
+        },
+        constant_value: (0.0, 0.0, 0.0, 0.5)
+      },
+      depth: Depth {
+        test: DepthTest::IfLessOrEqual, //this may be unreliable!
+        ..Default::default()
+      },
       ..Default::default()
     }
   ).unwrap();
