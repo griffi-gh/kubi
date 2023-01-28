@@ -1,3 +1,3 @@
-# development moved to
-# https://github.com/griffi-gh/kubi/tree/ecs-rewrite
-this branch contains the latest version before the rewrite
+<h1 align="center">Kubi</h1>
+work in progress
+<h6 align="right"><i>~ uwu</i></h6>
