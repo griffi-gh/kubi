@@ -19,7 +19,6 @@ use glium::{
 };
 use crate::{
   camera::Camera, 
-  rendering::RenderTarget,
   prefabs::{
     ChunkShaderPrefab,
     BlockTexturesPrefab,
@@ -30,6 +29,7 @@ use crate::{
     chunk::CHUNK_SIZE,
   }, 
 };
+use super::RenderTarget;
 
 #[derive(Clone, Copy)]
 pub struct ChunkVertex {

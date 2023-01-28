@@ -16,6 +16,7 @@ pub struct Inputs {
 #[derive(Unique, Clone, Default, Debug)]
 pub struct RawInputState {
   pub keyboard_state: HashSet<VirtualKeyCode, BuildNoHashHasher<u32>>,
+  pub button_state: [bool; 32],
   pub mouse_delta: DVec2
 }
 
@@ -37,8 +38,10 @@ pub fn process_events(
           };
         }
       },
-      DeviceEvent::Button { button: _, state: _ } => {
-        //log::debug!("Button {button} {state:?}");
+      DeviceEvent::Button { button, state } => {
+        if button < 32 {
+          input_state.button_state[button as usize] = matches!(state, ElementState::Pressed);
+        }
       },
       _ => ()
     }
@@ -56,6 +59,8 @@ pub fn update_input_states (
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::S) as u32 as f32
   ).normalize_or_zero();
   inputs.look = raw_inputs.mouse_delta.as_vec2();
+  inputs.action_a = raw_inputs.button_state[1];
+  inputs.action_b = raw_inputs.button_state[3];
 }
 
 pub fn init_input (

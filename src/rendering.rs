@@ -9,6 +9,9 @@ use glium::{
 };
 use glam::Vec3;
 
+pub mod world;
+pub mod selection_box;
+
 #[derive(Unique)]
 pub struct RenderTarget(pub glium::Frame);
 

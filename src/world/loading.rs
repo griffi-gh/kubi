@@ -2,7 +2,7 @@ use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync};
 use crate::{
-  player::LocalPlayer,
+  player::MainPlayer,
   transform::Transform,
   settings::GameSettings,
   rendering::Renderer
@@ -27,7 +27,7 @@ pub fn update_loaded_world_around_player() -> Workload {
 
 pub fn update_chunks_if_player_moved(
   v_settings: UniqueView<GameSettings>,
-  v_local_player: View<LocalPlayer>,
+  v_local_player: View<MainPlayer>,
   v_transform: View<Transform>,
   mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {

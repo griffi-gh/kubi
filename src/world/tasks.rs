@@ -4,10 +4,10 @@ use shipyard::Unique;
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use super::{
   chunk::BlockData,
-  render::ChunkVertex, 
   mesh::{generate_mesh, data::MeshGenData},
   worldgen::generate_world,
 };
+use crate::rendering::world::ChunkVertex;
 
 pub enum ChunkTask {
   LoadChunk {

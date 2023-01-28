@@ -6,15 +6,17 @@ use anyhow::{Result, Context};
 
 pub mod chunk;
 pub mod block;
-pub mod render;
 pub mod tasks;
 pub mod loading;
 pub mod mesh;
 pub mod neighbors;
 pub mod worldgen;
+pub mod raycast;
 
 use chunk::{Chunk, ChunkMesh};
 use tasks::ChunkTaskManager;
+
+use self::{chunk::CHUNK_SIZE, block::Block};
 
 //TODO separate world struct for render data
 // because this is not send-sync
@@ -25,6 +27,30 @@ pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>
 }
 impl ChunkStorage {
+  pub const fn to_chunk_coords(position: IVec3) -> (IVec3, IVec3) {
+    (
+      IVec3::new(
+        position.x.div_euclid(CHUNK_SIZE as i32),
+        position.y.div_euclid(CHUNK_SIZE as i32),
+        position.z.div_euclid(CHUNK_SIZE as i32),
+      ),
+      IVec3::new(
+        position.x.rem_euclid(CHUNK_SIZE as i32),
+        position.y.rem_euclid(CHUNK_SIZE as i32),
+        position.z.rem_euclid(CHUNK_SIZE as i32),
+      )
+    )
+  }
+  pub fn get_block(&self, position: IVec3) -> Option<Block> {
+    let (chunk, block) = Self::to_chunk_coords(position);
+    let block = self.chunks
+      .get(&chunk)?
+      .block_data.as_ref()?
+      .blocks.get(block.x as usize)?
+      .get(block.y as usize)?
+      .get(block.z as usize)?;
+    Some(*block)
+  }
   pub fn new() -> Self {
     Self::default()
   }

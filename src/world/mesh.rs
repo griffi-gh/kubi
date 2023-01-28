@@ -1,6 +1,7 @@
 use strum::{EnumIter, IntoEnumIterator};
 use glam::{Vec3A, vec3a, IVec3, ivec3};
-use super::{render::ChunkVertex, chunk::CHUNK_SIZE, block::{Block, RenderType}};
+use super::{chunk::CHUNK_SIZE, block::{Block, RenderType}};
+use crate::rendering::world::ChunkVertex;
 
 pub mod data;
 use data::MeshGenData;

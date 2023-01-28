@@ -13,6 +13,7 @@ use glam::vec3;
 use std::time::{Instant, Duration};
 
 mod logging;
+
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -24,8 +25,17 @@ pub(crate) mod events;
 pub(crate) mod input;
 pub(crate) mod fly_controller;
 
-use rendering::{Renderer, RenderTarget, BackgroundColor, clear_background};
-use world::{loading::update_loaded_world_around_player, render::draw_world, init_game_world};
+use rendering::{
+  Renderer, 
+  RenderTarget, 
+  BackgroundColor, 
+  clear_background
+};
+use world::{
+  init_game_world,
+  loading::update_loaded_world_around_player, 
+  raycast::update_player_raycast
+};
 use player::spawn_player;
 use prefabs::load_prefabs;
 use settings::GameSettings;
@@ -33,6 +43,10 @@ use camera::compute_cameras;
 use events::{clear_events, process_glutin_events};
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
+use rendering::{
+  selection_box::render_selection_box,
+  world::draw_world,
+};
 
 #[derive(Unique)]
 pub(crate) struct DeltaTime(Duration);
@@ -50,6 +64,7 @@ fn update() -> Workload {
     process_inputs,
     update_controllers,
     update_loaded_world_around_player,
+    update_player_raycast,
     compute_cameras
   ).into_workload()
 }

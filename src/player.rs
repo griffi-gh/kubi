@@ -1,13 +1,11 @@
 use glam::Mat4;
-use shipyard::{Component, EntitiesViewMut, ViewMut};
+use shipyard::{Component, AllStoragesViewMut};
 use crate::{
   transform::Transform,
   camera::Camera, 
-  fly_controller::FlyController,
+  fly_controller::FlyController, 
+  world::raycast::LookingAtBlock,
 };
-
-#[derive(Component)]
-pub struct LocalPlayer;
 
 #[derive(Component)]
 pub struct Player;
@@ -16,31 +14,15 @@ pub struct Player;
 pub struct MainPlayer;
 
 pub fn spawn_player (
-  mut entities: EntitiesViewMut,
-  mut vm_player: ViewMut<Player>,
-  mut vm_main_player: ViewMut<MainPlayer>,
-  mut vm_local_player: ViewMut<LocalPlayer>,
-  mut vm_transform: ViewMut<Transform>,
-  mut vm_camera: ViewMut<Camera>,
-  mut vm_controls: ViewMut<FlyController>,
+  mut storages: AllStoragesViewMut
 ) {
   log::info!("spawning player");
-  entities.add_entity(
-    (
-      &mut vm_player,
-      &mut vm_main_player,
-      &mut vm_local_player,
-      &mut vm_transform,
-      &mut vm_camera,
-      &mut vm_controls
-    ),
-    (
-      Player,
-      MainPlayer,
-      LocalPlayer,
-      Transform(Mat4::default()),
-      Camera::default(),
-      FlyController
-    )
-  );
+  storages.add_entity((
+    Player,
+    MainPlayer,
+    Transform::default(),
+    Camera::default(),
+    FlyController,
+    LookingAtBlock::default(),
+  ));
 }

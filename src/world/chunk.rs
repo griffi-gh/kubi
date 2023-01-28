@@ -1,6 +1,7 @@
 use glam::IVec3;
 use glium::{VertexBuffer, IndexBuffer};
-use super::{block::Block, render::ChunkVertex};
+use super::block::Block;
+use crate::rendering::world::ChunkVertex;
 
 pub const CHUNK_SIZE: usize = 32;
 
