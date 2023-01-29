@@ -1,7 +1,7 @@
 use glam::{Vec3, Mat4, Quat, EulerRot, Vec2};
 use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWorkload};
 use std::f32::consts::PI;
-use crate::{transform::Transform, input::Inputs, settings::GameSettings, DeltaTime};
+use crate::{transform::Transform, input::Inputs, settings::GameSettings, delta_time::DeltaTime};
 
 #[derive(Component)]
 pub struct FlyController;

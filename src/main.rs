@@ -1,7 +1,7 @@
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
-  NonSendSync, Unique
+  NonSendSync
 };
 use glium::{
   glutin::{
@@ -10,7 +10,7 @@ use glium::{
   }
 };
 use glam::vec3;
-use std::time::{Instant, Duration};
+use std::time::Instant;
 
 mod logging;
 
@@ -25,6 +25,7 @@ pub(crate) mod events;
 pub(crate) mod input;
 pub(crate) mod fly_controller;
 pub(crate) mod block_placement;
+pub(crate) mod delta_time;
 
 use rendering::{
   Renderer, 
@@ -45,17 +46,17 @@ use events::{clear_events, process_glutin_events};
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
-  selection_box::render_selection_box,
+  selection_box::{render_selection_box, init_selection_box_buffers},
   world::draw_world,
 };
 use block_placement::block_placement_system;
-
-#[derive(Unique)]
-pub(crate) struct DeltaTime(Duration);
+use delta_time::{DeltaTime, init_delta_time};
 
 fn startup() -> Workload {
   (
+    init_delta_time,
     load_prefabs,
+    init_selection_box_buffers,
     init_input,
     init_game_world,
     spawn_player,
@@ -96,7 +97,6 @@ fn main() {
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
-  world.add_unique(DeltaTime(Duration::default()));
   world.add_unique(GameSettings::default());
 
   //Register workloads

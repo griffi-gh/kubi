@@ -1,4 +1,4 @@
-use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
+use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView, AllStoragesView, Unique};
 use glium::{
   Surface, 
   implement_vertex, 
@@ -43,6 +43,9 @@ const fn box_vertices() -> [SelBoxVertex; CUBE_VERTICES.len() / 3] {
 }
 const BOX_VERTICES: &[SelBoxVertex] = &box_vertices();
 
+#[derive(Unique)]
+pub struct SelectionBoxBuffers(VertexBuffer<SelBoxVertex>, IndexBuffer<u16>);
+
 //wip
 pub fn render_selection_box(
   lookat: View<LookingAtBlock>,
@@ -50,27 +53,16 @@ pub fn render_selection_box(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   display: NonSendSync<UniqueView<Renderer>>,
   program: NonSendSync<UniqueView<SelBoxShaderPrefab>>,
+  buffers: NonSendSync<UniqueView<SelectionBoxBuffers>>,
 ) {
   let camera = camera.iter().next().unwrap();
   let Some(lookat) = lookat.iter().next() else { return };
   let Some(lookat) = lookat.0 else { return };
 
-  //this may be slow but the amount of vertices is very low
-  let vert = VertexBuffer::new(
-    &display.display,
-    BOX_VERTICES
-  ).unwrap();
-
-  let index = IndexBuffer::new(
-    &display.display,
-    PrimitiveType::TrianglesList, 
-    CUBE_INDICES
-  ).unwrap();
-
   //Darken block
   target.0.draw(
-    &vert,
-    &index,
+    &buffers.0,
+    &buffers.1,
     &program.0,
     &uniform! {
       u_color: [0., 0., 0., 0.5_f32],
@@ -88,4 +80,20 @@ pub fn render_selection_box(
       ..Default::default()
     }
   ).unwrap();
+}
+
+pub fn init_selection_box_buffers(
+  storages: AllStoragesView,
+  display: NonSendSync<UniqueView<Renderer>>
+) {
+  let vert = VertexBuffer::new(
+    &display.display,
+    BOX_VERTICES
+  ).unwrap();
+  let index = IndexBuffer::new(
+    &display.display,
+    PrimitiveType::TrianglesList, 
+    CUBE_INDICES
+  ).unwrap();
+  storages.add_unique_non_send_sync(SelectionBoxBuffers(vert, index));
 }
