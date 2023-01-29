@@ -54,7 +54,8 @@ use events::{
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
-  selection_box::{render_selection_box, init_selection_box_buffers},
+  primitives::init_simple_box_buffers,
+  selection_box::render_selection_box,
   world::draw_world,
 };
 use block_placement::block_placement_system;
@@ -66,7 +67,7 @@ fn startup() -> Workload {
   (
     load_settings,
     load_prefabs,
-    init_selection_box_buffers,
+    init_simple_box_buffers,
     insert_lock_state,
     lock_cursor_now,
     init_input,

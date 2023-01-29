@@ -1,13 +1,10 @@
-use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView, AllStoragesView, Unique};
+use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
 use glium::{
   Surface, 
-  implement_vertex, 
-  IndexBuffer, 
-  index::PrimitiveType, 
-  VertexBuffer, uniform, 
   DrawParameters, 
   BackfaceCullingMode, 
   Blend, Depth, DepthTest,
+  uniform, 
 };
 use crate::{
   world::raycast::LookingAtBlock, 
@@ -15,44 +12,15 @@ use crate::{
 };
 use super::{
   RenderTarget, 
-  primitives::{CUBE_INDICES, CUBE_VERTICES}, Renderer
+  primitives::SimpleBoxBuffers,
 };
 
-#[derive(Clone, Copy, Default)]
-pub struct SelBoxVertex {
-  pub position: [f32; 3],
-}
-implement_vertex!(SelBoxVertex, position);
-
-const fn box_vertices() -> [SelBoxVertex; CUBE_VERTICES.len() / 3] {
-  let mut arr = [SelBoxVertex { position: [0., 0., 0.] }; CUBE_VERTICES.len() / 3];
-  let mut ptr = 0;
-  loop {
-    arr[ptr] = SelBoxVertex {
-      position: [
-        CUBE_VERTICES[ptr * 3], 
-        CUBE_VERTICES[(ptr * 3) + 1], 
-        CUBE_VERTICES[(ptr * 3) + 2]
-      ]
-    };
-    ptr += 1;
-    if ptr >= CUBE_VERTICES.len() / 3 {
-      return arr
-    }
-  }
-}
-const BOX_VERTICES: &[SelBoxVertex] = &box_vertices();
-
-#[derive(Unique)]
-pub struct SelectionBoxBuffers(VertexBuffer<SelBoxVertex>, IndexBuffer<u16>);
-
-//wip
 pub fn render_selection_box(
   lookat: View<LookingAtBlock>,
   camera: View<Camera>,
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   program: NonSendSync<UniqueView<SelBoxShaderPrefab>>,
-  buffers: NonSendSync<UniqueView<SelectionBoxBuffers>>,
+  buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
 ) {
   let camera = camera.iter().next().unwrap();
   let Some(lookat) = lookat.iter().next() else { return };
@@ -79,20 +47,4 @@ pub fn render_selection_box(
       ..Default::default()
     }
   ).unwrap();
-}
-
-pub fn init_selection_box_buffers(
-  storages: AllStoragesView,
-  display: NonSendSync<UniqueView<Renderer>>
-) {
-  let vert = VertexBuffer::new(
-    &display.display,
-    BOX_VERTICES
-  ).unwrap();
-  let index = IndexBuffer::new(
-    &display.display,
-    PrimitiveType::TrianglesList, 
-    CUBE_INDICES
-  ).unwrap();
-  storages.add_unique_non_send_sync(SelectionBoxBuffers(vert, index));
 }
