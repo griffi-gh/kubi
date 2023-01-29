@@ -152,10 +152,10 @@ fn start_required_tasks(
         let chunk = world.chunks.get_mut(&position).unwrap();
         if chunk.dirty {
           chunk.current_state = CurrentChunkState::RecalculatingMesh;
-          chunk.dirty = false;
         } else {
           chunk.current_state = CurrentChunkState::CalculatingMesh;
         }
+        chunk.dirty = false;
         // ===========
         //log::trace!("Started generating mesh for chunk {position}");
       }
