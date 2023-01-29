@@ -13,7 +13,7 @@ pub fn update_controllers() -> Workload {
   ).into_workload()
 }
 
-const MAX_PITCH: f32 = PI/2. - 0.001;
+const MAX_PITCH: f32 = PI/2. - 0.05;
 
 fn update_look(
   controllers: View<FlyController>,
