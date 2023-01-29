@@ -17,6 +17,7 @@ nohash-hasher = "0.2.0"
 anyhow = "1.0"
 flume = "0.10"
 bracket-noise = "0.8"
+#rkyv = "0.7"
 
 [profile.dev]
 opt-level = 1
