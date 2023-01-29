@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesView, Unique, NonSendSync, UniqueView};
+use shipyard::{AllStoragesView, Unique, NonSendSync, UniqueView, UniqueViewMut};
 use crate::rendering::Renderer;
 use glium::glutin::window::CursorGrabMode;
 
@@ -25,4 +25,10 @@ pub fn insert_lock_state(
   storages: AllStoragesView
 ) {
   storages.add_unique(CursorLock(false))
+}
+
+pub fn lock_cursor_now(
+  mut lock: UniqueViewMut<CursorLock>
+) {
+  lock.0 = true
 }

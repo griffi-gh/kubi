@@ -27,6 +27,7 @@ pub(crate) mod fly_controller;
 pub(crate) mod block_placement;
 pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
+pub(crate) mod control_flow;
 
 use rendering::{
   Renderer, 
@@ -52,7 +53,8 @@ use rendering::{
 };
 use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
-use cursor_lock::{insert_lock_state, update_cursor_lock_state};
+use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
+use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 
 fn startup() -> Workload {
   (
@@ -60,9 +62,11 @@ fn startup() -> Workload {
     load_prefabs,
     init_selection_box_buffers,
     insert_lock_state,
+    lock_cursor_now,
     init_input,
     init_game_world,
     spawn_player,
+    insert_control_flow_unique,
     init_delta_time,
   ).into_workload()
 }
@@ -74,7 +78,8 @@ fn update() -> Workload {
     update_raycasts,
     block_placement_system,
     update_cursor_lock_state,
-    compute_cameras
+    compute_cameras,
+    exit_on_esc,
   ).into_workload()
 }
 fn render() -> Workload {
@@ -117,11 +122,9 @@ fn main() {
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Poll;
     process_glutin_events(&mut world, &event);
+    #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
       Event::WindowEvent { event, .. } => match event {
-        WindowEvent::Resized(_size) => {
-          // todo ...
-        }
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
           *control_flow = ControlFlow::Exit;
@@ -154,8 +157,13 @@ fn main() {
         let target = world.remove_unique::<RenderTarget>().unwrap(); 
         target.0.finish().unwrap();
 
-        //FrameEnd
+        //After frame end
         world.run_workload(after_frame_end).unwrap();
+
+        //Process control flow changes
+        if let Some(flow) = world.borrow::<UniqueView<SetControlFlow>>().unwrap().0 {
+          *control_flow = flow;
+        }
       },
       _ => (),
     };
