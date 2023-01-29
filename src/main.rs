@@ -26,6 +26,7 @@ pub(crate) mod input;
 pub(crate) mod fly_controller;
 pub(crate) mod block_placement;
 pub(crate) mod delta_time;
+pub(crate) mod cursor_lock;
 
 use rendering::{
   Renderer, 
@@ -40,7 +41,7 @@ use world::{
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
-use settings::GameSettings;
+use settings::load_settings;
 use camera::compute_cameras;
 use events::{clear_events, process_glutin_events};
 use input::{init_input, process_inputs};
@@ -51,15 +52,18 @@ use rendering::{
 };
 use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
+use cursor_lock::{insert_lock_state, update_cursor_lock_state};
 
 fn startup() -> Workload {
   (
-    init_delta_time,
+    load_settings,
     load_prefabs,
     init_selection_box_buffers,
+    insert_lock_state,
     init_input,
     init_game_world,
     spawn_player,
+    init_delta_time,
   ).into_workload()
 }
 fn update() -> Workload {
@@ -69,6 +73,7 @@ fn update() -> Workload {
     update_loaded_world_around_player,
     update_raycasts,
     block_placement_system,
+    update_cursor_lock_state,
     compute_cameras
   ).into_workload()
 }
@@ -97,7 +102,6 @@ fn main() {
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
-  world.add_unique(GameSettings::default());
 
   //Register workloads
   world.add_workload(startup);

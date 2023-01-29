@@ -1,4 +1,4 @@
-use shipyard::Unique;
+use shipyard::{Unique, AllStoragesView};
 
 #[derive(Unique)]
 pub struct GameSettings {
@@ -13,4 +13,11 @@ impl Default for GameSettings {
       mouse_sensitivity: 1.,
     }
   }
+}
+
+pub fn load_settings(
+  storages: AllStoragesView
+) {
+  //todo
+  storages.add_unique(GameSettings::default());
 }
