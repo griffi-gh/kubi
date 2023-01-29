@@ -88,8 +88,8 @@ impl super::ChunkStorage {
   pub fn neighbors(&self, coords: IVec3) -> ChunkNeighbors {
     ChunkNeighbors {
       center: self.chunks.get(&coords),
-      top:    self.chunks.get(&(coords - ivec3(0, 1, 0))),
-      bottom: self.chunks.get(&(coords + ivec3(0, 1, 0))),
+      top:    self.chunks.get(&(coords + ivec3(0, 1, 0))),
+      bottom: self.chunks.get(&(coords - ivec3(0, 1, 0))),
       left:   self.chunks.get(&(coords - ivec3(1, 0, 0))),
       right:  self.chunks.get(&(coords + ivec3(1, 0, 0))),
       front:  self.chunks.get(&(coords + ivec3(0, 0, 1))),
@@ -110,8 +110,8 @@ impl super::ChunkStorage {
       back
     ] = self.chunks.get_many_mut([
       &coords,
-      &(coords - ivec3(0, 1, 0)),
       &(coords + ivec3(0, 1, 0)),
+      &(coords - ivec3(0, 1, 0)),
       &(coords - ivec3(1, 0, 0)),
       &(coords + ivec3(1, 0, 0)),
       &(coords + ivec3(0, 0, 1)),
