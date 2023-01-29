@@ -210,11 +210,16 @@ fn process_completed_tasks(
           //apply the mesh
           let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
           let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
-          let mesh_index = meshes.insert(ChunkMesh {
+          let mesh = ChunkMesh {
             vertex_buffer,
             index_buffer,
-          });
-          chunk.mesh_index = Some(mesh_index);
+          };
+          if let Some(index) = chunk.mesh_index {
+            meshes.update(index, mesh).expect("Mesh update failed");
+          } else {
+            let mesh_index = meshes.insert(mesh);
+            chunk.mesh_index = Some(mesh_index);
+          }
 
           //update chunk state
           chunk.current_state = CurrentChunkState::Rendered;

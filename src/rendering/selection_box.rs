@@ -51,7 +51,6 @@ pub fn render_selection_box(
   lookat: View<LookingAtBlock>,
   camera: View<Camera>,
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
-  display: NonSendSync<UniqueView<Renderer>>,
   program: NonSendSync<UniqueView<SelBoxShaderPrefab>>,
   buffers: NonSendSync<UniqueView<SelectionBoxBuffers>>,
 ) {
