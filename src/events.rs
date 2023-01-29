@@ -2,6 +2,8 @@ use glam::UVec2;
 use shipyard::{World, Component, AllStoragesViewMut, SparseSet};
 use glium::glutin::event::{Event, DeviceEvent, DeviceId, WindowEvent};
 
+pub mod player_actions;
+
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct EventComponent;
 

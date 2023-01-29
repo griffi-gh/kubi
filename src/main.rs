@@ -1,3 +1,6 @@
+// allowed because systems often need a lot of arguments
+#![allow(clippy::too_many_arguments)] 
+
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
@@ -44,7 +47,10 @@ use player::spawn_player;
 use prefabs::load_prefabs;
 use settings::load_settings;
 use camera::compute_cameras;
-use events::{clear_events, process_glutin_events};
+use events::{
+  clear_events, process_glutin_events, 
+  player_actions::generate_move_events
+};
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
@@ -74,6 +80,7 @@ fn update() -> Workload {
   (
     process_inputs,
     update_controllers,
+    generate_move_events,
     update_loaded_world_around_player,
     update_raycasts,
     block_placement_system,
