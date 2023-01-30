@@ -1,8 +1,9 @@
-use glam::{Vec2, DVec2};
+use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
+use glam::{Vec2, DVec2, vec2};
 use glium::glutin::event::{DeviceEvent, VirtualKeyCode, ElementState};
 use hashbrown::HashSet;
 use nohash_hasher::BuildNoHashHasher;
-use shipyard::{AllStoragesView, Unique, View, IntoIter, UniqueViewMut, Workload, IntoWorkload, UniqueView};
+use shipyard::{AllStoragesView, Unique, View, IntoIter, UniqueViewMut, Workload, IntoWorkload, UniqueView, NonSendSync};
 use crate::events::InputDeviceEvent;
 
 #[derive(Unique, Clone, Copy, Default, Debug)]
@@ -23,7 +24,16 @@ pub struct RawInputState {
   pub mouse_delta: DVec2
 }
 
-pub fn process_events(
+#[derive(Unique)]
+pub struct GilrsWrapper(Gilrs);
+
+#[derive(Unique, Default, Clone, Copy)]
+pub struct ActiveGamepad(Option<GamepadId>);
+
+//maybe we should manage gamepad state ourselves just like keyboard?
+//at least for the sake of consitency
+
+fn process_events(
   device_events: View<InputDeviceEvent>,
   mut input_state: UniqueViewMut<RawInputState>,
 ) {
@@ -51,26 +61,68 @@ pub fn process_events(
   }
 }
 
-pub fn update_input_states (
-  raw_inputs: UniqueView<RawInputState>,
+fn process_gilrs_events(
+  mut gilrs: NonSendSync<UniqueViewMut<GilrsWrapper>>,
+  mut active_gamepad: UniqueViewMut<ActiveGamepad>
+) {
+  while let Some(Event { id, event: _, time: _ }) = gilrs.0.next_event() {
+    active_gamepad.0 = Some(id);
+  }
+}
+
+fn input_start(
   mut inputs: UniqueViewMut<Inputs>,
   mut prev_inputs: UniqueViewMut<PrevInputs>,
 ) {
   prev_inputs.0 = *inputs;
-  inputs.movement = Vec2::new(
+  *inputs = Inputs::default();
+}
+
+fn update_input_state (
+  raw_inputs: UniqueView<RawInputState>,
+  mut inputs: UniqueViewMut<Inputs>,
+) {
+  inputs.movement += Vec2::new(
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::D) as u32 as f32 -
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::A) as u32 as f32,
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::W) as u32 as f32 -
     raw_inputs.keyboard_state.contains(&VirtualKeyCode::S) as u32 as f32
-  ).normalize_or_zero();
-  inputs.look = raw_inputs.mouse_delta.as_vec2();
-  inputs.action_a = raw_inputs.button_state[1];
-  inputs.action_b = raw_inputs.button_state[3];
+  );
+  inputs.look += raw_inputs.mouse_delta.as_vec2();
+  inputs.action_a |= raw_inputs.button_state[1];
+  inputs.action_b |= raw_inputs.button_state[3];
+}
+
+fn update_input_state_gamepad (
+  gilrs: NonSendSync<UniqueView<GilrsWrapper>>,
+  active_gamepad: UniqueView<ActiveGamepad>,
+  mut inputs: UniqueViewMut<Inputs>,
+) {
+  if let Some(Some(gamepad)) = active_gamepad.0.map(|id| gilrs.0.connected_gamepad(id)) {
+    let lx = gamepad.axis_data(Axis::LeftStickX).map(|x| x.value()).unwrap_or_default();
+    let ly = gamepad.axis_data(Axis::LeftStickY).map(|y| y.value()).unwrap_or_default();
+    let rx = gamepad.axis_data(Axis::RightStickX).map(|x| x.value()).unwrap_or_default();
+    let ry = gamepad.axis_data(Axis::RightStickY).map(|y| y.value()).unwrap_or_default();
+    let left_stick = vec2(lx, ly);
+    let right_stick = vec2(rx, ry);
+    inputs.movement += left_stick;
+    inputs.look += right_stick;
+    inputs.action_a |= gamepad.is_pressed(Button::South);
+    inputs.action_b |= gamepad.is_pressed(Button::East);
+  }
+}
+
+fn input_end(
+  mut inputs: UniqueViewMut<Inputs>,
+) {
+  inputs.movement = inputs.movement.normalize_or_zero();
 }
 
 pub fn init_input (
   storages: AllStoragesView
 ) {
+  storages.add_unique_non_send_sync(GilrsWrapper(Gilrs::new().expect("Failed to initialize Gilrs")));
+  storages.add_unique(ActiveGamepad::default());
   storages.add_unique(Inputs::default());
   storages.add_unique(PrevInputs::default());
   storages.add_unique(RawInputState::default());
@@ -78,7 +130,11 @@ pub fn init_input (
 
 pub fn process_inputs() -> Workload {
   (
-    process_events, 
-    update_input_states
+    process_events,
+    process_gilrs_events,
+    input_start,
+    update_input_state,
+    update_input_state_gamepad,
+    input_end,
   ).into_workload()
 }
