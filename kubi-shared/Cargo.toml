@@ -10,3 +10,4 @@ glam = { version = "0.22", features = ["debug-glam-assert", "mint", "fast-math",
 strum = { version = "0.24", features = ["derive"] }
 bracket-noise = "0.8"
 rkyv = { version = "0.7", features = ["validation", "archive_le"] }
+bytecheck = "*"
