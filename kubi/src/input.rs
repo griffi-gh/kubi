@@ -98,7 +98,7 @@ fn update_input_state_gamepad (
   active_gamepad: UniqueView<ActiveGamepad>,
   mut inputs: UniqueViewMut<Inputs>,
 ) {
-  if let Some(Some(gamepad)) = active_gamepad.0.map(|id| gilrs.0.connected_gamepad(id)) {
+  if let Some(gamepad) = active_gamepad.0.map(|id| gilrs.0.gamepad(id)) {
     let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
     let right_stick = vec2(gamepad.value(Axis::RightStickX), -gamepad.value(Axis::RightStickY));
     inputs.movement += left_stick;
