@@ -1,8 +1,8 @@
 use glam::{IVec3, ivec3};
 use bracket_noise::prelude::*;
-use super::{
+use crate::{
   chunk::{BlockData, CHUNK_SIZE},
-  block::Block
+  blocks::Block
 };
 
 pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {

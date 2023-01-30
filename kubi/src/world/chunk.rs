@@ -1,11 +1,8 @@
 use glam::IVec3;
 use glium::{VertexBuffer, IndexBuffer};
-use super::block::Block;
 use crate::rendering::world::ChunkVertex;
 
-pub const CHUNK_SIZE: usize = 32;
-
-pub type BlockData = Box<[[[Block; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]>;
+pub use kubi_shared::chunk::{CHUNK_SIZE, BlockData};
 
 pub struct ChunkData {
   pub blocks: BlockData,
