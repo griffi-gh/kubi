@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+kubi-shared = { path = "../kubi-shared" }
 glium = "0.32"
 image = { version = "0.24", default_features = false, features = ["png"] }
 log = "0.4"
