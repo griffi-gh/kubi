@@ -100,7 +100,7 @@ fn update_input_state_gamepad (
 ) {
   if let Some(Some(gamepad)) = active_gamepad.0.map(|id| gilrs.0.connected_gamepad(id)) {
     let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
-    let right_stick = vec2(gamepad.value(Axis::RightStickX), gamepad.value(Axis::RightStickY));
+    let right_stick = vec2(gamepad.value(Axis::RightStickX), -gamepad.value(Axis::RightStickY));
     inputs.movement += left_stick;
     inputs.look += right_stick;
     inputs.action_a |= gamepad.is_pressed(Button::South);
