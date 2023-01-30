@@ -99,12 +99,8 @@ fn update_input_state_gamepad (
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   if let Some(Some(gamepad)) = active_gamepad.0.map(|id| gilrs.0.connected_gamepad(id)) {
-    let lx = gamepad.axis_data(Axis::LeftStickX).map(|x| x.value()).unwrap_or_default();
-    let ly = gamepad.axis_data(Axis::LeftStickY).map(|y| y.value()).unwrap_or_default();
-    let rx = gamepad.axis_data(Axis::RightStickX).map(|x| x.value()).unwrap_or_default();
-    let ry = gamepad.axis_data(Axis::RightStickY).map(|y| y.value()).unwrap_or_default();
-    let left_stick = vec2(lx, ly);
-    let right_stick = vec2(rx, ry);
+    let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
+    let right_stick = vec2(gamepad.value(Axis::RightStickX), gamepad.value(Axis::RightStickY));
     inputs.movement += left_stick;
     inputs.look += right_stick;
     inputs.action_a |= gamepad.is_pressed(Button::South);
