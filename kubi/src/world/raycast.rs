@@ -1,7 +1,6 @@
 use glam::{Vec3, IVec3};
 use shipyard::{View, Component, ViewMut, IntoIter, UniqueView};
-use crate::transform::Transform;
-
+use crate::{transform::Transform, world::block::BlockDescriptorSource};
 use super::{ChunkStorage, block::Block};
 
 const RAYCAST_STEP: f32 = 0.25;

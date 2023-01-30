@@ -1,17 +1,12 @@
 use strum::EnumIter;
 use crate::prefabs::BlockTexture;
+pub use kubi_shared::blocks::Block;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
-#[repr(u8)]
-pub enum Block {
-  Air,
-  Stone,
-  Dirt,
-  Grass,
-  Sand,
+pub trait BlockDescriptorSource {
+  fn descriptor(self) -> BlockDescriptor;
 }
-impl Block {
-  pub const fn descriptor(self) -> BlockDescriptor {
+impl BlockDescriptorSource for Block {
+  fn descriptor(self) -> BlockDescriptor {
     match self {
       Self::Air => BlockDescriptor {
         name: "air",
