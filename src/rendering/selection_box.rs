@@ -1,3 +1,4 @@
+use glam::Mat4;
 use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
 use glium::{
   Surface, 
@@ -33,7 +34,7 @@ pub fn render_selection_box(
     &program.0,
     &uniform! {
       u_color: [0., 0., 0., 0.5_f32],
-      u_position: lookat.block_position.as_vec3().to_array(),
+      u_position: lookat.block_position.to_array(),
       perspective: camera.perspective_matrix.to_cols_array_2d(),
       view: camera.view_matrix.to_cols_array_2d(),
     },

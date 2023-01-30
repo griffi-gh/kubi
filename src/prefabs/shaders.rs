@@ -1,11 +1,10 @@
 
 
 macro_rules! include_shader_prefab {
-  ($vert: literal, $frag: literal, $geom: literal, $facade: expr) => {
+  ($name: literal, $vert: literal, $frag: literal, $geom: literal, $facade: expr) => {
     { 
       use ::glium::Program;
-      log::info!("↓↓↓ compiling shader prefab ↓↓↓");
-      log::info!("{} {} {}", $vert, $frag, $geom);
+      log::info!("compiling shader {}", $name);
       Program::from_source(
         &*$facade,
         include_str!($vert),
@@ -14,11 +13,10 @@ macro_rules! include_shader_prefab {
       ).expect("Failed to compile gpu program")
     }
   };
-  ($vert: literal, $frag: literal, $facade: expr) => {
+  ($name: literal, $vert: literal, $frag: literal, $facade: expr) => {
     {
       use ::glium::Program;
-      log::info!("↓↓↓ compiling shader prefab ↓↓↓");
-      log::info!("{} {}", $vert, $frag);
+      log::info!("compiling shader {}", $name);
       Program::from_source(
         &*$facade,
         include_str!($vert),

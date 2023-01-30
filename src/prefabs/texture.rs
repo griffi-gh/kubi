@@ -12,7 +12,7 @@ pub fn load_texture2darray_prefab<
   facade: &E,
   mipmaps: MipmapsOption,
 ) -> SrgbTexture2dArray {
-  log::info!("↓↓↓ loading textures {} ↓↓↓", directory.as_os_str().to_str().unwrap());
+  log::info!("started loading {}", directory.as_os_str().to_str().unwrap());
   //Load raw images
   let tex_files: Vec<&'static str> = T::iter().map(|x| x.file_name()).collect();
   let raw_images: Vec<RawImage2d<u8>> = tex_files.par_iter().map(|&file_name| {

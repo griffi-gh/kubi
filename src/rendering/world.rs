@@ -21,7 +21,8 @@ use crate::{
   camera::Camera, 
   prefabs::{
     ChunkShaderPrefab,
-    BlockTexturesPrefab,
+    BlockTexturesPrefab, 
+    BasicColoredShaderPrefab,
   },
   world::{
     ChunkStorage, 
@@ -29,7 +30,7 @@ use crate::{
     chunk::CHUNK_SIZE,
   }, 
 };
-use super::RenderTarget;
+use super::{RenderTarget, primitives::SimpleBoxBuffers};
 
 #[derive(Clone, Copy)]
 pub struct ChunkVertex {
@@ -105,3 +106,28 @@ pub fn draw_world(
     }
   }
 }
+
+// this doesn't use culling!
+// pub fn draw_chunk_borders(
+//   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
+//   chunks: UniqueView<ChunkStorage>,
+//   buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
+//   program: NonSendSync<UniqueView<BasicShaderPrefab>>,
+//   camera: View<Camera>,
+// ) {
+//   for (&position, chunk) in &chunks.chunks {
+//     let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+//     target.0.draw(
+//       &buffers.0,
+//       &buffers.1,
+//       &program.0,
+//       &uniform! {
+//         position_offset: world_position.to_array(),
+//         view: view,
+//         perspective: perspective,
+//         tex: texture_sampler,
+//       },
+//       &draw_parameters
+//     ).unwrap();
+//   }
+// }
