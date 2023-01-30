@@ -17,4 +17,3 @@ shipyard = { version = "0.6", features = ["thread_local"] }
 nohash-hasher = "0.2.0"
 anyhow = "1.0"
 flume = "0.10"
-#rkyv = "0.7"
