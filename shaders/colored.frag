@@ -1,8 +1,8 @@
 #version 150 core
 
-out vec4 color;
-uniform vec4 u_color;
+out vec4 out_color;
+uniform vec4 color;
 
 void main() {
-  color = u_color;
+  out_color = color;
 }

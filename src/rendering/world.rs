@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::{Vec3, Mat4, Quat, ivec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter};
 use glium::{
   implement_vertex, uniform,
@@ -15,10 +15,12 @@ use glium::{
     DepthTest,
     PolygonMode,
     BackfaceCullingMode,
-  }
+  }, Blend
 };
 use crate::{
-  camera::Camera, 
+  camera::Camera,
+  player::MainPlayer,
+  transform::Transform,
   prefabs::{
     ChunkShaderPrefab,
     BlockTexturesPrefab, 
@@ -28,7 +30,7 @@ use crate::{
     ChunkStorage, 
     ChunkMeshStorage, 
     chunk::CHUNK_SIZE,
-  }, 
+  }, settings::GameSettings,
 };
 use super::{RenderTarget, primitives::SimpleBoxBuffers};
 
@@ -107,27 +109,72 @@ pub fn draw_world(
   }
 }
 
-// this doesn't use culling!
-// pub fn draw_chunk_borders(
-//   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
-//   chunks: UniqueView<ChunkStorage>,
-//   buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
-//   program: NonSendSync<UniqueView<BasicShaderPrefab>>,
-//   camera: View<Camera>,
-// ) {
-//   for (&position, chunk) in &chunks.chunks {
-//     let world_position = position.as_vec3() * CHUNK_SIZE as f32;
-//     target.0.draw(
-//       &buffers.0,
-//       &buffers.1,
-//       &program.0,
-//       &uniform! {
-//         position_offset: world_position.to_array(),
-//         view: view,
-//         perspective: perspective,
-//         tex: texture_sampler,
-//       },
-//       &draw_parameters
-//     ).unwrap();
-//   }
-// }
+//this doesn't use culling!
+pub fn draw_current_chunk_border(
+  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
+  player: View<MainPlayer>,
+  transforms: View<Transform>,
+  buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
+  program: NonSendSync<UniqueView<BasicColoredShaderPrefab>>,
+  camera: View<Camera>,
+  settings: UniqueView<GameSettings>,
+) {
+  if !settings.debug_draw_current_chunk_border {
+    return
+  }
+  let camera = camera.iter().next().expect("No cameras in the scene");
+  let view = camera.view_matrix.to_cols_array_2d();
+  let perspective = camera.perspective_matrix.to_cols_array_2d();
+  let (_, &player_transform) = (&player, &transforms).iter().next().expect("No player");
+  let (_, _, player_position) = player_transform.0.to_scale_rotation_translation();
+  let player_in_chunk = ivec3(
+    (player_position.x as i32).div_euclid(CHUNK_SIZE as i32),
+    (player_position.y as i32).div_euclid(CHUNK_SIZE as i32),
+    (player_position.z as i32).div_euclid(CHUNK_SIZE as i32),
+  );
+  let world_position = player_in_chunk.as_vec3() * CHUNK_SIZE as f32;
+  target.0.draw(
+    &buffers.0,
+    &buffers.1,
+    &program.0,
+    &uniform! {
+      model: Mat4::from_scale_rotation_translation(
+        Vec3::splat(CHUNK_SIZE as f32), 
+        Quat::default(), 
+        world_position
+      ).to_cols_array_2d(),
+      color: [0.25f32; 4],
+      view: view,
+      perspective: perspective,
+    },
+    &DrawParameters {
+      depth: Depth {
+        test: DepthTest::IfLess,
+        ..Default::default()
+      },
+      blend: Blend::alpha_blending(),
+      ..Default::default()
+    }
+  ).unwrap();
+  target.0.draw(
+    &buffers.0,
+    &buffers.1,
+    &program.0,
+    &uniform! {
+      model: Mat4::from_scale_rotation_translation(
+        Vec3::splat(CHUNK_SIZE as f32), 
+        Quat::default(), 
+        world_position
+      ).to_cols_array_2d(),
+      color: [0.0f32; 4],
+      view: view,
+      perspective: perspective,
+    },
+    &DrawParameters {
+      polygon_mode: PolygonMode::Point,
+      line_width: Some(2.),
+      point_size: Some(5.),
+      ..Default::default()
+    }
+  ).unwrap();
+}

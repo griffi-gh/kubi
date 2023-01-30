@@ -32,12 +32,6 @@ pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 
-use rendering::{
-  Renderer, 
-  RenderTarget, 
-  BackgroundColor, 
-  clear_background
-};
 use world::{
   init_game_world,
   loading::update_loaded_world_around_player, 
@@ -54,9 +48,14 @@ use events::{
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
+  Renderer, 
+  RenderTarget, 
+  BackgroundColor, 
+  clear_background,
   primitives::init_simple_box_buffers,
   selection_box::render_selection_box,
   world::draw_world,
+  world::draw_current_chunk_border,
 };
 use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
@@ -94,6 +93,7 @@ fn render() -> Workload {
   (
     clear_background,
     draw_world,
+    draw_current_chunk_border,
     render_selection_box,
   ).into_sequential_workload()
 }

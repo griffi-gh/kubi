@@ -1,4 +1,3 @@
-use glam::Mat4;
 use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
 use glium::{
   Surface, 
