@@ -1,7 +1,11 @@
-use glam::{Vec3, Quat};
-use serde::{Serialize, Deserialize};
+use bincode::{Encode, Decode};
+use crate::chunk::BlockData;
 
-#[derive(Serialize, Deserialize)]
+type IVec3Arr = [i32; 3];
+type Vec3Arr = [f32; 3];
+type QuatArr = [f32; 3];
+
+#[derive(Encode, Decode)]
 pub enum ClientToServerMessage {
   ClientHello {
     username: String,
@@ -10,12 +14,17 @@ pub enum ClientToServerMessage {
   PositionChanged {
     client_id: u8,
     secret: u32,
-    position: Vec3,
-    direction: Quat
-  }
+    position: Vec3Arr,
+    direction: QuatArr,
+  },
+  ChunkRequest {
+    client_id: u8,
+    secret: u32,
+    chunk: IVec3Arr,
+  },
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Encode, Decode)]
 pub enum ServerToClientMessage {
   ServerHello {
     client_id: u8,
@@ -25,6 +34,12 @@ pub enum ServerToClientMessage {
     reason: String,
   },
   PlayerPositionChanged {
-
+    client_id: u8,
+    position: Vec3Arr,
+    direction: QuatArr,
   },
+  ChunkResponse {
+    chunk: IVec3Arr,
+    data: BlockData
+  }
 }

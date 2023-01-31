@@ -16,7 +16,7 @@ impl Client {
     })
   }
   pub fn send(&self, message: ClientToServerMessage) -> anyhow::Result<()> {
-    let bytes = bincode::serde::encode_to_vec(message, BINCODE_CONFIG)?;
+    let bytes = bincode::encode_to_vec(message, BINCODE_CONFIG)?;
     self.socket.send(&bytes)?;
     Ok(())
   }
