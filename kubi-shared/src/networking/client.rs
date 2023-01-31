@@ -1,10 +1,7 @@
 use std::net::{UdpSocket, SocketAddr};
 use super::messages::ClientToServerMessage;
 
-const BINCODE_CONFIG: bincode::config::Configuration<bincode::config::LittleEndian, bincode::config::Varint, bincode::config::SkipFixedArrayLength> = bincode::config::standard()
-  .with_little_endian()
-  .with_variable_int_encoding()
-  .skip_fixed_array_length();
+use crate::BINCODE_CONFIG;
 
 pub struct Client {
   socket: UdpSocket
