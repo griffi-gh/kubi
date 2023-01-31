@@ -8,6 +8,8 @@ pub enum ClientToServerMessage {
     password: Option<String>,
   },
   PositionChanged {
+    client_id: u8,
+    secret: u32,
     position: Vec3,
     direction: Quat
   }
@@ -16,7 +18,8 @@ pub enum ClientToServerMessage {
 #[derive(Serialize, Deserialize)]
 pub enum ServerToClientMessage {
   ServerHello {
-    client_id: u16,
+    client_id: u8,
+    secret: u32,
   },
   ServerFuckOff {
     reason: String,
