@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-glam = { version = "0.22", features = ["debug-glam-assert", "mint", "fast-math", "rkyv"] }
+glam = { version = "0.22", features = ["debug-glam-assert", "fast-math", "serde"] }
 strum = { version = "0.24", features = ["derive"] }
+bincode = { version = "2.0.0-rc", default_features = false, features = ["std", "serde"] }
+serde = { version = "1.0", features = ["derive"] }
 bracket-noise = "0.8"
-rkyv = { version = "0.7", features = ["validation", "archive_le"] }
-bytecheck = "*"

@@ -1,14 +1,27 @@
-use rkyv::{Archive, Deserialize, Serialize};
-use bytecheck::CheckBytes;
+use glam::{Vec3, Quat};
+use serde::{Serialize, Deserialize};
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
-#[archive_attr(derive(CheckBytes, Debug))]
+#[derive(Serialize, Deserialize)]
 pub enum ClientToServerMessage {
-  Placeholder
+  ClientHello {
+    username: String,
+    password: Option<String>,
+  },
+  PositionChanged {
+    position: Vec3,
+    direction: Quat
+  }
 }
 
-#[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
-#[archive_attr(derive(CheckBytes, Debug))]
+#[derive(Serialize, Deserialize)]
 pub enum ServerToClientMessage {
-  Placeholder
+  ServerHello {
+    client_id: u16,
+  },
+  ServerFuckOff {
+    reason: String,
+  },
+  PlayerPositionChanged {
+
+  },
 }
