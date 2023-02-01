@@ -11,7 +11,7 @@ fn update_view_matrix(
 ) {
   for (camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();
-    let direction = rotation * Vec3::NEG_Z;
+    let direction = (rotation * Vec3::NEG_Z).normalize();
     camera.view_matrix = Mat4::look_to_rh(translation, direction, camera.up);
   }
 }
