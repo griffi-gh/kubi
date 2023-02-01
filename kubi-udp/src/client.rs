@@ -7,8 +7,8 @@ use crate::{BINCODE_CONFIG, packet::ClientPacket};
 
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   socket: UdpSocket,
-  _s: PhantomData<S>,
-  _r: PhantomData<R>,
+  _s: PhantomData<*const S>,
+  _r: PhantomData<*const R>,
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn connect(addr: SocketAddr) -> anyhow::Result<Self> {
