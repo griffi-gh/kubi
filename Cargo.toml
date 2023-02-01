@@ -1,5 +1,5 @@
 [workspace]
-members = ["kubi", "kubi-server", "kubi-shared"]
+members = ["kubi", "kubi-server", "kubi-shared", "kubi-udp"]
 resolver = "2"
 
 [profile.dev]
