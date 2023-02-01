@@ -24,6 +24,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     client.send_packet(&ClientPacket::Connect)?;
     Ok(client)
   }
+  //maybe move generics here if possible?
   fn send_packet(&self, packet: &ClientPacket<S>) -> anyhow::Result<()> {
     let bytes = bincode::encode_to_vec(packet, BINCODE_CONFIG)?;
     self.socket.send(&bytes)?;
