@@ -42,7 +42,7 @@ fn update_movement(
   dt: UniqueView<DeltaTime>,
 ) {
   if inputs.movement == Vec2::ZERO { return }
-  let movement = inputs.movement.normalize_or_zero() * 30. * dt.0.as_secs_f32();
+  let movement = inputs.movement * 30. * dt.0.as_secs_f32();
   for (_, mut transform) in (&controllers, &mut transforms).iter() {
     let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
     translation += (rotation * Vec3::NEG_Z).normalize() * movement.y;

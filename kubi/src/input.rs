@@ -111,7 +111,9 @@ fn update_input_state_gamepad (
 fn input_end(
   mut inputs: UniqueViewMut<Inputs>,
 ) {
-  inputs.movement = inputs.movement.normalize_or_zero();
+  if inputs.movement.length() >= 1. {
+    inputs.movement = inputs.movement.normalize();
+  }
 }
 
 pub fn init_input (
