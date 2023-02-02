@@ -1,6 +1,6 @@
 use std::{
   net::{UdpSocket, SocketAddr},
-  marker::PhantomData, time::Instant
+  marker::PhantomData, time::{Instant, Duration}
 };
 use bincode::{Encode, Decode};
 use crate::{BINCODE_CONFIG, packet::ClientPacket};
@@ -14,7 +14,8 @@ pub enum ClientStatus {
 
 #[derive(Clone, Copy, Debug)]
 pub struct ClientConfig {
-  
+  pub timeout: Duration,
+  pub heartbeat_interval: Duration,
 }
 
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
@@ -22,6 +23,7 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   config: ClientConfig,
   socket: UdpSocket,
   status: ClientStatus,
+  timeout: Instant,
   last_heartbeat: Instant,
   _s: PhantomData<*const S>,
   _r: PhantomData<*const R>,
@@ -36,6 +38,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       config,
       socket,
       status: ClientStatus::Disconnected,
+      timeout: Instant::now(),
       last_heartbeat: Instant::now(),
       _s: PhantomData,
       _r: PhantomData,
@@ -43,9 +46,11 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   }
   pub fn connect(&mut self) -> anyhow::Result<()> {
     if self.status != ClientStatus::Disconnected {
-      anyhow::bail!("Already {:?}", self.status);
+      anyhow::bail!("Not Disconnected");
     }
     self.status = ClientStatus::Connecting;
+    self.timeout = Instant::now();
+    self.last_heartbeat = Instant::now();
     self.socket.connect(self.addr)?;
     self.send_raw_packet(&ClientPacket::Connect)?;
     Ok(())
@@ -59,11 +64,28 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.send_raw_packet(&ClientPacket::Data(message))?;
     Ok(())
   }
-  pub fn disconnect(&self) -> anyhow::Result<()> {
+  pub fn disconnect(&mut self) -> anyhow::Result<()> {
+    if self.status != ClientStatus::Connected {
+      anyhow::bail!("Not Connected");
+    }
     self.send_raw_packet(&ClientPacket::Disconnect)?;
+    self.status = ClientStatus::Disconnected;
     Ok(())
   }
-  pub fn update(&mut self) {
-    
+  pub fn update(&mut self) -> anyhow::Result<()> {
+    if self.status == ClientStatus::Disconnected {
+      return Ok(())
+    }
+    if self.timeout.elapsed() > self.config.timeout {
+      //We don't care if this packet actually gets sent becauseserver is likely dead
+      let _ = self.send_raw_packet(&ClientPacket::Disconnect);
+      self.status = ClientStatus::Disconnected;
+      return Ok(())
+    }
+    if self.last_heartbeat.elapsed() > self.config.heartbeat_interval {
+      self.send_raw_packet(&ClientPacket::Heartbeat)?;
+      self.last_heartbeat = Instant::now();
+    }
+    Ok(())
   }
 }
