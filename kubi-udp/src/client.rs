@@ -1,3 +1,4 @@
+use anyhow::{Result, bail};
 use std::{
   net::{UdpSocket, SocketAddr},
   marker::PhantomData, time::{Instant, Duration}
@@ -35,7 +36,7 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   _r: PhantomData<*const R>,
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
-  pub fn new(addr: SocketAddr, config: ClientConfig) -> anyhow::Result<Self> {
+  pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
     let bind_addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
     let socket = UdpSocket::bind(bind_addr)?;
     socket.set_nonblocking(true)?;
@@ -52,9 +53,9 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       _r: PhantomData,
     })
   }
-  pub fn connect(&mut self) -> anyhow::Result<()> {
+  pub fn connect(&mut self) -> Result<()> {
     if self.status != ClientStatus::Disconnected {
-      anyhow::bail!("Not Disconnected");
+      bail!("Not Disconnected");
     }
     self.status = ClientStatus::Connecting;
     self.timeout = Instant::now();
@@ -63,30 +64,30 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.send_raw_packet(ClientPacket::Connect)?;
     Ok(())
   }
-  fn send_raw_packet(&self, packet: ClientPacket<S>) -> anyhow::Result<()> {
+  fn send_raw_packet(&self, packet: ClientPacket<S>) -> Result<()> {
     let id_packet = IdClientPacket(self.client_id, packet);
     let bytes = bincode::encode_to_vec(id_packet, BINCODE_CONFIG)?;
     self.socket.send(&bytes)?;
     Ok(())
   }
-  pub fn send_message(&self, message: S) -> anyhow::Result<()> {
+  pub fn send_message(&self, message: S) -> Result<()> {
     self.send_raw_packet(ClientPacket::Data(message))?;
     Ok(())
   }
-  fn disconnect_inner(&mut self, reason: DisconnectReason) -> anyhow::Result<()> {
+  fn disconnect_inner(&mut self, reason: DisconnectReason) -> Result<()> {
     self.send_raw_packet(ClientPacket::Disconnect)?;
     self.status = ClientStatus::Disconnected;
-    self.disconnect_reason = DisconnectReason::ClientDisconnected;
+    self.disconnect_reason = reason;
     Ok(())
   }
-  pub fn disconnect(&mut self) -> anyhow::Result<()> {
+  pub fn disconnect(&mut self) -> Result<()> {
     if self.status != ClientStatus::Connected {
-      anyhow::bail!("Not Connected");
+      bail!("Not Connected");
     }
     self.disconnect_inner(DisconnectReason::ClientDisconnected)?;
     Ok(())
   }
-  pub fn update(&mut self) -> anyhow::Result<()> {
+  pub fn update(&mut self) -> Result<()> {
     if self.status == ClientStatus::Disconnected {
       return Ok(())
     }
