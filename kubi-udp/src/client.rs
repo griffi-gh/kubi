@@ -18,6 +18,19 @@ pub struct ClientConfig {
   pub heartbeat_interval: Duration,
 }
 
+pub type ClientId = u8;
+
+#[derive(Default, Encode, Decode)]
+#[repr(u8)]
+pub enum DisconnectReason {
+  #[default]
+  NotConnected,
+  ClientDisconnected,
+  KickedByServer,
+  ClientTimeout,
+  ServerTimeout,
+}
+
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   addr: SocketAddr,
   config: ClientConfig,
@@ -25,6 +38,8 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   status: ClientStatus,
   timeout: Instant,
   last_heartbeat: Instant,
+  client_id: Option<ClientId>,
+  disconnect_reason: DisconnectReason,
   _s: PhantomData<*const S>,
   _r: PhantomData<*const R>,
 }
@@ -40,6 +55,8 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       status: ClientStatus::Disconnected,
       timeout: Instant::now(),
       last_heartbeat: Instant::now(),
+      client_id: None,
+      disconnect_reason: DisconnectReason::default(),
       _s: PhantomData,
       _r: PhantomData,
     })
@@ -64,12 +81,17 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.send_raw_packet(&ClientPacket::Data(message))?;
     Ok(())
   }
+  fn disconnect_inner(&mut self, reason: DisconnectReason) -> anyhow::Result<()> {
+    self.send_raw_packet(&ClientPacket::Disconnect)?;
+    self.status = ClientStatus::Disconnected;
+    self.disconnect_reason = DisconnectReason::ClientDisconnected;
+    Ok(())
+  }
   pub fn disconnect(&mut self) -> anyhow::Result<()> {
     if self.status != ClientStatus::Connected {
       anyhow::bail!("Not Connected");
     }
-    self.send_raw_packet(&ClientPacket::Disconnect)?;
-    self.status = ClientStatus::Disconnected;
+    self.disconnect_inner(DisconnectReason::ClientDisconnected)?;
     Ok(())
   }
   pub fn update(&mut self) -> anyhow::Result<()> {
@@ -77,12 +99,15 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       return Ok(())
     }
     if self.timeout.elapsed() > self.config.timeout {
-      //We don't care if this packet actually gets sent becauseserver is likely dead
-      let _ = self.send_raw_packet(&ClientPacket::Disconnect);
-      self.status = ClientStatus::Disconnected;
+      log::warn!("Client timed out");
+      //We don't care if this packet actually gets sent because the server is likely dead
+      let _ = self.disconnect_inner(DisconnectReason::ClientDisconnected).map_err(|_| {
+        log::warn!("Failed to send disconnect packet");
+      });
       return Ok(())
     }
     if self.last_heartbeat.elapsed() > self.config.heartbeat_interval {
+      log::trace!("Sending heartbeat packet");
       self.send_raw_packet(&ClientPacket::Heartbeat)?;
       self.last_heartbeat = Instant::now();
     }
