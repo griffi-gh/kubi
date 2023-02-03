@@ -3,7 +3,11 @@ use std::{
   marker::PhantomData, time::{Instant, Duration}
 };
 use bincode::{Encode, Decode};
-use crate::{BINCODE_CONFIG, packet::ClientPacket};
+use crate::{
+  BINCODE_CONFIG, 
+  packet::{ClientPacket, IdClientPacket},
+  common::{ClientId, DisconnectReason}
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClientStatus {
@@ -16,19 +20,6 @@ pub enum ClientStatus {
 pub struct ClientConfig {
   pub timeout: Duration,
   pub heartbeat_interval: Duration,
-}
-
-pub type ClientId = u8;
-
-#[derive(Default, Encode, Decode)]
-#[repr(u8)]
-pub enum DisconnectReason {
-  #[default]
-  NotConnected,
-  ClientDisconnected,
-  KickedByServer,
-  ClientTimeout,
-  ServerTimeout,
 }
 
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
@@ -69,20 +60,21 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.timeout = Instant::now();
     self.last_heartbeat = Instant::now();
     self.socket.connect(self.addr)?;
-    self.send_raw_packet(&ClientPacket::Connect)?;
+    self.send_raw_packet(ClientPacket::Connect)?;
     Ok(())
   }
-  fn send_raw_packet(&self, packet: &ClientPacket<S>) -> anyhow::Result<()> {
-    let bytes = bincode::encode_to_vec(packet, BINCODE_CONFIG)?;
+  fn send_raw_packet(&self, packet: ClientPacket<S>) -> anyhow::Result<()> {
+    let id_packet = IdClientPacket(self.client_id, packet);
+    let bytes = bincode::encode_to_vec(id_packet, BINCODE_CONFIG)?;
     self.socket.send(&bytes)?;
     Ok(())
   }
   pub fn send_message(&self, message: S) -> anyhow::Result<()> {
-    self.send_raw_packet(&ClientPacket::Data(message))?;
+    self.send_raw_packet(ClientPacket::Data(message))?;
     Ok(())
   }
   fn disconnect_inner(&mut self, reason: DisconnectReason) -> anyhow::Result<()> {
-    self.send_raw_packet(&ClientPacket::Disconnect)?;
+    self.send_raw_packet(ClientPacket::Disconnect)?;
     self.status = ClientStatus::Disconnected;
     self.disconnect_reason = DisconnectReason::ClientDisconnected;
     Ok(())
@@ -108,7 +100,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     }
     if self.last_heartbeat.elapsed() > self.config.heartbeat_interval {
       log::trace!("Sending heartbeat packet");
-      self.send_raw_packet(&ClientPacket::Heartbeat)?;
+      self.send_raw_packet(ClientPacket::Heartbeat)?;
       self.last_heartbeat = Instant::now();
     }
     Ok(())

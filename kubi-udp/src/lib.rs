@@ -1,9 +1,7 @@
-pub(crate) mod client;
-pub(crate) mod server;
+pub mod client;
+pub mod server;
 pub(crate) mod packet;
-
-pub use server::Server;
-pub use client::Client;
+pub(crate) mod common;
 
 //pub(crate) trait Serializable: bincode::Encode + bincode::Decode {}
 pub(crate) const BINCODE_CONFIG: bincode::config::Configuration<bincode::config::LittleEndian, bincode::config::Varint, bincode::config::SkipFixedArrayLength> = bincode::config::standard()
