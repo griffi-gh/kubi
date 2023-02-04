@@ -140,8 +140,8 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             return Ok(())
           },
           ServerPacket::Disconnected(reason) => {
-            //this should never fail but we're handling the error anyway
             let reason = DisconnectReason::KickedByServer(reason);
+            //this should never fail but we're handling the error anyway
             self.disconnect_inner(reason, true)?;
             return Ok(())
           },
