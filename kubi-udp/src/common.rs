@@ -9,7 +9,7 @@ pub enum DisconnectReason {
   #[default]
   NotConnected,
   ClientDisconnected,
-  KickedByServer,
+  KickedByServer(String),
   ClientTimeout,
   ServerTimeout,
 }

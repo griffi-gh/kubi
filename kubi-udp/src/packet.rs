@@ -18,7 +18,7 @@ pub struct IdClientPacket<T: Encode + Decode>(pub Option<ClientId>, pub ClientPa
 pub enum ServerPacket<T> where T: Encode + Decode {
   Data(T),
   Connected(ClientId),
-  Disconnected,
+  Disconnected(String),
 }
 
 #[derive(Encode, Decode)]

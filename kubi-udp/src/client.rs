@@ -139,9 +139,10 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             self.status = ClientStatus::Connected;
             return Ok(())
           },
-          ServerPacket::Disconnected => {
+          ServerPacket::Disconnected(reason) => {
             //this should never fail but we're handling the error anyway
-            self.disconnect_inner(DisconnectReason::KickedByServer, true)?;
+            let reason = DisconnectReason::KickedByServer(reason);
+            self.disconnect_inner(reason, true)?;
             return Ok(())
           },
           ServerPacket::Data(message) => {
