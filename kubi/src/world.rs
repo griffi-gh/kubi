@@ -13,6 +13,7 @@ pub mod loading;
 pub mod mesh;
 pub mod neighbors;
 pub mod raycast;
+pub mod queue;
 
 use chunk::{Chunk, ChunkMesh};
 use tasks::ChunkTaskManager;
