@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use glam::IVec3;
 use kubi_shared::blocks::Block;
 use shipyard::{UniqueViewMut, Unique};
@@ -13,33 +12,31 @@ pub struct BlockUpdateEvent {
 
 #[derive(Unique, Default, Clone)]
 pub struct BlockUpdateQueue {
-  queue: VecDeque<BlockUpdateEvent>
+  queue: Vec<BlockUpdateEvent>
 }
 impl BlockUpdateQueue {
   pub fn new() -> Self {
     Self::default()
   }
   pub fn push(&mut self, event: BlockUpdateEvent) {
-    self.queue.push_back(event)
-  }
-  pub fn pop(&mut self) -> Option<BlockUpdateEvent> {
-    self.queue.pop_front()
-  }
-  pub fn clear(&mut self) {
-    self.queue.clear();
+    self.queue.push(event)
   }
 }
 
-pub fn apply_events(
+pub fn apply_queued_blocks(
   mut queue: UniqueViewMut<BlockUpdateQueue>,
   mut world: UniqueViewMut<ChunkStorage>
 ) {
-  while let Some(event) = queue.pop() {
+  queue.queue.retain(|&event| {
     if let Some(block) = world.get_block_mut(event.position) {
+      *block = event.value;
+      //mark chunk as dirty
+      //maybe i need to check for desired/current state here?
       let (chunk_pos, _) = ChunkStorage::to_chunk_coords(event.position);
       let chunk = world.chunks.get_mut(&chunk_pos).expect("This error should never happen, if it does then something is super fucked up and the whole project needs to be burnt down.");
-      chunk.dirty = true;
+      chunk.mesh_dirty = true;
+      return false
     }
-    
-  }
+    true
+  });
 }

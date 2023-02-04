@@ -1,7 +1,7 @@
 use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut};
 use crate::{
   player::MainPlayer, 
-  world::{raycast::LookingAtBlock, ChunkStorage, block::Block}, 
+  world::{raycast::LookingAtBlock, ChunkStorage, block::Block, queue::{BlockUpdateQueue, BlockUpdateEvent}}, 
   input::{Inputs, PrevInputs}, 
   events::{EventComponent, player_actions::PlayerActionEvent},
 };
@@ -11,7 +11,7 @@ pub fn block_placement_system(
   raycast: View<LookingAtBlock>,
   input: UniqueView<Inputs>,
   prev_input: UniqueView<PrevInputs>,
-  mut world: UniqueViewMut<ChunkStorage>,
+  mut block_event_queue: UniqueViewMut<BlockUpdateQueue>,
   mut entities: EntitiesViewMut,
   mut events: ViewMut<EventComponent>,
   mut player_events: ViewMut<PlayerActionEvent>,
@@ -21,21 +21,18 @@ pub fn block_placement_system(
   if action_place ^ action_break {
     //get raycast info
     let Some(ray) = (&main_player, &raycast).iter().next().unwrap().1/**/.0 else { return };
-    //update block
+    //get coord and block type
     let (place_position, place_block) = if action_place {
       let position = (ray.position - ray.direction * 0.5).floor().as_ivec3();
-      let Some(block) = world.get_block_mut(position) else { return };
-      *block = Block::Dirt;
-      (position, *block)
+      (position, Block::Dirt)
     } else {
-      let Some(block) = world.get_block_mut(ray.block_position) else { return };
-      *block = Block::Air;
-      (ray.block_position, *block)
+      (ray.block_position, Block::Air)
     };
-    //mark chunk as dirty
-    let (chunk_pos, _) = ChunkStorage::to_chunk_coords(place_position);
-    let chunk = world.chunks.get_mut(&chunk_pos).unwrap();
-    chunk.dirty = true;
+    //queue place
+    block_event_queue.push(BlockUpdateEvent {
+      position: place_position,
+      value: place_block,
+    });
     //send event
     entities.add_entity(
       (&mut events, &mut player_events), 

@@ -138,7 +138,7 @@ fn start_required_tasks(
         // ===========
         //log::trace!("Started loading chunk {position}");
       },
-      DesiredChunkState::Rendered if (chunk.current_state == CurrentChunkState::Loaded || chunk.dirty) => {
+      DesiredChunkState::Rendered if (chunk.current_state == CurrentChunkState::Loaded || chunk.mesh_dirty) => {
         //get needed data
         let Some(neighbors) = world.neighbors_all(position) else {
           continue
@@ -150,12 +150,12 @@ fn start_required_tasks(
         task_manager.spawn_task(ChunkTask::GenerateMesh { data, position });
         //Update chunk state
         let chunk = world.chunks.get_mut(&position).unwrap();
-        if chunk.dirty {
+        if chunk.mesh_dirty {
           chunk.current_state = CurrentChunkState::RecalculatingMesh;
         } else {
           chunk.current_state = CurrentChunkState::CalculatingMesh;
         }
-        chunk.dirty = false;
+        chunk.mesh_dirty = false;
         // ===========
         //log::trace!("Started generating mesh for chunk {position}");
       }

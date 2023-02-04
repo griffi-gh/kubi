@@ -15,10 +15,10 @@ pub mod neighbors;
 pub mod raycast;
 pub mod queue;
 
-use chunk::{Chunk, ChunkMesh};
+use block::Block;
+use chunk::{Chunk, ChunkMesh, CHUNK_SIZE};
 use tasks::ChunkTaskManager;
-
-use self::{chunk::CHUNK_SIZE, block::Block};
+use queue::BlockUpdateQueue;
 
 //TODO separate world struct for render data
 // because this is not send-sync
@@ -111,4 +111,5 @@ pub fn init_game_world(
   storages.add_unique_non_send_sync(ChunkMeshStorage::new());
   storages.add_unique(ChunkStorage::new());
   storages.add_unique(ChunkTaskManager::new());
+  storages.add_unique(BlockUpdateQueue::new());
 }

@@ -35,7 +35,7 @@ pub(crate) mod control_flow;
 use world::{
   init_game_world,
   loading::update_loaded_world_around_player, 
-  raycast::update_raycasts
+  raycast::update_raycasts, queue::apply_queued_blocks
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -84,6 +84,7 @@ fn update() -> Workload {
     update_loaded_world_around_player,
     update_raycasts,
     block_placement_system,
+    apply_queued_blocks,
     update_cursor_lock_state,
     compute_cameras,
     exit_on_esc,
