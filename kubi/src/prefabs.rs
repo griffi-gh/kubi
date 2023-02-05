@@ -16,19 +16,20 @@ pub trait AssetPaths {
 #[derive(Clone, Copy, Debug, EnumIter)]
 #[repr(u8)]
 pub enum BlockTexture {
-  Stone         = 0,
-  Dirt          = 1,
-  GrassTop      = 2,
-  GrassSide     = 3,
-  Sand          = 4,
-  Bedrock       = 5,
-  Wood          = 6,
-  WoodTop       = 7,
-  Leaf          = 8,
-  Torch         = 9,
-  TallGrass     = 10,
-  Snow          = 11,
-  GrassSideSnow = 12,
+  Stone,
+  Dirt,
+  GrassTop,
+  GrassSide,
+  Sand,
+  Bedrock,
+  Wood,
+  WoodTop,
+  Leaf,
+  Torch,
+  TallGrass,
+  Snow,
+  GrassSideSnow,
+  Cobblestone,
 }
 impl AssetPaths for BlockTexture {
   fn file_name(self) -> &'static str {
@@ -46,6 +47,7 @@ impl AssetPaths for BlockTexture {
       Self::TallGrass     => "tall_grass.png",
       Self::Snow          => "snow.png",
       Self::GrassSideSnow => "grass_side_snow.png",
+      Self::Cobblestone   => "cobblestone.png",
     }
   }
 }

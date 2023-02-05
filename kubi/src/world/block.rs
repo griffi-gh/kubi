@@ -41,6 +41,12 @@ impl BlockDescriptorSource for Block {
         collision: CollisionType::Solid, 
         raycast_collision: true, 
       },
+      Self::Cobblestone => BlockDescriptor {
+        name: "cobblestone",
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Cobblestone)),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+      }
     }
   }
 }
