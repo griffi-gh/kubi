@@ -3,7 +3,7 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::{Instant, Duration},
   marker::PhantomData, 
-  collections::{VecDeque, vec_deque::Drain},
+  collections::VecDeque,
 };
 use bincode::{Encode, Decode};
 use crate::{
@@ -169,7 +169,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn get_event(&mut self) -> Option<ClientEvent<R>> {
     self.event_queue.pop_front()
   }
-  pub fn process_events(&mut self) -> Drain<ClientEvent<R>> {
+  pub fn process_events(&mut self) -> impl Iterator<Item = ClientEvent<R>> + '_ {
     self.event_queue.drain(..)
   }
 }

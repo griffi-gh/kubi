@@ -23,4 +23,10 @@ impl Server {
       clients: HashMap::with_capacity_and_hasher(MAX_CLIENTS, BuildNoHashHasher::default())
     })
   }
+  pub fn update(&mut self) {
+    let mut buf = Vec::new();
+    if self.socket.recv(&mut buf).is_ok() {
+      todo!()
+    }
+  }
 }
