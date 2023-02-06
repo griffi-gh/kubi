@@ -3,6 +3,7 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::{Instant, Duration},
   marker::PhantomData, 
+  collections::{VecDeque, vec_deque::Drain},
 };
 use bincode::{Encode, Decode};
 use crate::{
@@ -24,6 +25,12 @@ pub struct ClientConfig {
   pub heartbeat_interval: Duration,
 }
 
+pub enum ClientEvent<T> where T: Encode + Decode {
+  Connected,
+  Disconnected(DisconnectReason),
+  MessageReceived(T)
+}
+
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub config: ClientConfig,
   addr: SocketAddr,
@@ -33,8 +40,8 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   last_heartbeat: Instant,
   client_id: Option<ClientId>,
   disconnect_reason: DisconnectReason,
+  event_queue: VecDeque<ClientEvent<R>>,
   _s: PhantomData<*const S>,
-  _r: PhantomData<*const R>,
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
@@ -50,8 +57,8 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       last_heartbeat: Instant::now(),
       client_id: None,
       disconnect_reason: DisconnectReason::default(),
+      event_queue: VecDeque::new(),
       _s: PhantomData,
-      _r: PhantomData,
     })
   }
   
@@ -69,6 +76,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.client_id = None;
     self.status = ClientStatus::Disconnected;
     self.disconnect_reason = reason;
+    self.event_queue.push_back(ClientEvent::Disconnected(self.disconnect_reason.clone()));
     Ok(())
   }
 
@@ -105,7 +113,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
   
-  pub fn update(&mut self, callback: fn(R) -> Result<()>) -> Result<()> {
+  pub fn update(&mut self) -> Result<()> { // , callback: fn(ClientEvent<R>) -> Result<()>
     if self.status == ClientStatus::Disconnected {
       return Ok(())
     }
@@ -137,6 +145,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
           ServerPacket::Connected(client_id) => {
             self.client_id = Some(client_id);
             self.status = ClientStatus::Connected;
+            self.event_queue.push_back(ClientEvent::Connected);
             return Ok(())
           },
           ServerPacket::Disconnected(reason) => {
@@ -146,7 +155,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             return Ok(())
           },
           ServerPacket::Data(message) => {
-            callback(message)?;
+            self.event_queue.push_back(ClientEvent::MessageReceived(message));
           }
         }
       } else {
@@ -155,5 +164,12 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       buf.clear();
     }
     Ok(())
+  }
+
+  pub fn get_event(&mut self) -> Option<ClientEvent<R>> {
+    self.event_queue.pop_front()
+  }
+  pub fn process_events(&mut self) -> Drain<ClientEvent<R>> {
+    self.event_queue.drain(..)
   }
 }
