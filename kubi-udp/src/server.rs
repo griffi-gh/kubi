@@ -17,7 +17,7 @@ impl Server {
   pub fn bind(addr: SocketAddr) -> anyhow::Result<Self> {
     let socket = UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
-    socket.set_broadcast(true)?;
+    //socket.set_broadcast(true)?;
     Ok(Self { 
       socket,
       clients: HashMap::with_capacity_and_hasher(MAX_CLIENTS, BuildNoHashHasher::default())
