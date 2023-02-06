@@ -31,6 +31,8 @@ pub(crate) mod block_placement;
 pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
+pub(crate) mod state;
+pub(crate) mod gui;
 
 use world::{
   init_game_world,
