@@ -58,8 +58,14 @@ impl Server {
   }
   pub fn update(&mut self) {
     let mut buf = Vec::new();
-    if self.socket.recv(&mut buf).is_ok() {
-      todo!()
+    loop {
+      if self.socket.recv(&mut buf).is_ok() {
+        todo!()
+      } else {
+        break
+      }
+      buf.clear()
     }
+    
   }
 }
