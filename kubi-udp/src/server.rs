@@ -1,4 +1,5 @@
 use std::{net::{UdpSocket, SocketAddr}, time::Instant};
+use anyhow::{Result, bail};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use crate::{BINCODE_CONFIG, common::{ClientId, MAX_CLIENTS}};
@@ -38,18 +39,22 @@ impl Server {
       clients: HashMap::with_capacity_and_hasher(MAX_CLIENTS, BuildNoHashHasher::default())
     })
   }
-  /// Returns None if there are no free spots left
-  fn connect_client(&mut self) -> Option<ClientId> {
-    let id = (1..=self.config.max_clients)
+  fn connect_client(&mut self, addr: SocketAddr) -> Result<ClientId> {
+    let Some(id) = (1..=self.config.max_clients)
       .map(|x| ClientId::new(x as _).unwrap())
-      .find(|i| self.clients.contains_key(i))?;
+      .find(|i| self.clients.contains_key(i)) else {
+        bail!("Server full");
+      };
+    if self.clients.iter().any(|x| x.1.addr == addr) {
+      bail!("Already connected from the same address");
+    }
     self.clients.insert(id, ConnectedClient {
       id,
-      addr: "0.0.0.0:0".parse().unwrap(),
+      addr,
       timeout: Instant::now(),
     });
-    todo!();
-    Some(id)
+    log::info!("Client with id {id} connected");
+    Ok(id)
   }
   pub fn update(&mut self) {
     let mut buf = Vec::new();

@@ -9,8 +9,19 @@ use bincode::{Encode, Decode};
 use crate::{
   BINCODE_CONFIG, 
   packet::{ClientPacket, IdClientPacket, IdServerPacket, ServerPacket},
-  common::{ClientId, DisconnectReason}
+  common::ClientId
 };
+
+#[derive(Default, Clone)]
+#[repr(u8)]
+pub enum DisconnectReason {
+  #[default]
+  NotConnected,
+  ClientDisconnected,
+  KickedByServer(Option<String>),
+  ClientTimeout,
+  ServerTimeout,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClientStatus {
@@ -149,7 +160,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             return Ok(())
           },
           ServerPacket::Disconnected(reason) => {
-            let reason = DisconnectReason::KickedByServer(reason);
+            let reason = DisconnectReason::KickedByServer(Some(reason));
             //this should never fail but we're handling the error anyway
             self.disconnect_inner(reason, true)?;
             return Ok(())
