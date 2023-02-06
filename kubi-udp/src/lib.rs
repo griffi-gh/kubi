@@ -2,6 +2,7 @@ pub mod client;
 pub mod server;
 pub(crate) mod packet;
 pub(crate) mod common;
+pub(crate) mod serializable;
 pub use common::ClientId;
 
 //pub(crate) trait Serializable: bincode::Encode + bincode::Decode {}
