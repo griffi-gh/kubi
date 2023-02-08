@@ -243,6 +243,9 @@ pub fn switch_to_ingame_if_loaded(
   world: UniqueView<ChunkStorage>,
   mut state: UniqueViewMut<GameState>
 ) {
+  if world.chunks.is_empty() {
+    return
+  }
   if world.chunks.iter().all(|(_, chunk)| {
     chunk.desired_state.matches(chunk.current_state)
   }) {
