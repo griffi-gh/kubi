@@ -4,7 +4,7 @@
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
-  NonSendSync
+  NonSendSync, WorkloadModificator
 };
 use glium::{
   glutin::{
@@ -13,7 +13,6 @@ use glium::{
   }
 };
 use glam::vec3;
-use state::GameState;
 use std::time::Instant;
 
 mod logging;
@@ -38,7 +37,7 @@ pub(crate) mod init;
 
 use world::{
   init_game_world,
-  loading::update_loaded_world_around_player, 
+  loading::{update_loaded_world_around_player, switch_to_ingame_if_loaded}, 
   raycast::update_raycasts, queue::apply_queued_blocks
 };
 use player::spawn_player;
@@ -65,6 +64,7 @@ use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
+use state::{GameState, is_ingame, is_ingame_or_loading, is_loading};
 use init::initialize_from_args;
 
 fn startup() -> Workload {
@@ -84,24 +84,33 @@ fn startup() -> Workload {
 }
 fn update() -> Workload {
   (
-    process_inputs,
-    update_controllers,
-    generate_move_events,
-    update_loaded_world_around_player,
-    update_raycasts,
-    block_placement_system,
-    apply_queued_blocks,
     update_cursor_lock_state,
-    compute_cameras,
+    process_inputs,
     exit_on_esc,
+    (
+      switch_to_ingame_if_loaded,
+    ).into_workload().run_if(is_loading),
+    (
+      update_loaded_world_around_player,
+    ).into_workload().run_if(is_ingame_or_loading),
+    (
+      update_controllers,
+      generate_move_events,
+      update_raycasts,
+      block_placement_system,
+      apply_queued_blocks,
+    ).into_workload().run_if(is_ingame),
+    compute_cameras,
   ).into_workload()
 }
 fn render() -> Workload {
   (
     clear_background,
-    draw_world,
-    draw_current_chunk_border,
-    render_selection_box,
+    (
+      draw_world,
+      draw_current_chunk_border,
+      render_selection_box,
+    ).into_sequential_workload().run_if(is_ingame)
   ).into_sequential_workload()
 }
 fn after_frame_end() -> Workload {

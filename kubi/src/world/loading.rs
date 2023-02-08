@@ -5,7 +5,8 @@ use crate::{
   player::MainPlayer,
   transform::Transform,
   settings::GameSettings,
-  rendering::Renderer
+  rendering::Renderer, 
+  state::GameState
 };
 use super::{
   ChunkStorage, ChunkMeshStorage,
@@ -168,7 +169,8 @@ fn process_completed_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut world: UniqueViewMut<ChunkStorage>,
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
-  renderer: NonSendSync<UniqueView<Renderer>>
+  renderer: NonSendSync<UniqueView<Renderer>>,
+  state: UniqueView<GameState>
 ) {
   let mut ops: usize = 0;
   while let Some(res) = task_manager.receive() {
@@ -231,8 +233,19 @@ fn process_completed_tasks(
         ops += 1;
       }
     }
-    if ops >= MAX_CHUNK_OPS {
+    if (ops >= MAX_CHUNK_OPS) && matches!(*state, GameState::InGame) {
       break
     }
+  }
+}
+
+pub fn switch_to_ingame_if_loaded(
+  world: UniqueView<ChunkStorage>,
+  mut state: UniqueViewMut<GameState>
+) {
+  if world.chunks.iter().all(|(_, chunk)| {
+    chunk.desired_state.matches(chunk.current_state)
+  }) {
+    *state = GameState::InGame;
   }
 }

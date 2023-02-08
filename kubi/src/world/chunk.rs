@@ -30,6 +30,11 @@ pub enum CurrentChunkState {
   RecalculatingMesh, 
   Unloading,      
 }
+impl CurrentChunkState {
+  pub fn matches(self, desired: DesiredChunkState) -> bool {
+    desired.matches(self)
+  }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum DesiredChunkState {
@@ -38,6 +43,13 @@ pub enum DesiredChunkState {
   Loaded,
   Rendered,
   ToUnload,
+}
+impl DesiredChunkState {
+  pub fn matches(self, current: CurrentChunkState) -> bool {
+    (matches!(self, DesiredChunkState::Nothing)  && matches!(current, CurrentChunkState::Nothing)) ||
+    (matches!(self, DesiredChunkState::Loaded)   && matches!(current, CurrentChunkState::Loaded)) ||
+    (matches!(self, DesiredChunkState::Rendered) && matches!(current, CurrentChunkState::Rendered))
+  }
 }
 
 pub struct Chunk {
