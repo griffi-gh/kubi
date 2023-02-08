@@ -1,8 +1,20 @@
-use std::{net::{UdpSocket, SocketAddr}, time::Instant};
+use std::{
+  net::{UdpSocket, SocketAddr},
+  time::Instant,
+  marker::PhantomData,
+  collections::VecDeque
+};
 use anyhow::{Result, bail};
+use bincode::{Encode, Decode};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
-use crate::{BINCODE_CONFIG, common::{ClientId, MAX_CLIENTS}};
+use crate::{
+  BINCODE_CONFIG,
+  common::{ClientId, MAX_CLIENTS},
+  packet::{IdClientPacket, ClientPacket, ServerPacket, IdServerPacket}
+};
+
+//i was feeling a bit sick while writing most of this please excuse me for my terrible code :3
 
 pub struct ConnectedClient {
   id: ClientId,
@@ -22,22 +34,37 @@ impl Default for ServerConfig {
   }
 }
 
-pub struct Server {
+pub enum ServerEvent<T> where T: Encode + Decode {
+  Connected(ClientId),
+  Disconnected(ClientId),
+  MessageReceived {
+    from: ClientId,
+    message: T
+  }
+}
+
+pub struct Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   socket: UdpSocket,
   clients: HashMap<ClientId, ConnectedClient, BuildNoHashHasher<u8>>,
   config: ServerConfig,
+  event_queue: VecDeque<ServerEvent<R>>,
+  _s: PhantomData<*const S>,
 }
-impl Server {
-  pub fn bind(addr: SocketAddr, config: ServerConfig) -> anyhow::Result<Self> {
-    assert!(config.max_clients <= MAX_CLIENTS);
-    let socket = UdpSocket::bind(addr)?;
-    socket.set_nonblocking(true)?;
-    //socket.set_broadcast(true)?;
-    Ok(Self { 
-      config,
-      socket,
-      clients: HashMap::with_capacity_and_hasher(MAX_CLIENTS, BuildNoHashHasher::default())
-    })
+impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
+  fn send_to_addr(&self, addr: SocketAddr, packet: IdServerPacket<S>) -> Result<()> {
+    let bytes = bincode::encode_to_vec(packet, BINCODE_CONFIG)?;
+    self.socket.send_to(&bytes, addr)?;
+    Ok(())
+  }
+  fn send_packet(&self, packet: IdServerPacket<S>) -> Result<()> {
+    let Some(id) = packet.0 else {
+      bail!("send_to_client call without id")
+    };
+    let Some(client) = self.clients.get(&id) else {
+      bail!("client with id {id} doesn't exist")
+    };
+    self.send_to_addr(client.addr, packet)?;
+    Ok(())
   }
   fn add_client(&mut self, addr: SocketAddr) -> Result<ClientId> {
     let Some(id) = (1..=self.config.max_clients)
@@ -56,16 +83,104 @@ impl Server {
     log::info!("Client with id {id} connected");
     Ok(id)
   }
-  pub fn update(&mut self) {
+  fn disconnect_client_inner(&mut self, id: ClientId, reason: String) -> Result<()> {
+    let result = self.send_packet(IdServerPacket(
+      Some(id), ServerPacket::Disconnected(reason)
+    ));
+    self.clients.remove(&id);
+    result
+  }
+
+  pub fn kick_client(&mut self, id: ClientId, reason: String) -> Result<()> {
+    if !self.clients.contains_key(&id) {
+      bail!("Already disconnected")
+    }
+    self.disconnect_client_inner(id, reason)?;
+    Ok(())
+  }
+  pub fn shutdown(mut self) -> Result<()> {
+    let clients = self.clients.keys().copied().collect::<Vec<ClientId>>();
+    for id in clients {
+      self.kick_client(id, "Server is shutting down".into())?;
+    }
+    Ok(())
+  }
+  pub fn send_message(&mut self) {
+
+  }
+  pub fn bind(addr: SocketAddr, config: ServerConfig) -> anyhow::Result<Self> {
+    assert!(config.max_clients <= MAX_CLIENTS);
+    let socket = UdpSocket::bind(addr)?;
+    socket.set_nonblocking(true)?;
+    //socket.set_broadcast(true)?;
+    Ok(Self { 
+      config,
+      socket,
+      clients: HashMap::with_capacity_and_hasher(MAX_CLIENTS, BuildNoHashHasher::default()),
+      event_queue: VecDeque::new(),
+      _s: PhantomData,
+    })
+  }
+  pub fn update(&mut self) -> Result<()> {
+    //TODO client timeout
     let mut buf = Vec::new();
     loop {
-      if self.socket.recv(&mut buf).is_ok() {
-        todo!()
+      if let Ok((_, addr)) = self.socket.recv_from(&mut buf) {
+        if let Ok(packet) = bincode::decode_from_slice(&buf, BINCODE_CONFIG) {
+          let (packet, _): (IdClientPacket<R>, _) = packet;
+          let IdClientPacket(id, packet) = packet;
+          match id {
+            Some(id) => {
+              if !self.clients.contains_key(&id) {
+                bail!("Client with id {id} doesn't exist");
+              };
+              match packet {
+                ClientPacket::Data(data) => {
+                  self.event_queue.push_back(ServerEvent::MessageReceived {
+                    from: id,
+                    message: data,
+                  });
+                }
+                ClientPacket::Disconnect => {
+                  self.event_queue.push_back(ServerEvent::Disconnected(id));
+                  self.disconnect_client_inner(id, "Disconnected".into())?;
+                },
+                ClientPacket::Heartbeat => {
+                  self.clients.get_mut(&id).unwrap().timeout = Instant::now()
+                },
+                ClientPacket::Connect => bail!("Client already connected"),
+              }
+            },
+            None => {
+              match packet {
+                ClientPacket::Connect => {
+                  match self.add_client(addr) {
+                    Ok(id) => {
+                      self.event_queue.push_back(ServerEvent::Connected(id));
+                      self.send_to_addr(addr, 
+                        IdServerPacket(None, ServerPacket::Connected(id)
+                      ))?;
+                    },
+                    Err(error) => {
+                      let reason = error.to_string();
+                      self.send_to_addr(addr, IdServerPacket(
+                        None, ServerPacket::Disconnected(reason)
+                      ))?;
+                    }
+                  }
+                },
+                _ => bail!("Invalid packet type for non-id packet")
+              }
+            }
+          }
+        } else {
+          bail!("Corrupted packet received");
+        }
       } else {
         break
       }
       buf.clear()
     }
-    
+    Ok(())
   }
 }
