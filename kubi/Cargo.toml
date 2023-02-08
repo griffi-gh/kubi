@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
+kubi-udp = { path = "../kubi-udp", optional = true }
 glium = "0.32"
 glam = { version = "0.22", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }

@@ -12,24 +12,18 @@ pub enum ClientToServerMessage {
     password: Option<String>,
   },
   PositionChanged {
-    client_id: u8,
-    secret: u32,
     position: Vec3Arr,
+    velocity: Vec3Arr,
     direction: QuatArr,
   },
   ChunkRequest {
-    client_id: u8,
-    secret: u32,
     chunk: IVec3Arr,
   },
 }
 
 #[derive(Encode, Decode)]
 pub enum ServerToClientMessage {
-  ServerHello {
-    client_id: u8,
-    secret: u32,
-  },
+  ServerHello,
   ServerFuckOff {
     reason: String,
   },

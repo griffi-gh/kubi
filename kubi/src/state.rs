@@ -1,14 +1,10 @@
+use strum::EnumIter;
 use shipyard::Unique;
 
-#[derive(Unique)]
+#[derive(Unique, EnumIter)]
+#[track(All)]
 pub enum GameState {
   Connecting,
   LoadingWorld,
-  InGame,  
-}
-
-fn insert_default_state(
-  
-) {
-
+  InGame
 }

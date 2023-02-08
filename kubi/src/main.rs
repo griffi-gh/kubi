@@ -13,10 +13,10 @@ use glium::{
   }
 };
 use glam::vec3;
+use state::GameState;
 use std::time::Instant;
 
 mod logging;
-
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -33,6 +33,8 @@ pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 pub(crate) mod state;
 pub(crate) mod gui;
+pub(crate) mod networking;
+pub(crate) mod init;
 
 use world::{
   init_game_world,
@@ -63,6 +65,7 @@ use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
+use init::initialize_from_args;
 
 fn startup() -> Workload {
   (
@@ -70,6 +73,7 @@ fn startup() -> Workload {
     load_prefabs,
     init_simple_box_buffers,
     insert_lock_state,
+    initialize_from_args,
     lock_cursor_now,
     init_input,
     init_game_world,
@@ -151,9 +155,9 @@ fn main() {
           last_update = now;
         }
         
-        //Run update workflow
+        //Run update workflows
         world.run_workload(update).unwrap();
-
+        
         //Start rendering (maybe use custom views for this?)
         let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
