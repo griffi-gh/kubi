@@ -128,13 +128,14 @@ fn after_frame_end() -> Workload {
 }
 
 fn main() {
+  //Init env_logger
   logging::init();
-
-  //Create event loop
-  let event_loop = EventLoop::new();
 
   //Create a shipyard world
   let mut world = World::new();
+
+  //Create event loop
+  let event_loop = EventLoop::new();
 
   //Add systems and uniques, Init and load things
   world.add_unique_non_send_sync(Renderer::init(&event_loop));
