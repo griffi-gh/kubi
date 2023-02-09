@@ -5,9 +5,9 @@ use crate::{
   rendering::{
     RenderTarget, 
     primitives::rect::RectPrimitive
-  },
+  }, transform::Transform2d,
 };
-use super::{GuiComponent, GuiTransform, PrimaryColor, SecondaryColor, GuiViewScale};
+use super::{GuiComponent, PrimaryColor, SecondaryColor, GuiView};
 
 #[derive(Component, Debug, Clone, Copy, Default)]
 pub struct ProgressbarComponent {
@@ -18,9 +18,9 @@ pub fn render_progressbars(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
   rect: NonSendSync<UniqueView<RectPrimitive>>,
   program: NonSendSync<UniqueView<ProgressbarShaderPrefab>>,
-  view: UniqueView<GuiViewScale>,
+  view: UniqueView<GuiView>,
   components: View<GuiComponent>,
-  transforms: View<GuiTransform>,
+  transforms: View<Transform2d>,
   progressbars: View<ProgressbarComponent>,
   primary: View<PrimaryColor>,
   secondary: View<SecondaryColor>,
@@ -34,9 +34,8 @@ pub fn render_progressbars(
       &rect.1,
       &program.0,
       &uniform! {
-        element_position: transform.position.to_array(),
-        element_size: transform.scale.to_array(), 
-        ui_view: view.0.to_array(),
+        transform: transform.0.to_cols_array_2d(),
+        ui_view: view.0.to_cols_array_2d(),
         progress: progress.progress,
         color: pri.unwrap_or_default().0.to_array(),
         bg_color: sec.unwrap_or_default().0.to_array(),
