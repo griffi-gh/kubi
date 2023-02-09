@@ -57,7 +57,6 @@ use rendering::{
   RenderTarget, 
   BackgroundColor, 
   clear_background,
-  assert_renderer,
   primitives::init_primitives,
   selection_box::render_selection_box,
   world::draw_world,
@@ -73,7 +72,6 @@ use gui::{render_gui, init_gui, gui_testing, update_gui};
 
 fn startup() -> Workload {
   (
-    assert_renderer,
     initial_resize_event,
     load_settings,
     load_prefabs,

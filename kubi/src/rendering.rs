@@ -1,4 +1,4 @@
-use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut};
+use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, AllStoragesView};
 use glium::{
   Display, Surface, 
   Version, Api,
@@ -35,16 +35,12 @@ impl Renderer {
       .with_gl_profile(GlProfile::Core);
     let display = Display::new(wb, cb, event_loop)
       .expect("Failed to create a glium Display");
-    log::info!("renderer: {}", display.get_opengl_renderer_string());
-    log::info!("oepngl {}", display.get_opengl_version_string());
+    log::info!("Renderer: {}", display.get_opengl_renderer_string());
+    log::info!("OpenGL {}", display.get_opengl_version_string());
+    log::info!("Supports GLES {:?}", display.get_supported_glsl_version());
+    assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
     Self { display }
   }
-}
-
-pub fn assert_renderer(
-  renderer: NonSendSync<UniqueView<Renderer>>
-) {
-  assert!(renderer.display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
 }
 
 pub fn clear_background(
