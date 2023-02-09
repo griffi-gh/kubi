@@ -1,6 +1,7 @@
 use glam::UVec2;
-use shipyard::{World, Component, AllStoragesViewMut, SparseSet};
+use shipyard::{World, Component, AllStoragesViewMut, SparseSet, NonSendSync, UniqueView};
 use glium::glutin::event::{Event, DeviceEvent, DeviceId, WindowEvent};
+use crate::rendering::Renderer;
 
 pub mod player_actions;
 
@@ -48,6 +49,19 @@ pub fn process_glutin_events(world: &mut World, event: &Event<'_, ()>) {
     },
     _ => (),
   }
+}
+
+pub fn initial_resize_event(
+  mut storages: AllStoragesViewMut,
+) {
+  let (w, h) = {
+    let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+    renderer.display.get_framebuffer_dimensions()
+  };
+  storages.add_entity((
+    EventComponent, 
+    WindowResizedEvent(UVec2::new(w, h))
+  ));
 }
 
 pub fn clear_events(

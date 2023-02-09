@@ -1,4 +1,7 @@
-#version 150 core
+#version 300 es
+
+precision highp float;
+precision lowp sampler2DArray;
 
 in vec3 v_normal;
 in vec2 v_uv;

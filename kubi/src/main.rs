@@ -48,7 +48,7 @@ use settings::load_settings;
 use camera::compute_cameras;
 use events::{
   clear_events, process_glutin_events, 
-  player_actions::generate_move_events
+  player_actions::generate_move_events, initial_resize_event
 };
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
@@ -67,11 +67,13 @@ use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 use state::{is_ingame, is_ingame_or_loading, is_loading};
-use init::initialize_from_args;
-use gui::{render_gui, init_gui, gui_testing};
+use init::{initialize_from_args, assert_renderer};
+use gui::{render_gui, init_gui, gui_testing, update_gui};
 
 fn startup() -> Workload {
   (
+    assert_renderer,
+    initial_resize_event,
     load_settings,
     load_prefabs,
     init_primitives,
@@ -106,6 +108,7 @@ fn update() -> Workload {
       apply_queued_blocks,
     ).into_workload().run_if(is_ingame),
     compute_cameras,
+    update_gui,
   ).into_workload()
 }
 fn render() -> Workload {

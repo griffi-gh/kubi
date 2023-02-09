@@ -1,4 +1,6 @@
-#version 150 core
+#version 300 es
+
+precision highp float;
 
 in vec3 position;
 uniform ivec3 u_position;

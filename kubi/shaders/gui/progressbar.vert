@@ -1,4 +1,4 @@
-#version 150 core
+#version 300 es
 
 in vec2 position;
 out vec2 v_uv;
