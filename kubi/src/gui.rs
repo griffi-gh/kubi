@@ -33,7 +33,7 @@ impl Default for GuiTransform {
 pub struct PrimaryColor(pub Vec4);
 impl Default for PrimaryColor {
   fn default() -> Self {
-    Self(color_hex(0x156cdd))
+    Self(color_hex(0x156cddff))
   }
 }
 
@@ -41,7 +41,7 @@ impl Default for PrimaryColor {
 pub struct SecondaryColor(pub Vec4);
 impl Default for SecondaryColor {
   fn default() -> Self {
-    Self(color_hex(0xc9d5e4))
+    Self(color_hex(0xc9d5e4ff))
   }
 }
 
