@@ -1,16 +1,9 @@
-use shipyard::{AllStoragesView, NonSendSync, UniqueView};
-use glium::{Version, Api};
+use shipyard::AllStoragesView;
 use std::{env, net::SocketAddr};
 use crate::{
   networking::{GameType, ServerAddress},
-  state::GameState, rendering::Renderer
+  state::GameState
 };
-
-pub fn assert_renderer(
-  renderer: NonSendSync<UniqueView<Renderer>>
-) {
-  assert!(renderer.display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
-}
 
 pub fn initialize_from_args(
   all_storages: AllStoragesView,

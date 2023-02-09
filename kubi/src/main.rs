@@ -57,6 +57,7 @@ use rendering::{
   RenderTarget, 
   BackgroundColor, 
   clear_background,
+  assert_renderer,
   primitives::init_primitives,
   selection_box::render_selection_box,
   world::draw_world,
@@ -67,7 +68,7 @@ use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 use state::{is_ingame, is_ingame_or_loading, is_loading};
-use init::{initialize_from_args, assert_renderer};
+use init::initialize_from_args;
 use gui::{render_gui, init_gui, gui_testing, update_gui};
 
 fn startup() -> Workload {
