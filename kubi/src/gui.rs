@@ -50,7 +50,7 @@ pub fn gui_testing(
     Transform2d(Mat3::from_scale_angle_translation(
       vec2(0.25, 0.05), 
       0.,
-      vec2(0.5, 0.)
+      vec2(0.5, 0.25)
     )),
     ProgressbarComponent {
       progress: 0.5
