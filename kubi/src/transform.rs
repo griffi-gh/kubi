@@ -1,5 +1,5 @@
 use shipyard::Component;
-use glam::Mat4;
+use glam::{Mat4, Vec2};
 
 #[derive(Component, Clone, Copy, Debug, Default)]
 #[track(All)]

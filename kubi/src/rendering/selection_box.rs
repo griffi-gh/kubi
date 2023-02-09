@@ -12,7 +12,7 @@ use crate::{
 };
 use super::{
   RenderTarget, 
-  primitives::SimpleBoxBuffers,
+  primitives::cube::CubePrimitive,
 };
 
 pub fn render_selection_box(
@@ -20,7 +20,7 @@ pub fn render_selection_box(
   camera: View<Camera>,
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   program: NonSendSync<UniqueView<SelBoxShaderPrefab>>,
-  buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
+  buffers: NonSendSync<UniqueView<CubePrimitive>>,
 ) {
   let camera = camera.iter().next().unwrap();
   let Some(lookat) = lookat.iter().next() else { return };

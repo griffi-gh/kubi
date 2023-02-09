@@ -24,7 +24,7 @@ use crate::{
   prefabs::{
     ChunkShaderPrefab,
     BlockTexturesPrefab, 
-    BasicColoredShaderPrefab,
+    ColoredShaderPrefab,
   },
   world::{
     ChunkStorage, 
@@ -32,7 +32,7 @@ use crate::{
     chunk::CHUNK_SIZE,
   }, settings::GameSettings,
 };
-use super::{RenderTarget, primitives::SimpleBoxBuffers};
+use super::{RenderTarget, primitives::cube::CubePrimitive};
 
 #[derive(Clone, Copy)]
 pub struct ChunkVertex {
@@ -114,8 +114,8 @@ pub fn draw_current_chunk_border(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   player: View<MainPlayer>,
   transforms: View<Transform>,
-  buffers: NonSendSync<UniqueView<SimpleBoxBuffers>>,
-  program: NonSendSync<UniqueView<BasicColoredShaderPrefab>>,
+  buffers: NonSendSync<UniqueView<CubePrimitive>>,
+  program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
   camera: View<Camera>,
   settings: UniqueView<GameSettings>,
 ) {

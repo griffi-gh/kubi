@@ -34,11 +34,13 @@ pub(crate) mod state;
 pub(crate) mod gui;
 pub(crate) mod networking;
 pub(crate) mod init;
+pub(crate) mod color;
 
 use world::{
   init_game_world,
   loading::{update_loaded_world_around_player, switch_to_ingame_if_loaded}, 
-  raycast::update_raycasts, queue::apply_queued_blocks
+  raycast::update_raycasts,
+  queue::apply_queued_blocks
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -55,7 +57,7 @@ use rendering::{
   RenderTarget, 
   BackgroundColor, 
   clear_background,
-  primitives::init_simple_box_buffers,
+  primitives::init_primitives,
   selection_box::render_selection_box,
   world::draw_world,
   world::draw_current_chunk_border,
@@ -64,18 +66,21 @@ use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
-use state::{GameState, is_ingame, is_ingame_or_loading, is_loading};
+use state::{is_ingame, is_ingame_or_loading, is_loading};
 use init::initialize_from_args;
+use gui::{render_gui, init_gui, gui_testing};
 
 fn startup() -> Workload {
   (
     load_settings,
     load_prefabs,
-    init_simple_box_buffers,
+    init_primitives,
     insert_lock_state,
     initialize_from_args,
     lock_cursor_now,
     init_input,
+    init_gui,
+    gui_testing,
     init_game_world,
     spawn_player,
     insert_control_flow_unique,
@@ -110,7 +115,8 @@ fn render() -> Workload {
       draw_world,
       draw_current_chunk_border,
       render_selection_box,
-    ).into_sequential_workload().run_if(is_ingame)
+    ).into_sequential_workload().run_if(is_ingame),
+    render_gui,
   ).into_sequential_workload()
 }
 fn after_frame_end() -> Workload {
