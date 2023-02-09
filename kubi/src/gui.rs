@@ -53,7 +53,7 @@ pub fn gui_testing(
       vec2(0.5, 0.25)
     )),
     ProgressbarComponent {
-      progress: 0.5
+      progress: 0.33
     },
     PrimaryColor::default(),
     SecondaryColor::default(),
