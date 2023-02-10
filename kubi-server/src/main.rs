@@ -1,7 +1,11 @@
 use shipyard::{World, AllStoragesView, Unique, Workload, IntoWorkload, UniqueView, UniqueViewMut};
 use kubi_udp::server::{Server, ServerConfig};
 use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
-use std::{thread, time::Duration};
+use std::{thread, time::Duration, net::SocketAddr};
+
+#[derive(Unique)]
+#[repr(transparent)]
+pub struct ServerAddr(SocketAddr);
 
 #[derive(Unique)]
 #[repr(transparent)]
@@ -10,7 +14,8 @@ pub struct UdpServer(Server<ServerToClientMessage, ClientToServerMessage>);
 fn bind_server(
   storages: AllStoragesView,
 ) {
-  log::info!("Binding server");
+  log::info!("Creating server...");
+  let addr = storages.borrow::<UniqueView<SocketAddr>>().expect("No server addr found");
   let server: Server<ServerToClientMessage, ClientToServerMessage> = Server::bind(
     "0.0.0.0:1234".parse().unwrap(), 
     ServerConfig::default()
@@ -44,6 +49,7 @@ fn main() {
   world.add_workload(initialize);
   world.add_workload(update);
   world.run_workload(initialize).unwrap();
+  log::info!("The server is now running");
   loop {
     world.run_workload(update).unwrap();
     thread::sleep(Duration::from_millis(16));
