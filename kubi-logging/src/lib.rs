@@ -1,9 +1,13 @@
-//! Custom env_logger options and styling
+/// Custom env_logger options and styling
 
 use env_logger::{fmt::Color, Builder, Env};
 use log::Level;
 use std::io::Write;
 
+pub use log;
+pub use env_logger;
+
+#[inline]
 pub fn init() {
   let env = Env::default()
     .filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn");

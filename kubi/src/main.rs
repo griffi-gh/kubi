@@ -18,7 +18,6 @@ use glium::{
 use glam::vec3;
 use std::time::Instant;
 
-mod logging;
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -148,7 +147,7 @@ fn main() {
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
 
   //Init env_logger
-  logging::init();
+  kubi_logging::init();
 
   //Create a shipyard world
   let mut world = World::new();

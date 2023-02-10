@@ -1,5 +1,5 @@
 [workspace]
-members = ["kubi", "kubi-server", "kubi-shared", "kubi-udp"]
+members = ["kubi", "kubi-server", "kubi-shared", "kubi-udp", "kubi-logging"]
 resolver = "2"
 
 [profile.release-with-debug]

@@ -37,6 +37,7 @@ fn update() -> Workload {
 }
 
 fn main() {
+  kubi_logging::init();
   let world = World::new();
   world.add_workload(initialize);
   world.add_workload(update);
