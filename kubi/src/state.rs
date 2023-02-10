@@ -1,11 +1,32 @@
-use shipyard::{Unique, UniqueView};
+use shipyard::{Unique, UniqueView, UniqueViewMut, AllStoragesView};
+use std::mem::take;
 
-#[derive(Unique, PartialEq, Eq)]
+#[derive(Unique, PartialEq, Eq, Default, Clone, Copy)]
 #[track(All)]
 pub enum GameState {
+  #[default]
+  Initial,
   Connecting,
   LoadingWorld,
   InGame
+}
+
+#[derive(Unique, PartialEq, Eq, Default, Clone, Copy)]
+#[track(All)]
+pub struct NextState(pub Option<GameState>);
+
+pub fn init_state(
+  all_storages: AllStoragesView,
+) {
+  all_storages.add_unique(GameState::default());
+  all_storages.add_unique(NextState::default());
+}
+
+pub fn update_state(
+  mut state: UniqueViewMut<GameState>,
+  mut next: UniqueViewMut<NextState>,
+) {
+  *state = take(&mut next.0).unwrap_or(*state);
 }
 
 pub fn is_ingame(

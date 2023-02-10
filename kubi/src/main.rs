@@ -38,10 +38,11 @@ pub(crate) mod gui;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
+pub(crate) mod loading_screen;
 
 use world::{
   init_game_world,
-  loading::{update_loaded_world_around_player, switch_to_ingame_if_loaded}, 
+  loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks
 };
@@ -50,8 +51,10 @@ use prefabs::load_prefabs;
 use settings::load_settings;
 use camera::compute_cameras;
 use events::{
-  clear_events, process_glutin_events, 
-  player_actions::generate_move_events, initial_resize_event
+  clear_events, 
+  process_glutin_events, 
+  initial_resize_event,
+  player_actions::generate_move_events, 
 };
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
@@ -69,9 +72,10 @@ use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
-use state::{is_ingame, is_ingame_or_loading, is_loading};
+use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state};
 use init::initialize_from_args;
-use gui::{render_gui, init_gui, gui_testing, update_gui};
+use gui::{render_gui, init_gui, update_gui};
+use loading_screen::update_loading_screen;
 
 fn startup() -> Workload {
   (
@@ -80,11 +84,11 @@ fn startup() -> Workload {
     load_prefabs,
     init_primitives,
     insert_lock_state,
+    init_state,
     initialize_from_args,
     lock_cursor_now,
     init_input,
     init_gui,
-    gui_testing,
     init_game_world,
     spawn_player,
     insert_control_flow_unique,
@@ -97,7 +101,7 @@ fn update() -> Workload {
     process_inputs,
     exit_on_esc,
     (
-      switch_to_ingame_if_loaded,
+      update_loading_screen,
     ).into_workload().run_if(is_loading),
     (
       update_loaded_world_around_player,
@@ -111,6 +115,7 @@ fn update() -> Workload {
     ).into_workload().run_if(is_ingame),
     compute_cameras,
     update_gui,
+    update_state,
   ).into_workload()
 }
 fn render() -> Workload {

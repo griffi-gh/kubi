@@ -59,20 +59,20 @@ pub fn render_gui() -> Workload {
   ).into_workload()
 }
 
-pub fn gui_testing(
-  mut storages: AllStoragesViewMut,
-) {
-  storages.add_entity((
-    GuiComponent,
-    Transform2d(Mat3::from_scale_angle_translation(
-      vec2(1920., 16.), 
-      0.,
-      vec2(0., 0.)
-    )),
-    ProgressbarComponent {
-      progress: 0.33
-    },
-    PrimaryColor::default(),
-    SecondaryColor::default(),
-  ));
-}
+// pub fn gui_testing(
+//   mut storages: AllStoragesViewMut,
+// ) {
+//   storages.add_entity((
+//     GuiComponent,
+//     Transform2d(Mat3::from_scale_angle_translation(
+//       vec2(1920., 16.), 
+//       0.,
+//       vec2(0., 0.)
+//     )),
+//     ProgressbarComponent {
+//       progress: 0.33
+//     },
+//     PrimaryColor::default(),
+//     SecondaryColor::default(),
+//   ));
+// }

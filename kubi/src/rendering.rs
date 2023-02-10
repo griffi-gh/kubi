@@ -8,7 +8,7 @@ use glium::{
     ContextBuilder, GlProfile
   }, 
 };
-use glam::Vec3;
+use glam::{Vec3, UVec2};
 
 pub mod primitives;
 pub mod world;
