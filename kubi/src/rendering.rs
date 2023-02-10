@@ -1,4 +1,4 @@
-use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, AllStoragesView};
+use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
 use glium::{
   Display, Surface, 
   Version, Api,
@@ -9,6 +9,7 @@ use glium::{
   }, 
 };
 use glam::{Vec3, UVec2};
+use crate::events::WindowResizedEvent;
 
 pub mod primitives;
 pub mod world;
@@ -19,6 +20,9 @@ pub struct RenderTarget(pub glium::Frame);
 
 #[derive(Unique)]
 pub struct BackgroundColor(pub Vec3);
+
+#[derive(Unique, Clone, Copy)]
+pub struct WindowSize(pub UVec2);
 
 #[derive(Unique)]
 pub struct Renderer {
@@ -48,4 +52,28 @@ pub fn clear_background(
   color: UniqueView<BackgroundColor>,
 ) {
   target.0.clear_color_srgb_and_depth((color.0.x, color.0.y, color.0.z, 1.), 1.);
+}
+
+//not sure if this belongs here
+
+pub fn init_window_size(
+  storages: AllStoragesView,
+) {
+  let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
+  storages.add_unique(WindowSize(size))
+}
+
+pub fn update_window_size(
+  mut win_size: UniqueViewMut<WindowSize>,
+  resize: View<WindowResizedEvent>,
+) {
+  if let Some(resize) = resize.iter().next() {
+    win_size.0 = resize.0;
+  }
+}
+
+pub fn if_resized (
+  resize: View<WindowResizedEvent>,
+) -> bool {
+  resize.len() > 0
 }

@@ -66,7 +66,7 @@ use rendering::{
   primitives::init_primitives,
   selection_box::render_selection_box,
   world::draw_world,
-  world::draw_current_chunk_border,
+  world::draw_current_chunk_border, init_window_size, update_window_size,
 };
 use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
@@ -80,6 +80,7 @@ use loading_screen::update_loading_screen;
 fn startup() -> Workload {
   (
     initial_resize_event,
+    init_window_size,
     load_settings,
     load_prefabs,
     init_primitives,
@@ -97,6 +98,7 @@ fn startup() -> Workload {
 }
 fn update() -> Workload {
   (
+    update_window_size,
     update_cursor_lock_state,
     process_inputs,
     exit_on_esc,
