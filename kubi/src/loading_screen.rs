@@ -64,6 +64,7 @@ fn switch_to_ingame_if_loaded(
   if world.chunks.iter().all(|(_, chunk)| {
     chunk.desired_state.matches(chunk.current_state)
   }) {
+    log::info!("Finished loadinf chunks");
     state.0 = Some(GameState::InGame);
   }
 }
