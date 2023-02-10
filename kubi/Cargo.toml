@@ -19,3 +19,6 @@ nohash-hasher = "0.2.0"
 anyhow = "1.0"
 flume = "0.10"
 gilrs = { version = "0.10", default_features = false, features = ["xinput"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "0.3" }

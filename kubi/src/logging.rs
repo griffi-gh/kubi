@@ -5,10 +5,8 @@ use log::Level;
 use std::io::Write;
 
 pub fn init() {
-  let mut env = Env::default();
-  if cfg!(debug_assertions) {
-    env = env.filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn");
-  }
+  let env = Env::default()
+    .filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn");
   Builder::from_env(env)
     .format(|buf, record| {
       let mut level_style = buf.style();

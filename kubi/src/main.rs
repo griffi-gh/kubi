@@ -1,5 +1,8 @@
-// allowed because systems often need a lot of arguments
-#![allow(clippy::too_many_arguments)] 
+#![cfg_attr(
+  all(windows, not(debug_assertions)), 
+  windows_subsystem = "windows"
+)]
+#![allow(clippy::too_many_arguments)] // allowed because systems often need a lot of arguments
 
 use shipyard::{
   World, Workload, IntoWorkload, 
@@ -127,7 +130,16 @@ fn after_frame_end() -> Workload {
   ).into_workload()
 }
 
+#[cfg(all(windows, not(debug_assertions)))]
+fn attach_console() {
+  use winapi::um::wincon::{AttachConsole, ATTACH_PARENT_PROCESS};
+  unsafe { AttachConsole(ATTACH_PARENT_PROCESS); }
+}
+
 fn main() {
+  //Attach console on release builds on windows
+  #[cfg(all(windows, not(debug_assertions)))] attach_console();
+
   //Init env_logger
   logging::init();
 
