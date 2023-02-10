@@ -1,14 +1,47 @@
+use shipyard::{World, AllStoragesView, Unique, Workload, IntoWorkload, UniqueView, UniqueViewMut};
 use kubi_udp::server::{Server, ServerConfig};
 use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
 
-fn main() {
-  let mut server: Server<ServerToClientMessage, ClientToServerMessage> = Server::bind(
+#[derive(Unique)]
+#[repr(transparent)]
+pub struct UdpServer(Server<ServerToClientMessage, ClientToServerMessage>);
+
+fn bind_server(
+  storages: AllStoragesView,
+) {
+  let server: Server<ServerToClientMessage, ClientToServerMessage> = Server::bind(
     "0.0.0.0:1234".parse().unwrap(), 
     ServerConfig::default()
   ).unwrap();
+  storages.add_unique(UdpServer(server));
+}
+
+fn update_server(
+  mut server: UniqueViewMut<UdpServer>
+) {
+  if let Err(error) = server.0.update() {
+    println!("Server error: {error:?}")
+  }
+}
+
+fn initialize() -> Workload {
+  (
+    bind_server,
+  ).into_workload()
+}
+
+fn update() -> Workload {
+  (
+    update_server,
+  ).into_workload()
+}
+
+fn main() {
+  let world = World::new();
+  world.add_workload(initialize);
+  world.add_workload(update);
+  world.run_workload(initialize).unwrap();
   loop {
-    if let Err(or) = server.update() {
-      println!("Server error: {or:?}")
-    }
+    world.run_workload(update).unwrap();
   }
 }

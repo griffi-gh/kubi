@@ -48,7 +48,7 @@ pub struct Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   clients: HashMap<ClientId, ConnectedClient, BuildNoHashHasher<u8>>,
   config: ServerConfig,
   event_queue: VecDeque<ServerEvent<R>>,
-  _s: PhantomData<*const S>,
+  _s: PhantomData<S>,
 }
 impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   fn send_to_addr(&self, addr: SocketAddr, packet: IdServerPacket<S>) -> Result<()> {
