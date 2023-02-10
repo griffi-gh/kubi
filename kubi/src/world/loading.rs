@@ -14,8 +14,8 @@ use super::{
   tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
 };
 
-//todo limit task starts insted
-const MAX_CHUNK_OPS: usize = 8;
+const MAX_CHUNK_OPS_INGAME: usize = 6;
+const MAX_CHUNK_OPS: usize = 32;
 
 pub fn update_loaded_world_around_player() -> Workload {
   (
@@ -233,8 +233,9 @@ fn process_completed_tasks(
         ops += 1;
       }
     }
-    if (ops >= MAX_CHUNK_OPS) && matches!(*state, GameState::InGame) {
-      break
-    }
+    if ops >= match *state {
+      GameState::InGame => MAX_CHUNK_OPS_INGAME,
+      _ => MAX_CHUNK_OPS,
+    } { break }
   }
 }
