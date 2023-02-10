@@ -2,7 +2,7 @@ use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, WorkloadModifi
 use glam::{Mat3, vec2};
 use crate::{
   world::ChunkStorage, 
-  state::{GameState, NextState}, 
+  state::{GameState, NextState, is_changing_state}, 
   transform::Transform2d,
   gui::{
     GuiComponent, 
@@ -72,13 +72,11 @@ fn switch_to_ingame_if_loaded(
 fn despawn_loading_screen_if_switching_state(
   mut storages: AllStoragesViewMut,
 ) {
-  let next = *storages.borrow::<UniqueView<NextState>>().unwrap();
-  if let Some(state) = next.0 {
-    if state != GameState::LoadingWorld {
-      let progress_bar = storages.borrow::<UniqueView<ProgressbarId>>().unwrap().0;
-      storages.delete_entity(progress_bar);
-      storages.remove_unique::<ProgressbarId>().unwrap();
-    }
+  let state = storages.borrow::<UniqueView<NextState>>().unwrap().0.unwrap();
+  if state != GameState::LoadingWorld {
+    let progress_bar = storages.borrow::<UniqueView<ProgressbarId>>().unwrap().0;
+    storages.delete_entity(progress_bar);
+    storages.remove_unique::<ProgressbarId>().unwrap();
   }
 }
 
@@ -88,6 +86,6 @@ pub fn update_loading_screen() -> Workload {
     resize_progress_bar.into_workload().run_if(if_resized),
     update_progress_bar_progress,
     switch_to_ingame_if_loaded,
-    despawn_loading_screen_if_switching_state,
+    despawn_loading_screen_if_switching_state.into_workload().run_if(is_changing_state),
   ).into_workload()
 }

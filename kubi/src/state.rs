@@ -29,6 +29,12 @@ pub fn update_state(
   *state = take(&mut next.0).unwrap_or(*state);
 }
 
+pub fn is_changing_state(
+  state: UniqueView<NextState>
+) -> bool {
+  state.0.is_some()
+}
+
 pub fn is_ingame(
   state: UniqueView<GameState>
 ) -> bool {
