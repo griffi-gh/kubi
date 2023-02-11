@@ -1,38 +1,17 @@
-use shipyard::{World, AllStoragesView, Unique, Workload, IntoWorkload, UniqueView, UniqueViewMut};
-use kubi_udp::server::{Server, ServerConfig};
-use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
-use std::{thread, time::Duration, net::SocketAddr};
+use shipyard::{World, Workload, IntoWorkload};
+use std::{thread, time::Duration};
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ServerAddr(SocketAddr);
+pub(crate) mod config;
+pub(crate) mod server;
+pub(crate) mod client;
+pub(crate) mod transform;
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct UdpServer(Server<ServerToClientMessage, ClientToServerMessage>);
-
-fn bind_server(
-  storages: AllStoragesView,
-) {
-  log::info!("Creating server...");
-  let addr = storages.borrow::<UniqueView<SocketAddr>>().expect("No server addr found");
-  let server: Server<ServerToClientMessage, ClientToServerMessage> = Server::bind(
-    "0.0.0.0:1234".parse().unwrap(), 
-    ServerConfig::default()
-  ).unwrap();
-  storages.add_unique(UdpServer(server));
-}
-
-fn update_server(
-  mut server: UniqueViewMut<UdpServer>
-) {
-  if let Err(error) = server.0.update() {
-    log::error!("Server error: {error:?}")
-  }
-}
+use config::read_config;
+use server::{bind_server, update_server};
 
 fn initialize() -> Workload {
   (
+    read_config,
     bind_server,
   ).into_workload()
 }

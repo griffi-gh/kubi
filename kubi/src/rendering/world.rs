@@ -35,6 +35,7 @@ use crate::{
 use super::{RenderTarget, primitives::cube::CubePrimitive};
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub struct ChunkVertex {
   pub position: [f32; 3],
   pub normal: [f32; 3],
