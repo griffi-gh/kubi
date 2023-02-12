@@ -4,7 +4,6 @@ use std::{thread, time::Duration};
 pub(crate) mod config;
 pub(crate) mod server;
 pub(crate) mod client;
-pub(crate) mod transform;
 
 use config::read_config;
 use server::{bind_server, update_server};

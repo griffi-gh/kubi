@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 glam = { version = "0.22", features = ["debug-glam-assert", "fast-math", "serde"] }
+shipyard = "0.6"
 strum = { version = "0.24", features = ["derive"] }
 bincode = "2.0.0-rc"
 anyhow = "1.0"

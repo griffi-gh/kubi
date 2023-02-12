@@ -18,11 +18,12 @@ use glium::{
 use glam::vec3;
 use std::time::Instant;
 
+pub use kubi_shared::transform;
+
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
 pub(crate) mod prefabs;
-pub(crate) mod transform;
 pub(crate) mod settings;
 pub(crate) mod camera;
 pub(crate) mod events;

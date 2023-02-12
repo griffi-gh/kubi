@@ -10,7 +10,7 @@ use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use crate::{
   BINCODE_CONFIG,
-  common::{ClientId, MAX_CLIENTS},
+  common::{ClientId, ClientIdRepr, MAX_CLIENTS},
   packet::{IdClientPacket, ClientPacket, ServerPacket, IdServerPacket}
 };
 
@@ -45,7 +45,7 @@ pub enum ServerEvent<T> where T: Encode + Decode {
 
 pub struct Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   socket: UdpSocket,
-  clients: HashMap<ClientId, ConnectedClient, BuildNoHashHasher<u8>>,
+  clients: HashMap<ClientId, ConnectedClient, BuildNoHashHasher<ClientIdRepr>>,
   config: ServerConfig,
   event_queue: VecDeque<ServerEvent<R>>,
   _s: PhantomData<S>,
