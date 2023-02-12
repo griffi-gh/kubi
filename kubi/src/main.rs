@@ -120,8 +120,8 @@ fn update() -> Workload {
       update_raycasts,
       block_placement_system,
       apply_queued_blocks,
-      compute_cameras,
     ).into_workload().run_if(is_ingame),
+    compute_cameras,
     update_gui,
     update_state,
   ).into_workload()
