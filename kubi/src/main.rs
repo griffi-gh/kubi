@@ -7,7 +7,7 @@
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
-  NonSendSync, WorkloadModificator
+  NonSendSync, WorkloadModificator, SystemModificator
 };
 use glium::{
   glutin::{
@@ -125,7 +125,7 @@ fn update() -> Workload {
     update_gui,
     update_state,
     exit_on_esc,
-    disconnect_on_exit,
+    disconnect_on_exit.run_if(is_multiplayer),
   ).into_workload()
 }
 fn render() -> Workload {
