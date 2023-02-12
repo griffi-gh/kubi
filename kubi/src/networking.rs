@@ -36,9 +36,11 @@ pub fn create_client(
   storages.add_unique(ClientJoinState::Disconnected);
 }
 
-pub fn connect_client(
+pub fn connect_client_if_needed(
   mut client: UniqueViewMut<UdpClient>
 ) {
+  //NOTE: this used to be a condition function
+  //but that caused some issues for no reason
   if client.0.has_not_made_connection_attempts() {
     log::info!("Connect called");
     client.0.connect().unwrap();
@@ -68,7 +70,7 @@ pub fn insert_client_events(
 pub fn update_networking() -> Workload {
   (
     create_client.run_if_missing_unique::<UdpClient>(),
-    connect_client,
+    connect_client_if_needed,
     update_client,
     insert_client_events,
   ).into_workload()
