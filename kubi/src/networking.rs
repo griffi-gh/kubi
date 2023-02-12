@@ -35,10 +35,13 @@ pub fn client_connect(
   client.0.connect().unwrap();
 }
 
-pub fn update_client(
-  mut client: UniqueViewMut<UdpClient>
+pub fn update_client_and_get_events(
+  mut client: UniqueViewMut<UdpClient>,
 ) {
   client.0.update().unwrap();
+  for event in client.0.process_events() {
+    todo!()
+  }
 }
 
 pub fn init_networking() -> Workload {
@@ -50,7 +53,7 @@ pub fn init_networking() -> Workload {
 
 pub fn update_networking() -> Workload {
   (
-    update_client,
+    update_client_and_get_events,
   ).into_workload().run_if(is_multiplayer)
 }
 
