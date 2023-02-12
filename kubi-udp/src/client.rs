@@ -63,6 +63,7 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   _s: PhantomData<S>,
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
+  #[inline]
   pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
     let bind_addr: SocketAddr = "0.0.0.0:0".parse().unwrap();
     let socket = UdpSocket::bind(bind_addr)?;
@@ -103,7 +104,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.timeout = Instant::now();
   }
 
-  
+  #[inline]
   pub fn connect(&mut self) -> Result<()> {
     log::info!("client connect called");
     if self.status != ClientStatus::Disconnected {
@@ -117,6 +118,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
 
+  #[inline]
   pub fn disconnect(&mut self) -> Result<()> {
     if self.status != ClientStatus::Connected {
       bail!("Not Connected");
@@ -125,28 +127,34 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
 
+  #[inline]
   pub fn get_status(&self) -> ClientStatus {
     self.status
   }
 
+  #[inline]
   pub fn is_connected(&self) -> bool {
     self.status == ClientStatus::Connected
   }
 
+  #[inline]
   pub fn is_connecting(&self) -> bool {
     self.status == ClientStatus::Connecting
   }
 
+  #[inline]
   pub fn is_disconnected(&self) -> bool {
     self.status == ClientStatus::Disconnected
   }
 
   //Return true if the client has not made any connection attempts yet
+  #[inline]
   pub fn has_not_made_connection_attempts(&self) -> bool {
     matches!(self.status, ClientStatus::Disconnected) && 
     matches!(self.disconnect_reason, DisconnectReason::NotConnected)
   }
 
+  #[inline]
   pub fn send_message(&self, message: S) -> Result<()> {
     if self.status != ClientStatus::Connected {
       bail!("Not Connected");
@@ -155,6 +163,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
   
+  #[inline]
   pub fn update(&mut self) -> Result<()> { // , callback: fn(ClientEvent<R>) -> Result<()>
     if self.status == ClientStatus::Disconnected {
       return Ok(())
@@ -212,9 +221,12 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
 
+  #[inline]
   pub fn pop_event(&mut self) -> Option<ClientEvent<R>> {
     self.event_queue.pop_front()
   }
+
+  #[inline]
   pub fn process_events(&mut self) -> DrainDeque<ClientEvent<R>> {
     self.event_queue.drain(..)
   }
