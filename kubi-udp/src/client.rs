@@ -19,8 +19,7 @@ pub enum DisconnectReason {
   NotConnected,
   ClientDisconnected,
   KickedByServer(Option<String>),
-  ClientTimeout,
-  ServerTimeout,
+  Timeout,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -105,6 +104,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
 
   
   pub fn connect(&mut self) -> Result<()> {
+    log::info!("client connect called");
     if self.status != ClientStatus::Disconnected {
       bail!("Not Disconnected");
     }
@@ -139,7 +139,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     if self.timeout.elapsed() > self.config.timeout {
       log::warn!("Client timed out");
       //We don't care if this packet actually gets sent because the server is likely dead
-      let _ = self.disconnect_inner(DisconnectReason::ClientDisconnected, false).map_err(|_| {
+      let _ = self.disconnect_inner(DisconnectReason::Timeout, false).map_err(|_| {
         log::warn!("Failed to send disconnect packet");
       });
       return Ok(())
@@ -162,15 +162,16 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
         self.reset_timeout();
         match packet {
           ServerPacket::Connected(client_id) => {
+            log::info!("client connected with id {client_id}");
             self.client_id = Some(client_id);
             self.status = ClientStatus::Connected;
             self.event_queue.push_back(ClientEvent::Connected(client_id));
             return Ok(())
           },
           ServerPacket::Disconnected(reason) => {
+            log::info!("client kicked: {reason}");
             let reason = DisconnectReason::KickedByServer(Some(reason));
-            //this should never fail but we're handling the error anyway
-            self.disconnect_inner(reason, true)?;
+            self.disconnect_inner(reason, true)?; //this should never fail but we're handling the error anyway 
             return Ok(())
           },
           ServerPacket::Data(message) => {

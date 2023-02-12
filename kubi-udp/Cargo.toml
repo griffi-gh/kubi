@@ -11,3 +11,6 @@ anyhow = "1.0"
 hashbrown = "0.13"
 nohash-hasher = "0.2.0"
 log = "0.4"
+
+[dev-dependencies]
+kubi-logging = { path = "../kubi-logging" }

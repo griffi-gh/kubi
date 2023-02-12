@@ -4,7 +4,7 @@ use kubi_udp::{
 };
 use std::{thread, time::Duration};
 
-const TEST_ADDR: &str = "127.0.0.1:12345";
+const TEST_ADDR: &str = "127.0.0.1:22342";
 
 type CtsMessage = u32;
 type StcMessage = u64;
@@ -14,6 +14,9 @@ const STC_MSG: StcMessage = 0xdead_beef_cafe_face;
 
 #[test]
 fn test_connection() {
+  //Init logging
+  kubi_logging::init();
+  
   //Create server and client
   let mut server: Server<StcMessage, CtsMessage> = Server::bind(
     TEST_ADDR.parse().expect("Invalid TEST_ADDR"), 
@@ -82,6 +85,6 @@ fn test_connection() {
     }
   });
 
-  client_handle.join().unwrap();
   server_handle.join().unwrap();
+  client_handle.join().unwrap();
 }
