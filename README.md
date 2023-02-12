@@ -1,5 +1,5 @@
 <h1>
-  <a href="tree/multiplayer">
+  <a href="https://github.com/griffi-gh/kubi/tree/multiplayer">
     experimental multiplayer branch
   </a>
 </h1>
