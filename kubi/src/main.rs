@@ -152,6 +152,9 @@ fn attach_console() {
 fn main() {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
+  
+  //Print version
+  println!("{:─^54}", format!("[ ▄▀ Kubi client v. {} ]", env!("CARGO_PKG_VERSION")));
 
   //Init env_logger
   kubi_logging::init();

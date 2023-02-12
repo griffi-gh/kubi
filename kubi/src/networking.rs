@@ -66,7 +66,7 @@ pub fn update_networking() -> Workload {
     connect_client.run_if(client_needs_connect_call),
     update_client,
     insert_client_events,
-  ).into_workload().run_if(is_multiplayer)
+  ).into_workload()
 }
 
 fn client_needs_connect_call(

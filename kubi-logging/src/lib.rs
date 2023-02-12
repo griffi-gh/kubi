@@ -20,6 +20,9 @@ pub fn init() {
         _ => Color::Blue
       }).set_bold(true);
 
+      let mut bold_style = buf.style();
+      bold_style.set_bold(true);
+
       let mut location_style = buf.style();
       location_style.set_bold(true);
       location_style.set_dimmed(true);
@@ -27,9 +30,11 @@ pub fn init() {
       let mut location_line_style = buf.style();
       location_line_style.set_dimmed(true);
       
+      let text = format!("{}", record.args());
+
       writeln!(
         buf,
-        "{} {:<50}\t{}{}{}",
+        "{} {:<50}\t{}{}{}{}",
         level_style.value(match record.level() {
           Level::Error => "[e]",
           Level::Warn =>  "[w]",
@@ -37,7 +42,8 @@ pub fn init() {
           Level::Debug => "[d]",
           Level::Trace => "[t]",
         }),
-        format!("{}", record.args()),
+        text,
+        bold_style.value((text.len() > 50).then_some("\n ╰─ ").unwrap_or_default()),
         location_style.value(record.target()),
         location_line_style.value(" :"),
         location_line_style.value(record.line().unwrap_or(0))
