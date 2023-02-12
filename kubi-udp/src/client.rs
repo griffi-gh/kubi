@@ -51,7 +51,7 @@ pub enum ClientEvent<T> where T: Encode + Decode {
 }
 
 pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
-  pub config: ClientConfig,
+  config: ClientConfig,
   addr: SocketAddr,
   socket: UdpSocket,
   status: ClientStatus,
@@ -125,6 +125,28 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     Ok(())
   }
 
+  pub fn get_status(&self) -> ClientStatus {
+    self.status
+  }
+
+  pub fn is_connected(&self) -> bool {
+    self.status == ClientStatus::Connected
+  }
+
+  pub fn is_connecting(&self) -> bool {
+    self.status == ClientStatus::Connecting
+  }
+
+  pub fn is_disconnected(&self) -> bool {
+    self.status == ClientStatus::Disconnected
+  }
+
+  //Return true if the client has not made any connection attempts yet
+  pub fn has_not_made_connection_attempts(&self) -> bool {
+    matches!(self.status, ClientStatus::Disconnected) && 
+    matches!(self.disconnect_reason, DisconnectReason::NotConnected)
+  }
+
   pub fn send_message(&self, message: S) -> Result<()> {
     if self.status != ClientStatus::Connected {
       bail!("Not Connected");
@@ -152,43 +174,45 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     }
     //receive
     let mut buf = [0; u16::MAX as usize];
-    match self.socket.recv(&mut buf) {
-      Ok(length) => {
-        //TODO check the first byte of the raw data instead of decoding?
-        let (packet, _): (IdServerPacket<R>, _) = bincode::decode_from_slice(&buf[..length], BINCODE_CONFIG)?;
-        let IdServerPacket(user_id, packet) = packet;
-        if self.client_id.map(|x| Some(x) != user_id).unwrap_or_default() {
-          return Ok(())
-        }
-        self.reset_timeout();
-        match packet {
-          ServerPacket::Connected(client_id) => {
-            log::info!("client connected with id {client_id}");
-            self.client_id = Some(client_id);
-            self.status = ClientStatus::Connected;
-            self.event_queue.push_back(ClientEvent::Connected(client_id));
+    loop {
+      match self.socket.recv(&mut buf) {
+        Ok(length) => {
+          //TODO check the first byte of the raw data instead of decoding?
+          let (packet, _): (IdServerPacket<R>, _) = bincode::decode_from_slice(&buf[..length], BINCODE_CONFIG)?;
+          let IdServerPacket(user_id, packet) = packet;
+          if self.client_id.map(|x| Some(x) != user_id).unwrap_or_default() {
             return Ok(())
-          },
-          ServerPacket::Disconnected(reason) => {
-            log::info!("client kicked: {reason}");
-            let reason = DisconnectReason::KickedByServer(Some(reason));
-            self.disconnect_inner(reason, true)?; //this should never fail but we're handling the error anyway 
-            return Ok(())
-          },
-          ServerPacket::Data(message) => {
-            self.event_queue.push_back(ClientEvent::MessageReceived(message));
           }
-        }
-      },
-      Err(error) if error.kind() != ErrorKind::WouldBlock => {
-        return Err(error.into());
-      },
-      _ => (),
+          self.reset_timeout();
+          match packet {
+            ServerPacket::Connected(client_id) => {
+              log::info!("client connected with id {client_id}");
+              self.client_id = Some(client_id);
+              self.status = ClientStatus::Connected;
+              self.event_queue.push_back(ClientEvent::Connected(client_id));
+              return Ok(())
+            },
+            ServerPacket::Disconnected(reason) => {
+              log::info!("client kicked: {reason}");
+              let reason = DisconnectReason::KickedByServer(Some(reason));
+              self.disconnect_inner(reason, true)?; //this should never fail but we're handling the error anyway 
+              return Ok(())
+            },
+            ServerPacket::Data(message) => {
+              self.event_queue.push_back(ClientEvent::MessageReceived(message));
+            }
+          }
+        },
+        Err(error) if error.kind() != ErrorKind::WouldBlock => {
+          return Err(error.into());
+        },
+        _ => break,
+      }
     }
     Ok(())
   }
 
-  pub fn get_event(&mut self) -> Option<ClientEvent<R>> {
+  pub fn pop_event(&mut self) -> Option<ClientEvent<R>> {
     self.event_queue.pop_front()
   }
   pub fn process_events(&mut self) -> DrainDeque<ClientEvent<R>> {

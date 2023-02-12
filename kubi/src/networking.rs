@@ -1,10 +1,12 @@
-use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, WorkloadModificator};
+use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, WorkloadModificator, EntitiesView, EntitiesViewMut, Component, ViewMut, SystemModificator};
 use std::net::SocketAddr;
-use kubi_udp::client::{Client, ClientConfig};
+use kubi_udp::client::{Client, ClientConfig, ClientEvent};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage},
   state::ClientJoinState
 };
+
+use crate::events::EventComponent;
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -18,6 +20,9 @@ pub struct ServerAddress(pub SocketAddr);
 #[derive(Unique)]
 pub struct UdpClient(pub Client<ClientToServerMessage, ServerToClientMessage>);
 
+#[derive(Component)]
+pub struct NetworkEvent(pub ClientEvent<ServerToClientMessage>);
+
 pub fn create_client(
   storages: AllStoragesView
 ) {
@@ -29,32 +34,45 @@ pub fn create_client(
   storages.add_unique(ClientJoinState::Disconnected);
 }
 
-pub fn client_connect(
+pub fn connect_client(
   mut client: UniqueViewMut<UdpClient>
 ) {
   client.0.connect().unwrap();
 }
 
-pub fn update_client_and_get_events(
+pub fn update_client(
   mut client: UniqueViewMut<UdpClient>,
 ) {
   client.0.update().unwrap();
-  for event in client.0.process_events() {
-    todo!()
-  }
 }
 
-pub fn init_networking() -> Workload {
-  (
-    create_client,
-    client_connect,
-  ).into_workload().run_if(is_multiplayer)
+pub fn insert_client_events(
+  mut client: UniqueViewMut<UdpClient>,
+  mut entities: EntitiesViewMut,
+  mut events: ViewMut<EventComponent>,
+  mut network_events: ViewMut<NetworkEvent>,
+) {
+  entities.bulk_add_entity((
+    &mut events,
+    &mut network_events,
+  ), client.0.process_events().map(|event| {
+    (EventComponent, NetworkEvent(event))
+  }));
 }
 
 pub fn update_networking() -> Workload {
   (
-    update_client_and_get_events,
+    create_client.run_if_missing_unique::<UdpClient>(),
+    connect_client.run_if(client_needs_connect_call),
+    update_client,
+    insert_client_events,
   ).into_workload().run_if(is_multiplayer)
+}
+
+fn client_needs_connect_call(
+  client: UniqueView<UdpClient>,
+) -> bool {
+  client.0.has_not_made_connection_attempts()
 }
 
 pub fn is_multiplayer(
