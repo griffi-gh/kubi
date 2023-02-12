@@ -1,4 +1,5 @@
-use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, WorkloadModificator, EntitiesView, EntitiesViewMut, Component, ViewMut, SystemModificator};
+use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator};
+use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use kubi_udp::client::{Client, ClientConfig, ClientEvent};
 use kubi_shared::networking::{
@@ -6,7 +7,7 @@ use kubi_shared::networking::{
   state::ClientJoinState
 };
 
-use crate::events::EventComponent;
+use crate::{events::EventComponent, control_flow::SetControlFlow};
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -71,6 +72,20 @@ pub fn update_networking() -> Workload {
     update_client,
     insert_client_events,
   ).into_workload()
+}
+
+pub fn disconnect_on_exit(
+  control_flow: UniqueView<SetControlFlow>,
+  mut client: UniqueViewMut<UdpClient>,
+) {
+  if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
+    client.0.set_nonblocking(false).expect("Failed to switch socket to blocking mode");
+    if let Err(error) = client.0.disconnect() {
+      log::error!("failed to disconnect: {}", error);
+    } else {
+      log::info!("Client disconnected");
+    }
+  }
 }
 
 pub fn is_multiplayer(

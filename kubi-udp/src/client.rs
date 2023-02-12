@@ -129,6 +129,12 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   }
 
   #[inline]
+  pub fn set_nonblocking(&mut self, is_nonblocking: bool) -> Result<()> {
+    self.socket.set_nonblocking(is_nonblocking)?;
+    Ok(())
+  }
+
+  #[inline]
   pub fn get_status(&self) -> ClientStatus {
     self.status
   }
