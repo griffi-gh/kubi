@@ -64,7 +64,7 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
-    let bind_addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
+    let bind_addr: SocketAddr = "0.0.0.0:0".parse().unwrap();
     let socket = UdpSocket::bind(bind_addr)?;
     socket.set_nonblocking(true)?;
     Ok(Self {

@@ -16,7 +16,7 @@ const STC_MSG: StcMessage = 0xdead_beef_cafe_face;
 fn test_connection() {
   //Init logging
   kubi_logging::init();
-  
+
   //Create server and client
   let mut server: Server<StcMessage, CtsMessage> = Server::bind(
     TEST_ADDR.parse().expect("Invalid TEST_ADDR"), 
@@ -31,13 +31,13 @@ fn test_connection() {
   let server_handle = thread::spawn(move || {
     let mut message_received = false;
     loop {
-      server.update();
+      server.update().unwrap();
       let events: Vec<_> = server.process_events().collect();
       for event in events {
         match event {
           ServerEvent::Connected(id) => {
             assert_eq!(id.get(), 1, "Unexpected client id");
-            server.send_message(id, STC_MSG);
+            server.send_message(id, STC_MSG).unwrap();
           },
           ServerEvent::Disconnected(id) => {
             assert!(message_received, "Client {id} disconnected from the server before sending the message")
@@ -63,13 +63,13 @@ fn test_connection() {
   let client_handle = thread::spawn(move || {
     let mut message_received = false;
     loop {
-      client.update();
+      client.update().unwrap();
       let events: Vec<_> = client.process_events().collect();
       for event in events {
         match event {
           ClientEvent::Connected(id) => {
             assert_eq!(id.get(), 1, "Unexpected client id");
-            client.send_message(CTS_MSG);
+            client.send_message(CTS_MSG).unwrap();
           },
           ClientEvent::Disconnected(reason) => {
             assert!(message_received, "Client lost connection to the server before sending the message with reason: {reason:?}")
