@@ -81,7 +81,6 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
       addr,
       timeout: Instant::now(),
     });
-    log::info!("Client with id {id} connected");
     Ok(id)
   }
   fn disconnect_client_inner(&mut self, id: ClientId, reason: String) -> Result<()> {
@@ -143,6 +142,7 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
                   });
                 }
                 ClientPacket::Disconnect => {
+                  log::info!("Client {id} disconnected");
                   self.event_queue.push_back(ServerEvent::Disconnected(id));
                   self.disconnect_client_inner(id, "Disconnected".into())?;
                 },
@@ -157,6 +157,7 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
                 ClientPacket::Connect => {
                   match self.add_client(addr) {
                     Ok(id) => {
+                      log::info!("Client with id {id} connected");
                       self.event_queue.push_back(ServerEvent::Connected(id));
                       self.send_to_addr(addr, 
                         IdServerPacket(None, ServerPacket::Connected(id)
@@ -164,6 +165,7 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
                     },
                     Err(error) => {
                       let reason = error.to_string();
+                      log::error!("Client connection failed: {reason}");
                       self.send_to_addr(addr, IdServerPacket(
                         None, ServerPacket::Disconnected(reason)
                       ))?;

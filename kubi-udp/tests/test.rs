@@ -40,12 +40,13 @@ fn test_connection() {
             server.send_message(id, STC_MSG).unwrap();
           },
           ServerEvent::Disconnected(id) => {
-            assert!(message_received, "Client {id} disconnected from the server before sending the message")
+            assert!(message_received, "Client {id} disconnected from the server before sending the message");
+            return;
           },
           ServerEvent::MessageReceived { from, message } => {
+            log::info!("server received message");
             assert_eq!(message, CTS_MSG, "Received message not equal");
             message_received = true;
-            break;
           },
           _ => ()
         }
@@ -72,12 +73,14 @@ fn test_connection() {
             client.send_message(CTS_MSG).unwrap();
           },
           ClientEvent::Disconnected(reason) => {
-            assert!(message_received, "Client lost connection to the server before sending the message with reason: {reason:?}")
+            assert!(message_received, "Client lost connection to the server before sending the message with reason: {reason:?}");
+            return;
           },
           ClientEvent::MessageReceived(data) => {
+            log::info!("client received message");
             assert_eq!(data, STC_MSG, "Received message not equal");
             message_received = true;
-            break;
+            client.disconnect();
           },
           _ => ()
         }
