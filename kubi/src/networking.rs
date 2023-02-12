@@ -37,7 +37,9 @@ pub fn create_client(
 pub fn connect_client(
   mut client: UniqueViewMut<UdpClient>
 ) {
-  client.0.connect().unwrap();
+  if !client.0.has_not_made_connection_attempts() {
+    client.0.connect().unwrap();
+  }
 }
 
 pub fn update_client(
@@ -63,16 +65,10 @@ pub fn insert_client_events(
 pub fn update_networking() -> Workload {
   (
     create_client.run_if_missing_unique::<UdpClient>(),
-    connect_client.run_if(client_needs_connect_call),
+    connect_client,
     update_client,
     insert_client_events,
   ).into_workload()
-}
-
-fn client_needs_connect_call(
-  client: UniqueView<UdpClient>,
-) -> bool {
-  client.0.has_not_made_connection_attempts()
 }
 
 pub fn is_multiplayer(
