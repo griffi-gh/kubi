@@ -21,6 +21,7 @@ pub enum DisconnectReason {
   ClientDisconnected,
   KickedByServer(Option<String>),
   Timeout,
+  ConnectionReset,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -213,7 +214,16 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
           }
         },
         Err(error) if error.kind() != ErrorKind::WouldBlock => {
-          return Err(error.into());
+          match error.kind() {
+            ErrorKind::ConnectionReset => {
+              log::error!("Connection interrupted");
+              self.disconnect_inner(DisconnectReason::ConnectionReset, true)?;
+            },
+            _ => {
+              log::error!("IO error {error}");
+              return Err(error.into());
+            },
+          }
         },
         _ => break,
       }

@@ -26,6 +26,7 @@ pub struct NetworkEvent(pub ClientEvent<ServerToClientMessage>);
 pub fn create_client(
   storages: AllStoragesView
 ) {
+  log::info!("Creating client");
   let address = storages.borrow::<UniqueView<ServerAddress>>().unwrap();
   storages.add_unique(UdpClient(Client::new(
     address.0, 
@@ -37,7 +38,8 @@ pub fn create_client(
 pub fn connect_client(
   mut client: UniqueViewMut<UdpClient>
 ) {
-  if !client.0.has_not_made_connection_attempts() {
+  if client.0.has_not_made_connection_attempts() {
+    log::info!("Connect called");
     client.0.connect().unwrap();
   }
 }

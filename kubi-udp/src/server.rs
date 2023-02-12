@@ -189,7 +189,7 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
           }
         },
         Err(error) if error.kind() != ErrorKind::WouldBlock => {
-          log::warn!("IO error {}", error);
+          log::error!("IO error {}", error);
           // return Err(error.into());
         },
         _ => break,
