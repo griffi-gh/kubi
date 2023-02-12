@@ -1,4 +1,4 @@
-use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, WorkloadModificator, EntityId, Unique, AllStoragesViewMut, ViewMut, View, IntoIter, Get};
+use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, EntityId, Unique, AllStoragesViewMut, ViewMut, Get, SystemModificator};
 use glam::{Mat3, vec2};
 use crate::{
   world::ChunkStorage, 
@@ -82,10 +82,10 @@ fn despawn_loading_screen_if_switching_state(
 
 pub fn update_loading_screen() -> Workload {
   (
-    spawn_loading_screen.into_workload().run_if_missing_unique::<ProgressbarId>(),
-    resize_progress_bar.into_workload().run_if(if_resized),
+    spawn_loading_screen.run_if_missing_unique::<ProgressbarId>(),
+    resize_progress_bar.run_if(if_resized),
     update_progress_bar_progress,
     switch_to_ingame_if_loaded,
-    despawn_loading_screen_if_switching_state.into_workload().run_if(is_changing_state),
+    despawn_loading_screen_if_switching_state.run_if(is_changing_state),
   ).into_workload()
 }
