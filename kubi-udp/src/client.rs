@@ -3,7 +3,8 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::{Instant, Duration},
   marker::PhantomData, 
-  collections::{VecDeque, vec_deque::Drain as DrainDeque},
+  collections::{VecDeque, vec_deque::Drain as DrainDeque}, 
+  io::ErrorKind,
 };
 use bincode::{Encode, Decode};
 use crate::{
@@ -151,13 +152,13 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     }
     //receive
     let mut buf = Vec::new();
-    loop {
-      if self.socket.recv(&mut buf).is_ok() {
+    match self.socket.recv(&mut buf) {
+      Ok(_) => {
         //TODO check the first byte of the raw data instead of decoding?
         let (packet, _): (IdServerPacket<R>, _) = bincode::decode_from_slice(&buf, BINCODE_CONFIG)?;
         let IdServerPacket(user_id, packet) = packet;
         if self.client_id.map(|x| Some(x) != user_id).unwrap_or_default() {
-          continue
+          return Ok(())
         }
         self.reset_timeout();
         match packet {
@@ -178,10 +179,11 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             self.event_queue.push_back(ClientEvent::MessageReceived(message));
           }
         }
-      } else {
-        break
-      }
-      buf.clear();
+      },
+      Err(error) if error.kind() != ErrorKind::WouldBlock => {
+        return Err(error.into());
+      },
+      _ => (),
     }
     Ok(())
   }

@@ -2,7 +2,8 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::Instant,
   marker::PhantomData,
-  collections::{VecDeque, vec_deque::Drain as DrainDeque}
+  collections::{VecDeque, vec_deque::Drain as DrainDeque},
+  io::ErrorKind
 };
 use anyhow::{Result, bail};
 use bincode::{Encode, Decode};
@@ -113,7 +114,6 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
     assert!(config.max_clients <= MAX_CLIENTS);
     let socket = UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
-    //socket.set_broadcast(true)?;
     Ok(Self { 
       config,
       socket,
@@ -125,8 +125,8 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn update(&mut self) -> Result<()> {
     //TODO client timeout
     let mut buf = Vec::new();
-    loop {
-      if let Ok((_, addr)) = self.socket.recv_from(&mut buf) {
+    match self.socket.recv_from(&mut buf) {
+      Ok((_, addr)) => {
         if let Ok(packet) = bincode::decode_from_slice(&buf, BINCODE_CONFIG) {
           let (packet, _): (IdClientPacket<R>, _) = packet;
           let IdClientPacket(id, packet) = packet;
@@ -177,10 +177,11 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
         } else {
           bail!("Corrupted packet received");
         }
-      } else {
-        break
-      }
-      buf.clear()
+      },
+      Err(error) if error.kind() != ErrorKind::WouldBlock => {
+        return Err(error.into());
+      },
+      _ => (),
     }
     Ok(())
   }
