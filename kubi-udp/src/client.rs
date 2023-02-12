@@ -3,7 +3,7 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::{Instant, Duration},
   marker::PhantomData, 
-  collections::VecDeque,
+  collections::{VecDeque, vec_deque::Drain as DrainDeque},
 };
 use bincode::{Encode, Decode};
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
   common::ClientId
 };
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 #[repr(u8)]
 pub enum DisconnectReason {
   #[default]
@@ -35,9 +35,17 @@ pub struct ClientConfig {
   pub timeout: Duration,
   pub heartbeat_interval: Duration,
 }
+impl Default for ClientConfig {
+  fn default() -> Self {
+    Self {
+      timeout: Duration::from_secs(5),
+      heartbeat_interval: Duration::from_secs(3),
+    }
+  }
+}
 
 pub enum ClientEvent<T> where T: Encode + Decode {
-  Connected,
+  Connected(ClientId),
   Disconnected(DisconnectReason),
   MessageReceived(T)
 }
@@ -52,7 +60,7 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   client_id: Option<ClientId>,
   disconnect_reason: DisconnectReason,
   event_queue: VecDeque<ClientEvent<R>>,
-  _s: PhantomData<*const S>,
+  _s: PhantomData<S>,
 }
 impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
@@ -156,7 +164,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
           ServerPacket::Connected(client_id) => {
             self.client_id = Some(client_id);
             self.status = ClientStatus::Connected;
-            self.event_queue.push_back(ClientEvent::Connected);
+            self.event_queue.push_back(ClientEvent::Connected(client_id));
             return Ok(())
           },
           ServerPacket::Disconnected(reason) => {
@@ -180,7 +188,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   pub fn get_event(&mut self) -> Option<ClientEvent<R>> {
     self.event_queue.pop_front()
   }
-  pub fn process_events(&mut self) -> impl Iterator<Item = ClientEvent<R>> + '_ {
+  pub fn process_events(&mut self) -> DrainDeque<ClientEvent<R>> {
     self.event_queue.drain(..)
   }
 }

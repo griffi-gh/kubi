@@ -2,7 +2,7 @@ use std::{
   net::{UdpSocket, SocketAddr},
   time::Instant,
   marker::PhantomData,
-  collections::VecDeque
+  collections::{VecDeque, vec_deque::Drain as DrainDeque}
 };
 use anyhow::{Result, bail};
 use bincode::{Encode, Decode};
@@ -105,8 +105,9 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
     }
     Ok(())
   }
-  pub fn send_message(&mut self) {
-
+  pub fn send_message(&mut self, id: ClientId, message: S) -> anyhow::Result<()> {
+    self.send_packet(IdServerPacket(Some(id), ServerPacket::Data(message)))?;
+    Ok(())
   }
   pub fn bind(addr: SocketAddr, config: ServerConfig) -> anyhow::Result<Self> {
     assert!(config.max_clients <= MAX_CLIENTS);
@@ -182,5 +183,12 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
       buf.clear()
     }
     Ok(())
+  }
+
+  pub fn get_event(&mut self) -> Option<ServerEvent<R>> {
+    self.event_queue.pop_front()
+  }
+  pub fn process_events(&mut self) -> DrainDeque<ServerEvent<R>> {
+    self.event_queue.drain(..)
   }
 }
