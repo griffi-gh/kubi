@@ -151,11 +151,11 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
       self.last_heartbeat = Instant::now();
     }
     //receive
-    let mut buf = Vec::new();
+    let mut buf = [0; u16::MAX as usize];
     match self.socket.recv(&mut buf) {
-      Ok(_) => {
+      Ok(length) => {
         //TODO check the first byte of the raw data instead of decoding?
-        let (packet, _): (IdServerPacket<R>, _) = bincode::decode_from_slice(&buf, BINCODE_CONFIG)?;
+        let (packet, _): (IdServerPacket<R>, _) = bincode::decode_from_slice(&buf[..length], BINCODE_CONFIG)?;
         let IdServerPacket(user_id, packet) = packet;
         if self.client_id.map(|x| Some(x) != user_id).unwrap_or_default() {
           return Ok(())

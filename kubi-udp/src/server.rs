@@ -70,7 +70,7 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   fn add_client(&mut self, addr: SocketAddr) -> Result<ClientId> {
     let Some(id) = (1..=self.config.max_clients)
       .map(|x| ClientId::new(x as _).unwrap())
-      .find(|i| self.clients.contains_key(i)) else {
+      .find(|i| !self.clients.contains_key(i)) else {
         bail!("Server full");
       };
     if self.clients.iter().any(|x| x.1.addr == addr) {
@@ -124,10 +124,10 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
   }
   pub fn update(&mut self) -> Result<()> {
     //TODO client timeout
-    let mut buf = Vec::new();
+    let mut buf = [0; u16::MAX as usize];
     match self.socket.recv_from(&mut buf) {
-      Ok((_, addr)) => {
-        if let Ok(packet) = bincode::decode_from_slice(&buf, BINCODE_CONFIG) {
+      Ok((len, addr)) => {
+        if let Ok(packet) = bincode::decode_from_slice(&buf[..len], BINCODE_CONFIG) {
           let (packet, _): (IdClientPacket<R>, _) = packet;
           let IdClientPacket(id, packet) = packet;
           match id {
