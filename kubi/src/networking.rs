@@ -1,4 +1,4 @@
-use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator};
+use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use kubi_udp::client::{Client, ClientConfig, ClientEvent};
@@ -24,7 +24,7 @@ pub struct UdpClient(pub Client<ClientToServerMessage, ServerToClientMessage>);
 #[derive(Component)]
 pub struct NetworkEvent(pub ClientEvent<ServerToClientMessage>);
 
-pub fn create_client(
+fn create_client(
   storages: AllStoragesView
 ) {
   log::info!("Creating client");
@@ -36,7 +36,7 @@ pub fn create_client(
   storages.add_unique(ClientJoinState::Disconnected);
 }
 
-pub fn connect_client_if_needed(
+fn connect_client_if_needed(
   mut client: UniqueViewMut<UdpClient>
 ) {
   //NOTE: this used to be a condition function
@@ -47,13 +47,13 @@ pub fn connect_client_if_needed(
   }
 }
 
-pub fn update_client(
+fn update_client(
   mut client: UniqueViewMut<UdpClient>,
 ) {
   client.0.update().unwrap();
 }
 
-pub fn insert_client_events(
+fn insert_client_events(
   mut client: UniqueViewMut<UdpClient>,
   mut entities: EntitiesViewMut,
   mut events: ViewMut<EventComponent>,
