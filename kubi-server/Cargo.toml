@@ -2,6 +2,7 @@
 name = "kubi-server"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
