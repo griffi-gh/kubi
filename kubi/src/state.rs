@@ -35,6 +35,12 @@ pub fn is_changing_state(
   state.0.is_some()
 }
 
+pub fn is_connecting(
+  state: UniqueView<GameState>
+) -> bool {
+  *state == GameState::Connecting
+}
+
 pub fn is_ingame(
   state: UniqueView<GameState>
 ) -> bool {

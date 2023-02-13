@@ -39,12 +39,14 @@ pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
 pub(crate) mod loading_screen;
+pub(crate) mod connecting_screen;
 
 use world::{
   init_game_world,
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
-  queue::apply_queued_blocks
+  queue::apply_queued_blocks, 
+  tasks::inject_network_responses_into_manager_queue
 };
 use player::spawn_player;
 use prefabs::load_prefabs;
@@ -74,11 +76,12 @@ use block_placement::block_placement_system;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
-use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state};
+use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, is_multiplayer, disconnect_on_exit};
 use init::initialize_from_args;
 use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
+use connecting_screen::switch_to_loading_if_connected;
 
 fn startup() -> Workload {
   (
@@ -104,10 +107,13 @@ fn update() -> Workload {
     update_window_size,
     update_cursor_lock_state,
     process_inputs,
-    
     (
-      update_networking
+      update_networking,
+      inject_network_responses_into_manager_queue,
     ).into_workload().run_if(is_multiplayer),
+    (
+      switch_to_loading_if_connected
+    ).into_workload().run_if(is_connecting),
     (
       update_loading_screen,
     ).into_workload().run_if(is_loading),
