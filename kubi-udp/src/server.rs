@@ -74,10 +74,15 @@ impl<S, R> Server<S, R> where S: Message, R: Message {
     })
   }
 
-  fn send_to_addr(&self, addr: SocketAddr, packet: IdServerPacket<S>) -> Result<()> {
+
+  fn send_to_addr_inner(socket: &UdpSocket, addr: SocketAddr, packet: IdServerPacket<S>) -> Result<()> {
     let bytes = bincode::encode_to_vec(packet, BINCODE_CONFIG)?;
-    self.socket.send_to(&bytes, addr)?;
+    socket.send_to(&bytes, addr)?;
     Ok(())
+  }
+
+  fn send_to_addr(&self, addr: SocketAddr, packet: IdServerPacket<S>) -> Result<()> {
+    Self::send_to_addr_inner(&self.socket, addr, packet)
   }
 
   fn send_packet(&self, packet: IdServerPacket<S>) -> Result<()> {
@@ -144,7 +149,21 @@ impl<S, R> Server<S, R> where S: Message, R: Message {
   }
   
   pub fn update(&mut self) -> Result<()> {
-    //TODO client timeout
+    //kick inactive clients
+    self.clients.retain(|&id, client| {
+      if client.timeout.elapsed() > self.config.client_timeout {
+        if let Err(_) = Self::send_to_addr_inner(&self.socket, client.addr, IdServerPacket(
+          Some(id), ServerPacket::Disconnected("Timed out".into())
+        )) {
+          log::warn!("Client {id} timed out and we failed to send the kick packet. This shouldn't reaally matter")
+        } else {
+          log::info!("Client {id} timed out");
+        }
+        return false
+      }
+      true
+    });
+
     let mut buf = [0; u16::MAX as usize];
     loop {
       match self.socket.recv_from(&mut buf) {
