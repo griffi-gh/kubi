@@ -6,11 +6,10 @@ use std::{
   collections::{VecDeque, vec_deque::Drain as DrainDeque}, 
   io::ErrorKind,
 };
-use bincode::{Encode, Decode};
 use crate::{
   BINCODE_CONFIG, 
-  packet::{ClientPacket, IdClientPacket, IdServerPacket, ServerPacket},
-  common::ClientId
+  packet::{ClientPacket, IdClientPacket, IdServerPacket, ServerPacket, Message},
+  common::{ClientId, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID}
 };
 
 #[derive(Default, Clone, Debug)]
@@ -22,6 +21,7 @@ pub enum DisconnectReason {
   KickedByServer(Option<String>),
   Timeout,
   ConnectionReset,
+  InvalidProtocolId,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -33,25 +33,27 @@ pub enum ClientStatus {
 
 #[derive(Clone, Copy, Debug)]
 pub struct ClientConfig {
+  pub protocol_id: u16,
   pub timeout: Duration,
   pub heartbeat_interval: Duration,
 }
 impl Default for ClientConfig {
   fn default() -> Self {
     Self {
+      protocol_id: DEFAULT_USER_PROTOCOL_ID,
       timeout: Duration::from_secs(5),
       heartbeat_interval: Duration::from_secs(3),
     }
   }
 }
 
-pub enum ClientEvent<T> where T: Encode + Decode {
+pub enum ClientEvent<T> where T: Message {
   Connected(ClientId),
   Disconnected(DisconnectReason),
   MessageReceived(T)
 }
 
-pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
+pub struct Client<S, R> where S: Message, R: Message {
   config: ClientConfig,
   addr: SocketAddr,
   socket: UdpSocket,
@@ -63,9 +65,15 @@ pub struct Client<S, R> where S: Encode + Decode, R: Encode + Decode {
   event_queue: VecDeque<ClientEvent<R>>,
   _s: PhantomData<S>,
 }
-impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
+impl<S, R> Client<S, R> where S: Message, R: Message {
   #[inline]
   pub fn new(addr: SocketAddr, config: ClientConfig) -> Result<Self> {
+    if config.protocol_id == 0 {
+      log::warn!("Warning: using 0 as protocol_id is not recommended");
+    }
+    if config.protocol_id == DEFAULT_USER_PROTOCOL_ID {
+      log::warn!("Warning: using default protocol_id is not recommended");
+    }
     let bind_addr: SocketAddr = "0.0.0.0:0".parse().unwrap();
     let socket = UdpSocket::bind(bind_addr)?;
     socket.set_nonblocking(true)?;
@@ -107,7 +115,7 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
 
   #[inline]
   pub fn connect(&mut self) -> Result<()> {
-    log::info!("client connect called");
+    log::info!("Client connecting..");
     if self.status != ClientStatus::Disconnected {
       bail!("Not Disconnected");
     }
@@ -115,7 +123,10 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.last_heartbeat = Instant::now();
     self.reset_timeout();
     self.socket.connect(self.addr)?;
-    self.send_raw_packet(ClientPacket::Connect)?;
+    self.send_raw_packet(ClientPacket::Connect{
+      user_protocol: self.config.protocol_id,
+      inner_protocol: PROTOCOL_ID,
+    })?;
     Ok(())
   }
 
@@ -216,6 +227,15 @@ impl<S, R> Client<S, R> where S: Encode + Decode, R: Encode + Decode {
             },
             ServerPacket::Data(message) => {
               self.event_queue.push_back(ClientEvent::MessageReceived(message));
+              self.timeout = Instant::now();
+            },
+            ServerPacket::Heartbeat => {
+              self.timeout = Instant::now();
+            },
+            ServerPacket::ProtoDisconnect => {
+              let reason = DisconnectReason::InvalidProtocolId;
+              self.disconnect_inner(reason, true)?; //this should never fail but we're handling the error anyway 
+              return Ok(());
             }
           }
         },

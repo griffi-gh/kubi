@@ -1,18 +1,17 @@
 use std::{
   net::{UdpSocket, SocketAddr},
-  time::Instant,
+  time::{Instant, Duration},
   marker::PhantomData,
   collections::{VecDeque, vec_deque::Drain as DrainDeque},
   io::ErrorKind
 };
 use anyhow::{Result, bail};
-use bincode::{Encode, Decode};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use crate::{
   BINCODE_CONFIG,
-  common::{ClientId, ClientIdRepr, MAX_CLIENTS},
-  packet::{IdClientPacket, ClientPacket, ServerPacket, IdServerPacket}
+  common::{ClientId, ClientIdRepr, MAX_CLIENTS, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID},
+  packet::{IdClientPacket, ClientPacket, ServerPacket, IdServerPacket, Message}
 };
 
 //i was feeling a bit sick while writing most of this please excuse me for my terrible code :3
@@ -26,16 +25,20 @@ pub struct ConnectedClient {
 #[derive(Clone, Copy, Debug)]
 pub struct ServerConfig {
   pub max_clients: usize,
+  pub client_timeout: Duration,
+  pub protocol_id: u16,
 }
 impl Default for ServerConfig {
   fn default() -> Self {
     Self {
       max_clients: MAX_CLIENTS,
+      client_timeout: Duration::from_secs(5),
+      protocol_id: DEFAULT_USER_PROTOCOL_ID,
     }
   }
 }
 
-pub enum ServerEvent<T> where T: Encode + Decode {
+pub enum ServerEvent<T> where T: Message {
   Connected(ClientId),
   Disconnected(ClientId),
   MessageReceived {
@@ -44,16 +47,22 @@ pub enum ServerEvent<T> where T: Encode + Decode {
   }
 }
 
-pub struct Server<S, R> where S: Encode + Decode, R: Encode + Decode {
+pub struct Server<S, R> where S: Message, R: Message {
   socket: UdpSocket,
   clients: HashMap<ClientId, ConnectedClient, BuildNoHashHasher<ClientIdRepr>>,
   config: ServerConfig,
   event_queue: VecDeque<ServerEvent<R>>,
   _s: PhantomData<S>,
 }
-impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
+impl<S, R> Server<S, R> where S: Message, R: Message {
   pub fn bind(addr: SocketAddr, config: ServerConfig) -> anyhow::Result<Self> {
-    assert!(config.max_clients <= MAX_CLIENTS);
+    assert!(config.max_clients <= MAX_CLIENTS, "max_clients value exceeds the maximum allowed amount of clients");
+    if config.protocol_id == 0 {
+      log::warn!("Warning: using 0 as protocol_id is not recommended");
+    }
+    if config.protocol_id == DEFAULT_USER_PROTOCOL_ID {
+      log::warn!("Warning: using default protocol_id is not recommended");
+    }
     let socket = UdpSocket::bind(addr)?;
     socket.set_nonblocking(true)?;
     Ok(Self { 
@@ -127,6 +136,12 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
     self.send_packet(IdServerPacket(Some(id), ServerPacket::Data(message)))?;
     Ok(())
   }
+  pub fn multicast_message(&mut self, _clients: impl IntoIterator<Item = ClientId>, _message: S) {
+    todo!()
+  }
+  pub fn broadcast_message(&mut self, _message: S) -> anyhow::Result<()> {
+    todo!()
+  }
   
   pub fn update(&mut self) -> Result<()> {
     //TODO client timeout
@@ -141,7 +156,10 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
               Some(id) => {
                 if !self.clients.contains_key(&id) {
                   bail!("Client with id {id} doesn't exist");
-                };
+                }
+                if self.clients.get(&id).unwrap().addr != addr {
+                  bail!("Client addr doesn't match");
+                }
                 match packet {
                   ClientPacket::Data(data) => {
                     self.event_queue.push_back(ServerEvent::MessageReceived {
@@ -155,21 +173,30 @@ impl<S, R> Server<S, R> where S: Encode + Decode, R: Encode + Decode {
                     self.disconnect_client_inner(id, "Disconnected".into())?;
                   },
                   ClientPacket::Heartbeat => {
-                    self.clients.get_mut(&id).unwrap().timeout = Instant::now()
+                    self.clients.get_mut(&id).unwrap().timeout = Instant::now();
+                    self.send_packet(IdServerPacket(Some(id), ServerPacket::Heartbeat))?;
                   },
-                  ClientPacket::Connect => bail!("Client already connected"),
+                  ClientPacket::Connect{..} => bail!("Client already connected"),
                 }
               },
               None => {
                 match packet {
-                  ClientPacket::Connect => {
+                  ClientPacket::Connect { user_protocol, inner_protocol } => {
+                    if (inner_protocol != PROTOCOL_ID) || (user_protocol != self.config.protocol_id ) {
+                      log::error!("Client conenction refused: Invalid protocol id");
+                      self.send_to_addr(addr, 
+                        IdServerPacket(None, ServerPacket::ProtoDisconnect)
+                      )?;
+                      continue;
+                    }
+
                     match self.add_client(addr) {
                       Ok(id) => {
                         log::info!("Client with id {id} connected");
                         self.event_queue.push_back(ServerEvent::Connected(id));
                         self.send_to_addr(addr, 
-                          IdServerPacket(None, ServerPacket::Connected(id)
-                        ))?;
+                          IdServerPacket(None, ServerPacket::Connected(id))
+                        )?;
                       },
                       Err(error) => {
                         let reason = error.to_string();

@@ -47,7 +47,7 @@ fn update_progress_bar_progress (
 ) {
   let bar = (&mut bar).get(eid.0).unwrap();
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
-    acc + chunk.desired_state.matches(chunk.current_state) as usize
+    acc + chunk.desired_state.matches_current(chunk.current_state) as usize
   });
   let total = world.chunks.len();
   let progress = loaded as f32 / total as f32;
@@ -62,7 +62,7 @@ fn switch_to_ingame_if_loaded(
     return
   }
   if world.chunks.iter().all(|(_, chunk)| {
-    chunk.desired_state.matches(chunk.current_state)
+    chunk.desired_state.matches_current(chunk.current_state)
   }) {
     log::info!("Finished loading chunks");
     state.0 = Some(GameState::InGame);

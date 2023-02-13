@@ -6,6 +6,7 @@ use std::{fs, net::SocketAddr};
 pub struct ConfigTableServer {
   pub address: SocketAddr,
   pub max_clients: usize,
+  pub timeout_ms: u64,
 }
 
 #[derive(Unique, Serialize, Deserialize)]

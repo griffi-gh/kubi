@@ -1,11 +1,11 @@
-use shipyard::{Component, Unique, Workload, IntoWorkload, AllStoragesView, AllStoragesViewMut, View, UniqueView, NonSendSync, UniqueViewMut, IntoIter};
-use glam::{Vec4, Mat3, vec2, Mat4};
-use crate::{color::color_hex, transform::Transform2d, events::WindowResizedEvent, rendering::Renderer};
+use shipyard::{Component, Unique, Workload, IntoWorkload, AllStoragesView, View, UniqueViewMut, IntoIter};
+use glam::{Vec4, Mat4};
+use crate::{color::color_hex, events::WindowResizedEvent};
 
 pub mod text_widget;
 pub mod progressbar;
 
-use progressbar::{render_progressbars, ProgressbarComponent};
+use progressbar::render_progressbars;
 
 //TODO compute gui scale on window resize
 #[derive(Unique, Clone, Copy, Debug, Default)]

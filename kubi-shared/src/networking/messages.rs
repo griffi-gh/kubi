@@ -5,7 +5,9 @@ type IVec3Arr = [i32; 3];
 type Vec3Arr = [f32; 3];
 type QuatArr = [f32; 3];
 
-#[derive(Encode, Decode)]
+pub const PROTOCOL_ID: u16 = 1;
+
+#[derive(Encode, Decode, Clone)]
 pub enum ClientToServerMessage {
   ClientHello {
     username: String,
@@ -21,7 +23,7 @@ pub enum ClientToServerMessage {
   },
 }
 
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Clone)]
 pub enum ServerToClientMessage {
   ServerHello,
   ServerFuckOff {

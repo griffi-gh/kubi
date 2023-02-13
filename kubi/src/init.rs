@@ -1,5 +1,5 @@
 use shipyard::{AllStoragesViewMut, UniqueViewMut};
-use std::{env, net::SocketAddr, borrow::BorrowMut};
+use std::{env, net::SocketAddr};
 use crate::{
   networking::{GameType, ServerAddress},
   state::{GameState, NextState}
