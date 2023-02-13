@@ -99,6 +99,7 @@ impl<S, R> Client<S, R> where S: Message, R: Message {
   }
   
   fn disconnect_inner(&mut self, reason: DisconnectReason, silent: bool) -> Result<()> {
+    log::info!("client disconnected because {reason:?}");
     if !silent {
       self.send_raw_packet(ClientPacket::Disconnect)?;
     }
