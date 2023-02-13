@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesViewMut, UniqueViewMut};
+use shipyard::{AllStoragesView, UniqueViewMut};
 use std::{env, net::SocketAddr};
 use crate::{
   networking::{GameType, ServerAddress},
@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub fn initialize_from_args(
-  mut all_storages: AllStoragesViewMut,
+  all_storages: AllStoragesView,
 ) {
   let args: Vec<String> = env::args().collect();
   if args.len() > 1 {
