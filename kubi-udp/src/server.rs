@@ -5,7 +5,7 @@ use std::{
   collections::{VecDeque, vec_deque::Drain as DrainDeque},
   io::ErrorKind
 };
-use anyhow::{Result, bail};
+use anyhow::{Result, Error, bail};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use crate::{
@@ -137,17 +137,30 @@ impl<S, R> Server<S, R> where S: Message, R: Message {
     Ok(())
   }
 
-  pub fn send_message(&mut self, id: ClientId, message: S) -> anyhow::Result<()> {
+  pub fn send_message(&mut self, id: ClientId, message: S) -> Result<()> {
     self.send_packet(IdServerPacket(Some(id), ServerPacket::Data(message)))?;
     Ok(())
   }
-  pub fn multicast_message(&mut self, _clients: impl IntoIterator<Item = ClientId>, _message: S) {
-    todo!()
+  pub fn multicast_message(&mut self, clients: impl IntoIterator<Item = ClientId>, message: S) -> Vec<Error> {
+    //TODO use actual udp multicast
+    let mut errors = Vec::with_capacity(0); 
+    for client in clients {
+      if let Err(error) = self.send_message(client, message.clone()) {
+        log::error!("Message broadcast failed for id {client}");
+        errors.push(error);
+      }
+    }
+    errors
   }
-  pub fn broadcast_message(&mut self, _message: S) -> anyhow::Result<()> {
-    todo!()
+  pub fn broadcast_message(&mut self, message: S) -> Vec<Error> {
+    let ids = self.clients.keys().copied().collect::<Vec<ClientId>>();
+    self.multicast_message(ids, message)
   }
-  
+  pub fn broadcast_message_except(&mut self, except: ClientId, message: S) -> Vec<Error> {
+    let ids = self.clients.keys().copied().filter(|&k| k != except).collect::<Vec<ClientId>>();
+    self.multicast_message(ids, message)
+  }
+
   pub fn update(&mut self) -> Result<()> {
     //kick inactive clients
     self.clients.retain(|&id, client| {
