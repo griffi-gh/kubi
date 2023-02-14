@@ -58,7 +58,7 @@ pub fn update_raycasts(
   }
   for (transform, mut report) in (&transform, &mut raycast).iter() {
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
-    let direction = (rotation * Vec3::NEG_Z).normalize();
+    let direction = (rotation.normalize() * Vec3::NEG_Z).normalize();
     *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));
   }
 }
