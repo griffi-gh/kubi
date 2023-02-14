@@ -3,7 +3,6 @@ use crate::rendering::Renderer;
 use glium::glutin::window::CursorGrabMode;
 
 #[derive(Unique)]
-#[track(All)]
 pub struct CursorLock(pub bool);
 
 pub fn update_cursor_lock_state(

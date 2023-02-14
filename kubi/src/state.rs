@@ -2,7 +2,6 @@ use shipyard::{Unique, UniqueView, UniqueViewMut, AllStoragesView};
 use std::mem::take;
 
 #[derive(Unique, PartialEq, Eq, Default, Clone, Copy)]
-#[track(All)]
 pub enum GameState {
   #[default]
   Initial,
@@ -12,7 +11,6 @@ pub enum GameState {
 }
 
 #[derive(Unique, PartialEq, Eq, Default, Clone, Copy)]
-#[track(All)]
 pub struct NextState(pub Option<GameState>);
 
 pub fn init_state(

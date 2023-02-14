@@ -24,7 +24,6 @@ use queue::BlockUpdateQueue;
 // because this is not send-sync
 
 #[derive(Default, Unique)]
-#[track(Modification)]
 pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>
 }
