@@ -1,11 +1,12 @@
-use shipyard::{UniqueView, UniqueViewMut, NonSendSync, View, Component, IntoIter, IntoWithId, Get};
+use shipyard::{UniqueView, UniqueViewMut, NonSendSync, View, Component, IntoIter, IntoWithId, Get, track};
 use glium::{Surface, uniform, DrawParameters};
 use crate::{
   prefabs::ProgressbarShaderPrefab,
   rendering::{
     RenderTarget, 
     primitives::rect::RectPrimitive
-  }, transform::Transform2d,
+  }, 
+  transform::Transform2d,
 };
 use super::{GuiComponent, PrimaryColor, SecondaryColor, GuiView};
 
@@ -20,7 +21,7 @@ pub fn render_progressbars(
   program: NonSendSync<UniqueView<ProgressbarShaderPrefab>>,
   view: UniqueView<GuiView>,
   components: View<GuiComponent>,
-  transforms: View<Transform2d>,
+  transforms: View<Transform2d, { track::All }>,
   progressbars: View<ProgressbarComponent>,
   primary: View<PrimaryColor>,
   secondary: View<SecondaryColor>,

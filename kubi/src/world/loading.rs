@@ -1,6 +1,6 @@
 use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
-use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync};
+use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use crate::{
   player::MainPlayer,
   transform::Transform,
@@ -29,7 +29,7 @@ pub fn update_loaded_world_around_player() -> Workload {
 pub fn update_chunks_if_player_moved(
   v_settings: UniqueView<GameSettings>,
   v_local_player: View<MainPlayer>,
-  v_transform: View<Transform>,
+  v_transform: View<Transform, { track::All }>,
   mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {
   //Check if the player actually moved 

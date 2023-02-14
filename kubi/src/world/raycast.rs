@@ -1,5 +1,5 @@
 use glam::{Vec3, IVec3};
-use shipyard::{View, Component, ViewMut, IntoIter, UniqueView};
+use shipyard::{View, Component, ViewMut, IntoIter, UniqueView, track};
 use crate::{transform::Transform, world::block::BlockDescriptorSource};
 use super::{ChunkStorage, block::Block};
 
@@ -48,7 +48,7 @@ impl ChunkStorage {
 pub struct LookingAtBlock(pub Option<RaycastReport>);
 
 pub fn update_raycasts(
-  transform: View<Transform>,
+  transform: View<Transform, { track::All }>,
   mut raycast: ViewMut<LookingAtBlock>,
   world: UniqueView<ChunkStorage>,
 ) {
@@ -56,7 +56,7 @@ pub fn update_raycasts(
   if !(world.is_inserted_or_modified() || (transform.inserted_or_modified(), &raycast).iter().next().is_some()) {
     return
   }
-  for (transform, report) in (&transform, &mut raycast).iter() {
+  for (transform, mut report) in (&transform, &mut raycast).iter() {
     let (_, rotation, position) = transform.0.to_scale_rotation_translation();
     let direction = (rotation * Vec3::NEG_Z).normalize();
     *report = LookingAtBlock(world.raycast(position, direction, Some(30.)));

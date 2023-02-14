@@ -1,4 +1,4 @@
-use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, EntityId, Unique, AllStoragesViewMut, ViewMut, Get, SystemModificator};
+use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, EntityId, Unique, AllStoragesViewMut, ViewMut, Get, SystemModificator, track};
 use glam::{Mat3, vec2};
 use crate::{
   world::ChunkStorage, 
@@ -34,7 +34,7 @@ fn spawn_loading_screen(
 fn resize_progress_bar(
   size: UniqueView<WindowSize>,
   bar: UniqueView<ProgressbarId>,
-  mut transforms: ViewMut<Transform2d>
+  mut transforms: ViewMut<Transform2d, { track::All }>
 ) {
   let mut trans = (&mut transforms).get(bar.0).unwrap();
   trans.0.x_axis.x = size.0.x as f32;
@@ -45,7 +45,7 @@ fn update_progress_bar_progress (
   mut bar: ViewMut<ProgressbarComponent>,
   eid: UniqueView<ProgressbarId>,
 ) {
-  let bar = (&mut bar).get(eid.0).unwrap();
+  let mut bar = (&mut bar).get(eid.0).unwrap();
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
     acc + chunk.desired_state.matches_current(chunk.current_state) as usize
   });

@@ -1,5 +1,5 @@
 use glam::{Vec3, Mat4};
-use shipyard::{ViewMut, View, IntoIter, Workload, IntoWorkload};
+use shipyard::{ViewMut, View, IntoIter, Workload, IntoWorkload, track};
 use crate::{transform::Transform, events::WindowResizedEvent};
 use super::Camera;
 
@@ -7,11 +7,11 @@ use super::Camera;
 
 fn update_view_matrix(
   mut vm_camera: ViewMut<Camera>,
-  v_transform: View<Transform>
+  v_transform: View<Transform, { track::All }>
 ) {
-  for (camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
+  for (mut camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();
-    let direction = (rotation * Vec3::NEG_Z).normalize();
+    let direction = (rotation.normalize() * Vec3::NEG_Z).normalize();
     camera.view_matrix = Mat4::look_to_rh(translation, direction, camera.up);
   }
 }
@@ -24,7 +24,7 @@ fn update_perspective_matrix(
   let Some(&size) = resize.iter().next() else {
     return
   };
-  for camera in (&mut vm_camera).iter() {
+  for mut camera in (&mut vm_camera).iter() {
     camera.perspective_matrix = Mat4::perspective_rh_gl(
       camera.fov, 
       size.0.x as f32 / size.0.y as f32, 

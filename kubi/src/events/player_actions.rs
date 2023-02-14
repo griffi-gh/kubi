@@ -1,4 +1,4 @@
-use shipyard::{Component, View, ViewMut, EntitiesViewMut, IntoIter};
+use shipyard::{Component, View, ViewMut, EntitiesViewMut, IntoIter, track};
 use glam::{IVec3, Quat, Vec3};
 
 use crate::{
@@ -21,7 +21,7 @@ pub enum PlayerActionEvent {
 }
 
 pub fn generate_move_events(
-  transforms: View<Transform>,
+  transforms: View<Transform, { track::All }>,
   player: View<MainPlayer>,
   mut entities: EntitiesViewMut,
   mut events: ViewMut<EventComponent>,

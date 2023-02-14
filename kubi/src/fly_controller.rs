@@ -1,5 +1,5 @@
 use glam::{Vec3, Mat4, Quat, EulerRot, Vec2};
-use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWorkload};
+use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWorkload, track};
 use std::f32::consts::PI;
 use crate::{transform::Transform, input::Inputs, settings::GameSettings, delta_time::DeltaTime};
 
@@ -17,7 +17,7 @@ const MAX_PITCH: f32 = PI/2. - 0.05;
 
 fn update_look(
   controllers: View<FlyController>,
-  mut transforms: ViewMut<Transform>,
+  mut transforms: ViewMut<Transform, { track::All }>,
   inputs: UniqueView<Inputs>,
   settings: UniqueView<GameSettings>,
   dt: UniqueView<DeltaTime>,
@@ -37,7 +37,7 @@ fn update_look(
 
 fn update_movement(
   controllers: View<FlyController>,
-  mut transforms: ViewMut<Transform>,
+  mut transforms: ViewMut<Transform, { track::All }>,
   inputs: UniqueView<Inputs>,
   dt: UniqueView<DeltaTime>,
 ) {

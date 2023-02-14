@@ -1,5 +1,5 @@
 use glam::{Vec3, Mat4, Quat, ivec3};
-use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter};
+use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
 use glium::{
   implement_vertex, uniform,
   Surface, DrawParameters, 
@@ -114,7 +114,7 @@ pub fn draw_world(
 pub fn draw_current_chunk_border(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   player: View<MainPlayer>,
-  transforms: View<Transform>,
+  transforms: View<Transform, { track::All }>,
   buffers: NonSendSync<UniqueView<CubePrimitive>>,
   program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
   camera: View<Camera>,
