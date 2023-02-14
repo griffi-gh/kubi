@@ -1,12 +1,15 @@
 use shipyard::{AllStoragesView, Unique, UniqueView, UniqueViewMut};
-use kubi_udp::server::{Server, ServerConfig};
+use kubi_udp::server::{Server, ServerConfig, ServerEvent};
 use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
 use std::time::Duration;
 use crate::config::ConfigTable;
 
 #[derive(Unique)]
 #[repr(transparent)]
-pub struct UdpServer(Server<ServerToClientMessage, ClientToServerMessage>);
+pub struct UdpServer(pub Server<ServerToClientMessage, ClientToServerMessage>);
+
+#[derive(Unique, Default)]
+pub struct ServerEvents(pub Vec<ServerEvent<ClientToServerMessage>>);
 
 pub fn bind_server(
   storages: AllStoragesView,
@@ -22,6 +25,7 @@ pub fn bind_server(
     }
   ).unwrap();
   storages.add_unique(UdpServer(server));
+  storages.add_unique(ServerEvents::default());
 }
 
 pub fn update_server(
@@ -30,4 +34,14 @@ pub fn update_server(
   if let Err(error) = server.0.update() {
     log::error!("Server error: {error:?}")
   }
+}
+
+pub fn update_server_events(
+  mut server: UniqueViewMut<UdpServer>,
+  mut events: UniqueViewMut<ServerEvents>,
+) {
+  //drop current events
+  events.0.clear();
+  //fetch new ones
+  events.0.extend(server.0.process_events().rev());
 }

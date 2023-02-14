@@ -7,6 +7,7 @@ pub struct ConfigTableServer {
   pub address: SocketAddr,
   pub max_clients: usize,
   pub timeout_ms: u64,
+  pub password: Option<String>,
 }
 
 #[derive(Unique, Serialize, Deserialize)]

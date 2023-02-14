@@ -24,8 +24,15 @@ pub enum ClientToServerMessage {
 }
 
 #[derive(Encode, Decode, Clone)]
+pub struct InitData {
+  
+}
+
+#[derive(Encode, Decode, Clone)]
 pub enum ServerToClientMessage {
-  ServerHello,
+  ServerHello {
+    init: InitData
+  },
   ServerFuckOff {
     reason: String,
   },
