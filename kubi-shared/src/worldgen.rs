@@ -5,10 +5,22 @@ use crate::{
   blocks::Block
 };
 
+fn mountain_ramp(mut x: f32) -> f32 {
+  x = x * 2.0;
+  if x < 0.4 {
+    0.5 * x
+  } else if x < 0.55 {
+    4. * (x - 0.4) + 0.2
+  } else {
+    0.4444 * (x - 0.55) + 0.8
+  }
+}
+
 fn local_height(height: i32, chunk_position: IVec3) -> usize {
   let offset = chunk_position * CHUNK_SIZE as i32;
   (height - offset.y).clamp(0, CHUNK_SIZE as i32) as usize
 }
+
 fn local_y_position(height: i32, chunk_position: IVec3) -> Option<usize> {
   let offset = chunk_position * CHUNK_SIZE as i32;
   let position = height - offset.y;
@@ -45,7 +57,9 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
       //compute height
       let height = {
         let local_elevation = raw_elevation_value.powi(4).sqrt();
-        (raw_heightmap_value.clamp(-1., 1.) * local_elevation * 100.) as i32
+        let mut height = (mountain_ramp(raw_heightmap_value) * local_elevation * 100.) as i32;
+        if height < 0 { height /= 2 }
+        height
       };
       //place dirt
       for y in 0..local_height(height, chunk_position) {
