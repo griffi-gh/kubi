@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use bincode::{Encode, Decode};
 use crate::chunk::BlockData;
 
@@ -24,8 +26,17 @@ pub enum ClientToServerMessage {
 }
 
 #[derive(Encode, Decode, Clone)]
+pub struct UserInitData {
+  pub client_id: NonZeroUsize, //maybe use the proper type instead
+  pub username: String,
+  pub position: Vec3Arr,
+  pub velocity: Vec3Arr,
+  pub direction: QuatArr,
+}
+
+#[derive(Encode, Decode, Clone)]
 pub struct InitData {
-  
+  pub users: Vec<UserInitData>
 }
 
 #[derive(Encode, Decode, Clone)]

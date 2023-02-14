@@ -35,10 +35,12 @@ pub fn authenticate_players(
 
       //Spawn the user
       //  TODO
-      
+
       //Approve the user
       server.0.send_message(*from, ServerToClientMessage::ServerHello {
-        init: InitData {}
+        init: InitData {
+          users: todo!()
+        }
       }).map_err(log_error).ok();
     }
   }
