@@ -7,5 +7,5 @@ uniform vec4 u_color;
 
 void main() {
   color = u_color;
-  color -= vec4(0, 0, 0, 0.1 * sin(gl_FragCoord.x) * cos(gl_FragCoord.y));
+  // color -= vec4(0, 0, 0, 0.1 * sin(gl_FragCoord.x) * cos(gl_FragCoord.y));
 }
