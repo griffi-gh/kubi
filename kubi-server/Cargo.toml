@@ -9,7 +9,7 @@ kubi-shared = { path = "../kubi-shared" }
 kubi-udp = { path = "../kubi-udp" }
 kubi-logging = { path = "../kubi-logging" }
 log = "*"
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "9fd2aaa32bccee29bd7fc99ccaabec950fe13ed0" }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "e30dece" }
 serde = "1.0"
 toml = "0.7"
 glam = { version = "0.22", features = ["debug-glam-assert", "fast-math"] }
