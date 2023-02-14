@@ -23,7 +23,7 @@ pub fn block_placement_system(
     let Some(ray) = (&main_player, &raycast).iter().next().unwrap().1/**/.0 else { return };
     //get coord and block type
     let (place_position, place_block) = if action_place {
-      let position = (ray.position - ray.direction * 0.5).floor().as_ivec3();
+      let position = (ray.position - ray.direction * 0.251).floor().as_ivec3();
       (position, Block::Cobblestone)
     } else {
       (ray.block_position, Block::Air)
