@@ -1,5 +1,35 @@
-use crate::prefabs::BlockTexture;
-pub use kubi_shared::blocks::Block;
+use bincode::{Encode, Decode};
+use strum::EnumIter;
+
+#[derive(Clone, Copy, Debug, EnumIter)]
+#[repr(u8)]
+pub enum BlockTexture {
+  Stone,
+  Dirt,
+  GrassTop,
+  GrassSide,
+  Sand,
+  Bedrock,
+  Wood,
+  WoodTop,
+  Leaf,
+  Torch,
+  TallGrass,
+  Snow,
+  GrassSideSnow,
+  Cobblestone,
+}
+
+#[derive(Encode, Decode, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
+#[repr(u8)]
+pub enum Block {
+  Air,
+  Stone,
+  Dirt,
+  Grass,
+  Sand,
+  Cobblestone,
+}
 
 pub trait BlockDescriptorSource {
   fn descriptor(self) -> BlockDescriptor;
@@ -92,6 +122,13 @@ impl CubeTexture {
   }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct CrossTexture {
+  pub a: BlockTexture,
+  pub b: BlockTexture,
+
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CollisionType {
   None,
@@ -101,5 +138,6 @@ pub enum CollisionType {
 #[derive(Clone, Copy, Debug)]
 pub enum RenderType {
   None,
-  SolidBlock(CubeTexture)
+  SolidBlock(CubeTexture),
+  CrossShape,
 }

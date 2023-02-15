@@ -1,7 +1,8 @@
 use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut};
+use kubi_shared::block::Block;
 use crate::{
   player::MainPlayer, 
-  world::{raycast::LookingAtBlock, block::Block, queue::{BlockUpdateQueue, BlockUpdateEvent}}, 
+  world::{raycast::LookingAtBlock, queue::{BlockUpdateQueue, BlockUpdateEvent}}, 
   input::{Inputs, PrevInputs}, 
   events::{EventComponent, player_actions::PlayerActionEvent},
 };

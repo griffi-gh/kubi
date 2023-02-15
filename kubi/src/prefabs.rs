@@ -1,6 +1,6 @@
 use shipyard::{NonSendSync, UniqueView, Unique, AllStoragesView};
 use glium::{texture::{SrgbTexture2dArray, MipmapsOption}, Program};
-use strum::EnumIter;
+use kubi_shared::block::{Block, BlockTexture};
 use crate::rendering::Renderer;
 
 mod texture;
@@ -13,24 +13,6 @@ pub trait AssetPaths {
   fn file_name(self) -> &'static str;
 }
 
-#[derive(Clone, Copy, Debug, EnumIter)]
-#[repr(u8)]
-pub enum BlockTexture {
-  Stone,
-  Dirt,
-  GrassTop,
-  GrassSide,
-  Sand,
-  Bedrock,
-  Wood,
-  WoodTop,
-  Leaf,
-  Torch,
-  TallGrass,
-  Snow,
-  GrassSideSnow,
-  Cobblestone,
-}
 impl AssetPaths for BlockTexture {
   fn file_name(self) -> &'static str {
     match self {

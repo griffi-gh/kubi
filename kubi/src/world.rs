@@ -4,10 +4,9 @@ use glam::IVec3;
 use hashbrown::HashMap;
 use anyhow::{Result, Context};
 
-pub use kubi_shared::worldgen;
+pub use kubi_shared::{worldgen, block::Block};
 
 pub mod chunk;
-pub mod block;
 pub mod tasks;
 pub mod loading;
 pub mod mesh;
@@ -15,7 +14,6 @@ pub mod neighbors;
 pub mod raycast;
 pub mod queue;
 
-use block::Block;
 use chunk::{Chunk, ChunkMesh, CHUNK_SIZE};
 use tasks::ChunkTaskManager;
 use queue::BlockUpdateQueue;

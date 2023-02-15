@@ -1,7 +1,8 @@
 use strum::{EnumIter, IntoEnumIterator};
 use glam::{Vec3A, vec3a, IVec3, ivec3};
 use std::mem::discriminant;
-use super::{chunk::CHUNK_SIZE, block::{Block, RenderType, BlockDescriptorSource}};
+use kubi_shared::block::{Block, RenderType, BlockDescriptorSource};
+use super::{chunk::CHUNK_SIZE, };
 use crate::rendering::world::ChunkVertex;
 
 pub mod data;

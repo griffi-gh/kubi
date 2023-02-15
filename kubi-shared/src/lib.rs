@@ -1,4 +1,4 @@
-pub mod blocks;
+pub mod block;
 pub mod networking;
 pub mod worldgen;
 pub mod chunk;

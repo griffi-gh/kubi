@@ -1,5 +1,5 @@
 use glam::{IVec3, ivec3};
-use kubi_shared::{blocks::Block, chunk::CHUNK_SIZE};
+use kubi_shared::{block::Block, chunk::CHUNK_SIZE};
 use shipyard::{UniqueViewMut, Unique};
 
 use super::ChunkStorage;

@@ -110,7 +110,6 @@ pub fn draw_world(
   }
 }
 
-//this doesn't use culling!
 pub fn draw_current_chunk_border(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   player: View<MainPlayer>,

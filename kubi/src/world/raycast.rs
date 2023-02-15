@@ -1,7 +1,8 @@
 use glam::{Vec3, IVec3};
 use shipyard::{View, Component, ViewMut, IntoIter, UniqueView, track};
-use crate::{transform::Transform, world::block::BlockDescriptorSource};
-use super::{ChunkStorage, block::Block};
+use kubi_shared::block::{Block, BlockDescriptorSource};
+use crate::transform::Transform;
+use super::ChunkStorage;
 
 const RAYCAST_STEP: f32 = 0.25;
 

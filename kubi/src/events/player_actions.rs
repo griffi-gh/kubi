@@ -1,8 +1,7 @@
 use shipyard::{Component, View, ViewMut, EntitiesViewMut, IntoIter, track};
 use glam::{IVec3, Quat, Vec3};
-
+use kubi_shared::block::Block;
 use crate::{
-  world::block::Block, 
   player::MainPlayer, 
   transform::Transform
 };

@@ -2,7 +2,7 @@ use glam::{IVec3, ivec3};
 use bracket_noise::prelude::*;
 use crate::{
   chunk::{BlockData, CHUNK_SIZE},
-  blocks::Block
+  block::Block
 };
 
 fn mountain_ramp(mut x: f32) -> f32 {
