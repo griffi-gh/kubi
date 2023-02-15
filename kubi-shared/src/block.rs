@@ -35,6 +35,7 @@ pub trait BlockDescriptorSource {
   fn descriptor(self) -> BlockDescriptor;
 }
 impl BlockDescriptorSource for Block {
+  #[inline]
   fn descriptor(self) -> BlockDescriptor {
     match self {
       Self::Air => BlockDescriptor {
