@@ -44,7 +44,6 @@ pub struct ChunkVertex {
 }
 implement_vertex!(ChunkVertex, position, normal, uv, tex_index);
 
-
 pub fn draw_world(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   chunks: UniqueView<ChunkStorage>,

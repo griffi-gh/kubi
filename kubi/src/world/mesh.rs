@@ -1,84 +1,14 @@
-use strum::{EnumIter, IntoEnumIterator};
-use glam::{Vec3A, vec3a, IVec3, ivec3};
-use std::mem::discriminant;
+use glam::{IVec3, ivec3};
+use strum::IntoEnumIterator;
 use kubi_shared::block::{Block, RenderType};
-use super::{chunk::CHUNK_SIZE, };
+use crate::world::chunk::CHUNK_SIZE;
 use crate::rendering::world::ChunkVertex;
 
 pub mod data;
+mod builder;
+
 use data::MeshGenData;
-
-#[repr(usize)]
-#[derive(Clone, Copy, Debug, EnumIter)]
-pub enum CubeFace {
-  Top    = 0,
-  Front  = 1,
-  Left   = 2,
-  Right  = 3,
-  Back   = 4,
-  Bottom = 5,
-}
-const CUBE_FACE_VERTICES: [[Vec3A; 4]; 6] = [
-  [vec3a(0., 1., 0.), vec3a(0., 1., 1.), vec3a(1., 1., 0.), vec3a(1., 1., 1.)],
-  [vec3a(0., 0., 0.), vec3a(0., 1., 0.), vec3a(1., 0., 0.), vec3a(1., 1., 0.)],
-  [vec3a(0., 0., 1.), vec3a(0., 1., 1.), vec3a(0., 0., 0.), vec3a(0., 1., 0.)],
-  [vec3a(1., 0., 0.), vec3a(1., 1., 0.), vec3a(1., 0., 1.), vec3a(1., 1., 1.)],
-  [vec3a(1., 0., 1.), vec3a(1., 1., 1.), vec3a(0., 0., 1.), vec3a(0., 1., 1.)],
-  [vec3a(0., 0., 1.), vec3a(0., 0., 0.), vec3a(1., 0., 1.), vec3a(1., 0., 0.)],
-];
-const CUBE_FACE_NORMALS: [Vec3A; 6] = [ 
-  vec3a(0., 1., 0.),
-  vec3a(0., 0., -1.),
-  vec3a(-1.,0., 0.),
-  vec3a(1., 0., 0.),
-  vec3a(0., 0., 1.),
-  vec3a(0., -1.,0.)
-];
-const CUBE_FACE_INDICES: [u32; 6] = [0, 1, 2, 2, 1, 3];
-const UV_COORDS: [[f32; 2]; 4] = [
-  [0., 0.],
-  [0., 1.],
-  [1., 0.],
-  [1., 1.],
-];
-
-#[derive(Default)]
-struct MeshBuilder {
-  vertex_buffer: Vec<ChunkVertex>,
-  index_buffer: Vec<u32>,
-  idx_counter: u32,
-}
-impl MeshBuilder {
-  pub fn new() -> Self {
-    Self::default()
-  }
-
-  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u8) {
-    let coord = coord.as_vec3a();
-    let face_index = face as usize;
-    
-    //Push vertexes
-    let norm = CUBE_FACE_NORMALS[face_index];
-    let vert = CUBE_FACE_VERTICES[face_index];
-    self.vertex_buffer.reserve(4);
-    for i in 0..4 {
-      self.vertex_buffer.push(ChunkVertex {
-        position: (coord + vert[i]).to_array(),
-        normal: norm.to_array(),
-        uv: UV_COORDS[i], 
-        tex_index: texture
-      });
-    }
-
-    //Push indices
-    self.index_buffer.extend_from_slice(&CUBE_FACE_INDICES.map(|x| x + self.idx_counter));
-    self.idx_counter += 4;
-  }
-
-  pub fn finish(self) -> (Vec<ChunkVertex>, Vec<u32>) {
-    (self.vertex_buffer, self.index_buffer)
-  }
-}
+use builder::{CubeFace, MeshBuilder};
 
 pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
   let get_block = |pos: IVec3| -> Block {
@@ -101,22 +31,21 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
 
   let mut builder = MeshBuilder::new();
 
-  for x in 0..CHUNK_SIZE {
-    for y in 0..CHUNK_SIZE {
-      for z in 0..CHUNK_SIZE {
-        let coord = ivec3(x as i32, y as i32, z as i32);
+  for x in 0..CHUNK_SIZE as i32 {
+    for y in 0..CHUNK_SIZE as i32 {
+      for z in 0..CHUNK_SIZE as i32 {
+        let coord = ivec3(x, y, z);
         let block = get_block(coord);
         let descriptor = block.descriptor();
-        if matches!(descriptor.render, RenderType::None) {
-          continue
-        }
-        for face in CubeFace::iter() {
-          let facing = CUBE_FACE_NORMALS[face as usize].as_ivec3();
-          let facing_coord = coord + facing;
-          let show = discriminant(&get_block(facing_coord).descriptor().render) != discriminant(&descriptor.render);
-          if show {
-            match descriptor.render {
-              RenderType::SolidBlock(textures) => {
+        match descriptor.render {
+          RenderType::None => continue,
+          RenderType::SolidBlock(textures) => {
+            for face in CubeFace::iter() {
+              let facing_direction = face.normal();
+              let facing_coord = coord + facing_direction;
+              let facing_descriptor = get_block(facing_coord).descriptor();
+              let face_obstructed = matches!(facing_descriptor.render, RenderType::SolidBlock(_));
+              if !face_obstructed {
                 let face_texture = match face {
                   CubeFace::Top    => textures.top,
                   CubeFace::Front  => textures.front,
@@ -126,9 +55,11 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
                   CubeFace::Bottom => textures.bottom,
                 };
                 builder.add_face(face, coord, face_texture as u8);
-              },
-              _ => unimplemented!()
+              }
             }
+          },
+          RenderType::CrossShape(_) => {
+            todo!()
           }
         }
       }

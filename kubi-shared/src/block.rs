@@ -29,6 +29,7 @@ pub enum Block {
   Grass,
   Sand,
   Cobblestone,
+  TallGrass,
 }
 
 impl Block {
@@ -73,6 +74,12 @@ impl Block {
         name: "cobblestone",
         render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Cobblestone)),
         collision: CollisionType::Solid,
+        raycast_collision: true,
+      },
+      Self::TallGrass => BlockDescriptor {
+        name: "tall grass",
+        render: RenderType::CrossShape(CrossTexture::all(BlockTexture::TallGrass)),
+        collision: CollisionType::None,
         raycast_collision: true,
       }
     }
@@ -123,12 +130,22 @@ impl CubeTexture {
 #[derive(Clone, Copy, Debug)]
 pub struct CrossTexture {
   pub a_front: BlockTexture,
-  pub b_front: BlockTexture,
   pub a_back: BlockTexture,
+  pub b_front: BlockTexture,
   pub b_back: BlockTexture,
 }
 impl CrossTexture {
-
+  pub const fn same_front_back(a: BlockTexture, b: BlockTexture) -> Self {
+    Self {
+      a_front: a,
+      a_back: a,
+      b_front: b,
+      b_back: b,
+    }
+  }
+  pub const fn all(texture: BlockTexture) -> Self {
+    Self::same_front_back(texture, texture)
+  }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
