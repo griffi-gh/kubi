@@ -31,12 +31,9 @@ pub enum Block {
   Cobblestone,
 }
 
-pub trait BlockDescriptorSource {
-  fn descriptor(self) -> BlockDescriptor;
-}
-impl BlockDescriptorSource for Block {
+impl Block {
   #[inline]
-  fn descriptor(self) -> BlockDescriptor {
+  pub const fn descriptor(self) -> BlockDescriptor {
     match self {
       Self::Air => BlockDescriptor {
         name: "air",
@@ -124,9 +121,13 @@ impl CubeTexture {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct CrossTexture {
-  pub a: BlockTexture,
-  pub b: BlockTexture,
+pub struct CrossTexture {
+  pub a_front: BlockTexture,
+  pub b_front: BlockTexture,
+  pub a_back: BlockTexture,
+  pub b_back: BlockTexture,
+}
+impl CrossTexture {
 
 }
 
@@ -140,5 +141,5 @@ pub enum CollisionType {
 pub enum RenderType {
   None,
   SolidBlock(CubeTexture),
-  CrossShape,
+  CrossShape(CrossTexture),
 }

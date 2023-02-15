@@ -1,6 +1,6 @@
 use glam::{Vec3, IVec3};
 use shipyard::{View, Component, ViewMut, IntoIter, UniqueView, track};
-use kubi_shared::block::{Block, BlockDescriptorSource};
+use kubi_shared::block::Block;
 use crate::transform::Transform;
 use super::ChunkStorage;
 
