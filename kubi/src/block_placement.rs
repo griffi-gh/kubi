@@ -23,6 +23,7 @@ const BLOCK_KEY_MAP: &[(VirtualKeyCode, Block)] = &[
   (VirtualKeyCode::Key4, Block::Grass),
   (VirtualKeyCode::Key5, Block::Sand),
   (VirtualKeyCode::Key6, Block::Stone),
+  (VirtualKeyCode::Key7, Block::Torch),
 ];
 
 fn pick_block_with_number_keys(

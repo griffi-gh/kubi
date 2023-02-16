@@ -32,6 +32,9 @@ pub enum Block {
   Cobblestone,
   TallGrass,
   Planks,
+  Torch,
+  Wood,
+  Leaf,
 }
 
 impl Block {
@@ -89,6 +92,24 @@ impl Block {
         render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Planks)), 
         collision: CollisionType::Solid, 
         raycast_collision: true, 
+      },
+      Self::Torch => BlockDescriptor {
+        name: "torch",
+        render: RenderType::CrossShape(CrossTexture::all(BlockTexture::Torch)),
+        collision: CollisionType::None,
+        raycast_collision: true,
+      },
+      Self::Wood => BlockDescriptor {
+        name: "leaf",
+        render: RenderType::SolidBlock(CubeTexture::horizontal_vertical(BlockTexture::Wood, BlockTexture::WoodTop)),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+      },
+      Self::Leaf => BlockDescriptor {
+        name: "leaf",
+        render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::Leaf)),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
       },
     }
   }
@@ -170,5 +191,6 @@ pub enum CollisionType {
 pub enum RenderType {
   None,
   SolidBlock(CubeTexture),
+  BinaryTransparency(CubeTexture),
   CrossShape(CrossTexture),
 }

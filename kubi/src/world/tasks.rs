@@ -1,6 +1,9 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
-use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
+use kubi_shared::{
+  networking::messages::{ClientToServerMessage, ServerToClientMessage}, 
+  worldgen::QueuedBlock
+};
 use shipyard::{Unique, UniqueView, View, IntoIter};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use super::{
@@ -8,7 +11,10 @@ use super::{
   mesh::{generate_mesh, data::MeshGenData},
   worldgen::generate_world,
 };
-use crate::{rendering::world::ChunkVertex, networking::{UdpClient, NetworkEvent}};
+use crate::{
+  rendering::world::ChunkVertex, 
+  networking::{UdpClient, NetworkEvent}
+};
 use kubi_udp::client::ClientEvent;
 
 pub enum ChunkTask {
@@ -25,6 +31,7 @@ pub enum ChunkTaskResponse {
   LoadedChunk {
     position: IVec3,
     chunk_data: BlockData,
+    queued: Vec<QueuedBlock>
   },
   GeneratedMesh {
     position: IVec3,
@@ -59,8 +66,8 @@ impl ChunkTaskManager {
           ChunkTaskResponse::GeneratedMesh { position, vertices, indexes }
         },
         ChunkTask::LoadChunk { position, seed } => {
-          let chunk_data = generate_world(position, seed);
-          ChunkTaskResponse::LoadedChunk { position, chunk_data }
+          let (chunk_data, queued) = generate_world(position, seed);
+          ChunkTaskResponse::LoadedChunk { position, chunk_data, queued }
         }
       });
     });
@@ -97,7 +104,9 @@ pub fn inject_network_responses_into_manager_queue(
     if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { chunk, data }) = &event.0 {
       let position = IVec3::from_array(*chunk);
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position, chunk_data: data.clone()
+        position, 
+        chunk_data: data.clone(),
+        queued: Vec::with_capacity(0)
       });
     }
   }

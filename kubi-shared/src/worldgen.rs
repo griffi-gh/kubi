@@ -29,10 +29,27 @@ fn local_y_position(height: i32, chunk_position: IVec3) -> Option<usize> {
   (0..CHUNK_SIZE as i32).contains(&position).then_some(position as usize)
 }
 
-pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
+pub struct QueuedBlock {
+  pub position: IVec3,
+  pub block_type: Block,
+}
+
+pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<QueuedBlock>) {
   let offset = chunk_position * CHUNK_SIZE as i32;
   let mut blocks = Box::new([[[Block::Air; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]);
-  
+  let mut queue = Vec::with_capacity(0);
+
+  let mut smart_place = |blocks: &mut BlockData, position: IVec3, block: Block| {
+    if position.to_array().iter().any(|&x| !(0..CHUNK_SIZE).contains(&(x as usize))) {
+      queue.push(QueuedBlock {
+        position: offset + position, 
+        block_type: block
+      });
+    } else {
+      blocks[position.x as usize][position.y as usize][position.z as usize] = block;
+    }
+  };
+
   let mut height_noise = FastNoise::seeded(seed);
   height_noise.set_fractal_type(FractalType::FBM);
   height_noise.set_fractal_octaves(4);
@@ -46,10 +63,10 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
   let mut rng = Xoshiro256StarStar::seed_from_u64(
     seed
     ^ ((chunk_position.x as u32 as u64) << 0)
-    ^ ((chunk_position.y as u32 as u64) << 16)
     ^ ((chunk_position.z as u32 as u64) << 32)
   );
-  let tall_grass_map: [[u8; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
+  let rng_map_a: [[f32; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
+  let rng_map_b: [[f32; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
 
   // let mut cave_noise = FastNoise::seeded(seed.rotate_left(1));
   // cave_noise.set_fractal_type(FractalType::FBM);
@@ -86,9 +103,20 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
         blocks[x][y][z] = Block::Grass;
       }
       //place tall grass
-      if tall_grass_map[x][z] < 10 {
+      if rng_map_a[x][z] < 0.03 {
         if let Some(y) = local_y_position(height + 1, chunk_position) {
           blocks[x][y][z] = Block::TallGrass;
+        }
+      }
+      //place trees!
+      if rng_map_a[x][z] < 0.001 {
+        if let Some(y) = local_y_position(height + 1, chunk_position) {
+          let tree_pos = ivec3(x as i32, y as i32, z as i32);
+          let tree_height = 6 + (rng_map_b[x][z] * 6.).round() as i32;
+          for tree_y in 0..tree_height {
+            smart_place(&mut blocks, tree_pos + IVec3::Y * tree_y, Block::Wood);
+          }
+          smart_place(&mut blocks, tree_pos + IVec3::Y * tree_height, Block::Leaf);
         }
       }
     }
@@ -111,8 +139,8 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
     // }
   }
 
-  blocks
-
+  (blocks, queue)
+  
   // let mut cave_noise = FastNoise::seeded(seed);
   // cave_noise.set_fractal_type(FractalType::FBM);
   // cave_noise.set_frequency(0.1);

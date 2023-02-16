@@ -11,7 +11,8 @@ use crate::{
 use super::{
   ChunkStorage, ChunkMeshStorage,
   chunk::{Chunk, DesiredChunkState, CHUNK_SIZE, ChunkMesh, CurrentChunkState, ChunkData},
-  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
+  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask}, 
+  queue::{BlockUpdateQueue, BlockUpdateEvent},
 };
 
 const MAX_CHUNK_OPS_INGAME: usize = 6;
@@ -170,12 +171,13 @@ fn process_completed_tasks(
   mut world: UniqueViewMut<ChunkStorage>,
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
   renderer: NonSendSync<UniqueView<Renderer>>,
-  state: UniqueView<GameState>
+  state: UniqueView<GameState>,
+  mut queue: UniqueViewMut<BlockUpdateQueue>,
 ) {
   let mut ops: usize = 0;
   while let Some(res) = task_manager.receive() {
     match res {
-      ChunkTaskResponse::LoadedChunk { position, chunk_data } => {
+      ChunkTaskResponse::LoadedChunk { position, chunk_data, queued } => {
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
           log::warn!("blocks data discarded: chunk doesn't exist");
@@ -195,6 +197,14 @@ fn process_completed_tasks(
 
         //update chunk state
         chunk.current_state = CurrentChunkState::Loaded;
+
+        //push queued blocks
+        for event in queued {
+          queue.push(BlockUpdateEvent {
+            position: event.position,
+            value: event.block_type,
+          });
+        }
 
         //increase ops counter
         ops += 1;
