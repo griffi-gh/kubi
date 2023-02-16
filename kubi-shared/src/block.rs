@@ -128,23 +128,27 @@ impl CubeTexture {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct CrossTexture {
-  pub a_front: BlockTexture,
-  pub a_back: BlockTexture,
-  pub b_front: BlockTexture,
-  pub b_back: BlockTexture,
+pub struct CrossTextureSides {
+  pub front: BlockTexture,
+  pub back: BlockTexture
 }
-impl CrossTexture {
-  pub const fn same_front_back(a: BlockTexture, b: BlockTexture) -> Self {
+impl CrossTextureSides {
+  pub const fn all(texture: BlockTexture) -> Self {
     Self {
-      a_front: a,
-      a_back: a,
-      b_front: b,
-      b_back: b,
+      front: texture,
+      back: texture
     }
   }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct CrossTexture(pub CrossTextureSides, pub CrossTextureSides);
+impl CrossTexture {
   pub const fn all(texture: BlockTexture) -> Self {
-    Self::same_front_back(texture, texture)
+    Self(
+      CrossTextureSides::all(texture), 
+      CrossTextureSides::all(texture)
+    )
   }
 }
 

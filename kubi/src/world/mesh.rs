@@ -8,7 +8,7 @@ pub mod data;
 mod builder;
 
 use data::MeshGenData;
-use builder::{CubeFace, MeshBuilder};
+use builder::{MeshBuilder, CubeFace, DiagonalFace};
 
 pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
   let get_block = |pos: IVec3| -> Block {
@@ -58,9 +58,20 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
               }
             }
           },
-          RenderType::CrossShape(_) => {
-            todo!()
-          }
+          RenderType::CrossShape(textures) => {
+            builder.add_diagonal_face(
+              coord, 
+              DiagonalFace::LeftZ, 
+              textures.0.front as u8, 
+              textures.0.back as u8
+            );
+            builder.add_diagonal_face(
+              coord, 
+              DiagonalFace::RigthZ, 
+              textures.1.front as u8, 
+              textures.1.back as u8
+            );
+          },
         }
       }
     }

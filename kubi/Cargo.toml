@@ -26,4 +26,4 @@ winapi = { version = "0.3" }
 
 [features]
 default = []
-unstable = ["glam/core-simd"]
+nightly = ["glam/core-simd", "kubi-shared/nightly"]

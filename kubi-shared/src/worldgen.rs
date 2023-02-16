@@ -1,5 +1,7 @@
-use glam::{IVec3, ivec3};
 use bracket_noise::prelude::*;
+use rand::prelude::*;
+use glam::{IVec3, ivec3};
+use rand_xoshiro::Xoshiro256StarStar;
 use crate::{
   chunk::{BlockData, CHUNK_SIZE},
   block::Block
@@ -41,6 +43,14 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
   elevation_noise.set_fractal_octaves(1);
   elevation_noise.set_frequency(0.001);
 
+  let mut rng = Xoshiro256StarStar::seed_from_u64(
+    seed
+    ^ ((chunk_position.x as u32 as u64) << 0)
+    ^ ((chunk_position.y as u32 as u64) << 16)
+    ^ ((chunk_position.z as u32 as u64) << 32)
+  );
+  let tall_grass_map: [[u8; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
+
   // let mut cave_noise = FastNoise::seeded(seed.rotate_left(1));
   // cave_noise.set_fractal_type(FractalType::FBM);
   // cave_noise.set_fractal_octaves(2);
@@ -74,6 +84,12 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
       //place grass
       if let Some(y) = local_y_position(height, chunk_position) {
         blocks[x][y][z] = Block::Grass;
+      }
+      //place tall grass
+      if tall_grass_map[x][z] < 10 {
+        if let Some(y) = local_y_position(height + 1, chunk_position) {
+          blocks[x][y][z] = Block::TallGrass;
+        }
       }
     }
   }
