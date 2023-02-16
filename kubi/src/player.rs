@@ -3,7 +3,8 @@ use crate::{
   transform::Transform,
   camera::Camera, 
   fly_controller::FlyController, 
-  world::raycast::LookingAtBlock,
+  world::raycast::LookingAtBlock, 
+  block_placement::PlayerHolding,
 };
 
 #[derive(Component)]
@@ -23,5 +24,6 @@ pub fn spawn_player (
     Camera::default(),
     FlyController,
     LookingAtBlock::default(),
+    PlayerHolding::default(),
   ));
 }

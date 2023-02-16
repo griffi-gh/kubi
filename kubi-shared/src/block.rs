@@ -18,6 +18,7 @@ pub enum BlockTexture {
   Snow,
   GrassSideSnow,
   Cobblestone,
+  Planks,
 }
 
 #[derive(Encode, Decode, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
@@ -30,6 +31,7 @@ pub enum Block {
   Sand,
   Cobblestone,
   TallGrass,
+  Planks,
 }
 
 impl Block {
@@ -81,7 +83,13 @@ impl Block {
         render: RenderType::CrossShape(CrossTexture::all(BlockTexture::TallGrass)),
         collision: CollisionType::None,
         raycast_collision: true,
-      }
+      },
+      Self::Planks => BlockDescriptor { 
+        name: "planks", 
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Planks)), 
+        collision: CollisionType::Solid, 
+        raycast_collision: true, 
+      },
     }
   }
 }

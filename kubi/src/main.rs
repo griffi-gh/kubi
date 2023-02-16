@@ -72,7 +72,7 @@ use rendering::{
   world::draw_world,
   world::draw_current_chunk_border, 
 };
-use block_placement::block_placement_system;
+use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
@@ -124,7 +124,7 @@ fn update() -> Workload {
       update_controllers,
       generate_move_events,
       update_raycasts,
-      block_placement_system,
+      update_block_placement,
       apply_queued_blocks,
     ).into_workload().run_if(is_ingame),
     compute_cameras,

@@ -4,7 +4,7 @@ use kubi_shared::block::Block;
 use crate::transform::Transform;
 use super::ChunkStorage;
 
-const RAYCAST_STEP: f32 = 0.25;
+pub const RAYCAST_STEP: f32 = 0.25;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RaycastReport {

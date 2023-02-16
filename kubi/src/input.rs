@@ -18,7 +18,7 @@ pub struct Inputs {
 pub struct PrevInputs(pub Inputs);
 
 #[derive(Unique, Clone, Default, Debug)]
-pub struct RawInputState {
+pub struct RawKbmInputState {
   pub keyboard_state: HashSet<VirtualKeyCode, BuildNoHashHasher<u32>>,
   pub button_state: [bool; 32],
   pub mouse_delta: DVec2
@@ -35,7 +35,7 @@ pub struct ActiveGamepad(Option<GamepadId>);
 
 fn process_events(
   device_events: View<InputDeviceEvent>,
-  mut input_state: UniqueViewMut<RawInputState>,
+  mut input_state: UniqueViewMut<RawKbmInputState>,
 ) {
   input_state.mouse_delta = DVec2::ZERO;
   for event in device_events.iter() {
@@ -79,7 +79,7 @@ fn input_start(
 }
 
 fn update_input_state (
-  raw_inputs: UniqueView<RawInputState>,
+  raw_inputs: UniqueView<RawKbmInputState>,
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   inputs.movement += Vec2::new(
@@ -123,7 +123,7 @@ pub fn init_input (
   storages.add_unique(ActiveGamepad::default());
   storages.add_unique(Inputs::default());
   storages.add_unique(PrevInputs::default());
-  storages.add_unique(RawInputState::default());
+  storages.add_unique(RawKbmInputState::default());
 }
 
 pub fn process_inputs() -> Workload {
