@@ -38,7 +38,7 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> BlockData {
   height_noise.set_fractal_octaves(4);
   height_noise.set_frequency(0.003);
 
-  let mut elevation_noise = FastNoise::seeded(seed);
+  let mut elevation_noise = FastNoise::seeded(seed.rotate_left(1));
   elevation_noise.set_fractal_type(FractalType::FBM);
   elevation_noise.set_fractal_octaves(1);
   elevation_noise.set_frequency(0.001);
