@@ -120,14 +120,30 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
           for tree_y in 0..tree_height {
             smart_place(&mut blocks, tree_pos + IVec3::Y * tree_y, Block::Wood);
           }
-          let tree_leaf_height = tree_height - 3;
-          let tree_width = 2;
-          for tree_y in tree_leaf_height..tree_height {
-            for tree_x in (-tree_width)..=tree_width {
-              for tree_z in (-tree_width)..=tree_width {
-                let tree_offset = ivec3(tree_x, tree_y, tree_z);
-                if tree_offset.xz() == IVec2::ZERO { continue }
-                smart_place(&mut blocks, tree_pos + tree_offset, Block::Leaf);
+          // Part that wraps around the tree
+          {
+            let tree_leaf_height = tree_height - 3;
+            let leaf_width = 2;
+            for tree_y in tree_leaf_height..tree_height {
+              for tree_x in (-leaf_width)..=leaf_width {
+                for tree_z in (-leaf_width)..=leaf_width {
+                  let tree_offset = ivec3(tree_x, tree_y, tree_z);
+                  if tree_offset.xz() == IVec2::ZERO { continue }
+                  smart_place(&mut blocks, tree_pos + tree_offset, Block::Leaf);
+                }
+              }
+            }
+          }
+          //part above the tree
+          {
+            let leaf_above_height = 2;
+            let leaf_width = 1;
+            for tree_y in tree_height..(tree_height + leaf_above_height) {
+              for tree_x in (-leaf_width)..=leaf_width {
+                for tree_z in (-leaf_width)..=leaf_width {
+                  let tree_offset = ivec3(tree_x, tree_y, tree_z);
+                  smart_place(&mut blocks, tree_pos + tree_offset, Block::Leaf);
+                }
               }
             }
           }
