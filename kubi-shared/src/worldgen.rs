@@ -1,6 +1,6 @@
 use bracket_noise::prelude::*;
 use rand::prelude::*;
-use glam::{IVec3, ivec3};
+use glam::{IVec3, ivec3, Vec3Swizzles, IVec2};
 use rand_xoshiro::Xoshiro256StarStar;
 use crate::{
   chunk::{BlockData, CHUNK_SIZE},
@@ -41,8 +41,12 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
 
   let mut smart_place = |blocks: &mut BlockData, position: IVec3, block: Block| {
     if position.to_array().iter().any(|&x| !(0..CHUNK_SIZE).contains(&(x as usize))) {
+      let event_pos = offset + position;
+      queue.retain(|block: &QueuedBlock| {
+        block.position != event_pos
+      });
       queue.push(QueuedBlock {
-        position: offset + position, 
+        position: event_pos, 
         block_type: block
       });
     } else {
@@ -112,11 +116,21 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       if rng_map_a[x][z] < 0.001 {
         if let Some(y) = local_y_position(height + 1, chunk_position) {
           let tree_pos = ivec3(x as i32, y as i32, z as i32);
-          let tree_height = 6 + (rng_map_b[x][z] * 6.).round() as i32;
+          let tree_height = 4 + (rng_map_b[x][z] * 3.).round() as i32;
           for tree_y in 0..tree_height {
             smart_place(&mut blocks, tree_pos + IVec3::Y * tree_y, Block::Wood);
           }
-          smart_place(&mut blocks, tree_pos + IVec3::Y * tree_height, Block::Leaf);
+          let tree_leaf_height = tree_height - 3;
+          let tree_width = 2;
+          for tree_y in tree_leaf_height..tree_height {
+            for tree_x in (-tree_width)..=tree_width {
+              for tree_z in (-tree_width)..=tree_width {
+                let tree_offset = ivec3(tree_x, tree_y, tree_z);
+                if tree_offset.xz() == IVec2::ZERO { continue }
+                smart_place(&mut blocks, tree_pos + tree_offset, Block::Leaf);
+              }
+            }
+          }
         }
       }
     }
