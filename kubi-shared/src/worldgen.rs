@@ -64,6 +64,16 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
   elevation_noise.set_fractal_octaves(1);
   elevation_noise.set_frequency(0.001);
 
+  let mut cave_noise_a = FastNoise::seeded(seed.rotate_left(2));
+  cave_noise_a.set_fractal_type(FractalType::FBM);
+  cave_noise_a.set_fractal_octaves(2);
+  cave_noise_a.set_frequency(0.01);
+
+  let mut cave_noise_b = FastNoise::seeded(seed.rotate_left(3));
+  cave_noise_b.set_fractal_type(FractalType::FBM);
+  cave_noise_b.set_fractal_octaves(3);
+  cave_noise_b.set_frequency(0.015);
+
   let mut rng = Xoshiro256StarStar::seed_from_u64(
     seed
     ^ ((chunk_position.x as u32 as u64) << 0)
@@ -71,11 +81,6 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
   );
   let rng_map_a: [[f32; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
   let rng_map_b: [[f32; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
-
-  // let mut cave_noise = FastNoise::seeded(seed.rotate_left(1));
-  // cave_noise.set_fractal_type(FractalType::FBM);
-  // cave_noise.set_fractal_octaves(2);
-  // cave_noise.set_frequency(0.001);
 
   //Generate height map
   let mut within_heightmap = false;
@@ -156,21 +161,22 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
     }
   }
   
-  //Carve out mountains
+  //Carve out caves
   if within_heightmap {
-    // for z in 0..CHUNK_SIZE {
-    //   for y in 0..CHUNK_SIZE {
-    //     for x in 0..CHUNK_SIZE {
-    //       if blocks[x][y][z] == Block::Air { continue }
-    //       let position = ivec3(x as i32, y as i32, z as i32) + offset;
-    //       let raw_cavemap_value = cave_noise.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
-    //       let is_cave = (-0.3..=-0.3).contains(&raw_cavemap_value);
-    //       if is_cave {
-    //         blocks[x][y][z] = Block::Air;
-    //       }
-    //     }
-    //   }
-    // }
+    for z in 0..CHUNK_SIZE {
+      for y in 0..CHUNK_SIZE {
+        for x in 0..CHUNK_SIZE {
+          if blocks[x][y][z] == Block::Air { continue }
+          let position = ivec3(x as i32, y as i32, z as i32) + offset;
+          let raw_cavemap_value_a = cave_noise_a.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+          let raw_cavemap_value_b = cave_noise_b.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+          let is_cave = (-0.1..=0.1).contains(&raw_cavemap_value_a) && (-0.1..=0.1).contains(&raw_cavemap_value_b);
+          if is_cave {
+            blocks[x][y][z] = Block::Air;
+          }
+        }
+      }
+    }
   }
 
   (blocks, queue)
