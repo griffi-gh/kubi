@@ -19,6 +19,7 @@ pub enum BlockTexture {
   GrassSideSnow,
   Cobblestone,
   Planks,
+  WaterSolid,
 }
 
 #[derive(Encode, Decode, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
@@ -36,6 +37,7 @@ pub enum Block {
   Torch,
   Wood,
   Leaf,
+  Water,
 }
 
 impl Block {
@@ -117,6 +119,12 @@ impl Block {
         render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::Leaf)),
         collision: CollisionType::Solid,
         raycast_collision: true,
+      },
+      Self::Water => BlockDescriptor {
+        name: "water",
+        render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::WaterSolid)),
+        collision: CollisionType::None,
+        raycast_collision: false,
       },
     }
   }

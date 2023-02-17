@@ -125,11 +125,13 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
         }
         //Generate rivers
         {
+          let river_width = (height as f32 / -5.).clamp(0.5, 1.);
           let river_value = river_noise.get_noise(noise_x, noise_y);
-          if (-0.00625..0.00625).contains(&(river_value.powi(2))) {
+          if ((-0.00625 * river_width)..(0.00625 * river_width)).contains(&(river_value.powi(2))) {
             is_surface = false;
-            river_fill_height = Some(height);
-            height -= (15. * (0.00625 - river_value.powi(2)) * (1. / 0.00625)).round() as i32;
+            river_fill_height = Some(height - 1);
+            //river_fill_height = Some(-3);
+            height -= (river_width * 15. * ((0.00625 * river_width) - river_value.powi(2)) * (1. / (0.00625 * river_width))).round() as i32;
           }
         }
         //Generate ravines
@@ -163,9 +165,28 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
           within_heightmap = true;
         }
       } else {
-        for y in 0..local_height(height, chunk_position) {
-          blocks[x][y][z] = Block::Stone;
-          within_heightmap = true;
+        if let Some(river_fill_height) = river_fill_height {
+          //Place water
+          for y in 0..local_height(river_fill_height, chunk_position) {
+            blocks[x][y][z] = Block::Water;
+            within_heightmap = true;
+          }
+          //Place stone
+          for y in 0..local_height(height - 1, chunk_position) {
+            blocks[x][y][z] = Block::Stone;
+            within_heightmap = true;
+          }
+          //Place dirt
+          if let Some(y) = local_y_position(height, chunk_position) {
+            blocks[x][y][z] = Block::Dirt;
+            within_heightmap = true;
+          }
+        } else {
+          //Place stone
+          for y in 0..local_height(height, chunk_position) {
+            blocks[x][y][z] = Block::Stone;
+            within_heightmap = true;
+          }
         }
       }
     }

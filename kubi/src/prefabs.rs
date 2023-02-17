@@ -31,6 +31,7 @@ impl AssetPaths for BlockTexture {
       Self::GrassSideSnow => "grass_side_snow.png",
       Self::Cobblestone   => "cobblestone.png",
       Self::Planks        => "planks.png",
+      Self::WaterSolid    => "solid_water.png",
     }
   }
 }
