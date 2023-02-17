@@ -203,6 +203,7 @@ fn process_completed_tasks(
           queue.push(BlockUpdateEvent {
             position: event.position,
             value: event.block_type,
+            soft: true,
           });
         }
 

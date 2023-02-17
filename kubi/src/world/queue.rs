@@ -7,7 +7,9 @@ use super::ChunkStorage;
 #[derive(Clone, Copy, Debug)]
 pub struct BlockUpdateEvent {
   pub position: IVec3,
-  pub value: Block
+  pub value: Block,
+  //Only replace air blocks
+  pub soft: bool,
 }
 
 #[derive(Unique, Default, Clone)]

@@ -69,6 +69,7 @@ fn block_placement_system(
     block_event_queue.push(BlockUpdateEvent {
       position: place_position,
       value: place_block,
+      soft: place_block != Block::Air,
     });
     //send event
     entities.add_entity(
