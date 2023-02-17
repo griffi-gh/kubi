@@ -25,6 +25,7 @@ pub enum BlockTexture {
 #[repr(u8)]
 pub enum Block {
   Air,
+  Marker,
   Stone,
   Dirt,
   Grass,
@@ -43,6 +44,12 @@ impl Block {
     match self {
       Self::Air => BlockDescriptor {
         name: "air",
+        render: RenderType::None,
+        collision: CollisionType::None,
+        raycast_collision: false,
+      },
+      Self::Marker => BlockDescriptor {
+        name: "marker",
         render: RenderType::None,
         collision: CollisionType::None,
         raycast_collision: false,
