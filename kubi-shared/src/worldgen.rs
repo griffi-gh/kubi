@@ -74,6 +74,11 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
   cave_noise_b.set_fractal_octaves(3);
   cave_noise_b.set_frequency(0.015);
 
+  let mut cave_noise_holes = FastNoise::seeded(seed.rotate_left(4));
+  cave_noise_holes.set_fractal_type(FractalType::FBM);
+  cave_noise_holes.set_fractal_octaves(1);
+  cave_noise_holes.set_frequency(0.005);
+
   let mut rng = Xoshiro256StarStar::seed_from_u64(
     seed
     ^ ((chunk_position.x as u32 as u64) << 0)
@@ -84,6 +89,8 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
 
   //Generate height map
   let mut within_heightmap = false;
+  let mut heightmap = [[0i32; CHUNK_SIZE]; CHUNK_SIZE];
+
   for x in 0..CHUNK_SIZE {
     for z in 0..CHUNK_SIZE {
       let (noise_x, noise_y) = ((offset.x + x as i32) as f32, (offset.z + z as i32) as f32);
@@ -97,6 +104,8 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
         if height < 0 { height /= 2 }
         height
       };
+      //add to heightmap
+      heightmap[x as usize][z as usize] = height;
       //place dirt
       for y in 0..local_height(height, chunk_position) {
         blocks[x][y][z] = Block::Dirt;
@@ -111,6 +120,34 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       if let Some(y) = local_y_position(height, chunk_position) {
         blocks[x][y][z] = Block::Grass;
       }
+    }
+  }
+  
+  //Carve out caves
+  if within_heightmap {
+    for z in 0..CHUNK_SIZE {
+      for y in 0..CHUNK_SIZE {
+        for x in 0..CHUNK_SIZE {
+          if blocks[x][y][z] == Block::Air { continue }
+          let position = ivec3(x as i32, y as i32, z as i32) + offset;
+          let raw_cavemap_value_a = cave_noise_a.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+          let raw_cavemap_value_b = cave_noise_b.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+          let raw_cavemap_value_holes = cave_noise_holes.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
+          let is_cave = (-0.1..=0.1).contains(&raw_cavemap_value_a) && (-0.1..=0.1).contains(&raw_cavemap_value_b);
+          let is_hole_cave = (0.9..=1.0).contains(&raw_cavemap_value_holes.abs());
+          if is_cave || is_hole_cave {
+            blocks[x][y][z] = Block::Air;
+          }
+        }
+      }
+    }
+  }
+
+  //Add decorations
+  for x in 0..CHUNK_SIZE {
+    for z in 0..CHUNK_SIZE {
+      //get height
+      let height = heightmap[x][z];
       //place tall grass
       if rng_map_a[x][z] < 0.03 {
         if let Some(y) = local_y_position(height + 1, chunk_position) {
@@ -160,25 +197,6 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       }
     }
   }
-  
-  //Carve out caves
-  if within_heightmap {
-    for z in 0..CHUNK_SIZE {
-      for y in 0..CHUNK_SIZE {
-        for x in 0..CHUNK_SIZE {
-          if blocks[x][y][z] == Block::Air { continue }
-          let position = ivec3(x as i32, y as i32, z as i32) + offset;
-          let raw_cavemap_value_a = cave_noise_a.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
-          let raw_cavemap_value_b = cave_noise_b.get_noise3d(position.x as f32, position.y as f32, position.z as f32);
-          let is_cave = (-0.1..=0.1).contains(&raw_cavemap_value_a) && (-0.1..=0.1).contains(&raw_cavemap_value_b);
-          if is_cave {
-            blocks[x][y][z] = Block::Air;
-          }
-        }
-      }
-    }
-  }
-
   (blocks, queue)
   
   // let mut cave_noise = FastNoise::seeded(seed);
