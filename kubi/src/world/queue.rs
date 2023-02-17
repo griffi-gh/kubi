@@ -32,6 +32,9 @@ pub fn apply_queued_blocks(
   //maybe i need to check for desired/current state here before marking as  dirty?
   queue.queue.retain(|&event| {
     if let Some(block) = world.get_block_mut(event.position) {
+      if event.soft && *block != Block::Air {
+        return false
+      }
       *block = event.value;
       //mark chunk as dirty
       let (chunk_pos, block_pos) = ChunkStorage::to_chunk_coords(event.position);

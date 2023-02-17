@@ -114,14 +114,16 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       }
       //place trees!
       if rng_map_a[x][z] < 0.001 {
+        //Place wood (no smart_place needed here!)
+        let tree_height = 4 + (rng_map_b[x][z] * 3.).round() as i32;
+        for tree_y in 0..tree_height {
+          if let Some(y) = local_y_position(height + 1 + tree_y, chunk_position) {
+            blocks[x][y][z] = Block::Wood;
+          }
+        }
+        //Place leaf blocks
         if let Some(y) = local_y_position(height + 1, chunk_position) {
           let tree_pos = ivec3(x as i32, y as i32, z as i32);
-          let tree_height = 4 + (rng_map_b[x][z] * 3.).round() as i32;
-          for tree_y in 0..tree_height {
-            if let Some(y) = local_y_position(offset.y + tree_y, chunk_position) {
-              blocks[x][y][z] = Block::Wood;
-            }
-          }
           // Part that wraps around the tree
           {
             let tree_leaf_height = tree_height - 3;

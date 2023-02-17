@@ -142,7 +142,7 @@ pub fn draw_current_chunk_border(
         Quat::default(), 
         world_position
       ).to_cols_array_2d(),
-      color: [0.15f32; 4],
+      color: [0.25f32; 4],
       view: view,
       perspective: perspective,
     },
