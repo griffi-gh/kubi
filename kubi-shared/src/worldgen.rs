@@ -119,18 +119,21 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       let height = {
         let local_elevation = raw_elevation_value.powi(4).sqrt();
         let mut height = (mountain_ramp(raw_heightmap_value) * local_elevation * 100.) as i32;
+        //Flatten valleys
+        if height < 0 {
+          height /= 2; 
+        }
         //Generate rivers
         {
           let river_value = river_noise.get_noise(noise_x, noise_y);
           if (-0.00625..0.00625).contains(&(river_value.powi(2))) {
             is_surface = false;
             river_fill_height = Some(height);
-            height -= (20. * (0.00625 - river_value.powi(2)) * (1. / 0.00625)).round() as i32;
+            height -= (15. * (0.00625 - river_value.powi(2)) * (1. / 0.00625)).round() as i32;
           }
         }
+        //Generate ravines
         if height < 0 {
-          height /= 2; //Flatten valleys
-          //Generate ravines
           if raw_ravine_location_value > 0.4 {
             let raw_ravine_value = ravine_nose_line.get_noise(noise_x, noise_y);
             if (-0.0125..0.0125).contains(&(raw_ravine_value.powi(2))) {
