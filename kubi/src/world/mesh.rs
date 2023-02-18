@@ -43,10 +43,17 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
             for face in CubeFace::iter() {
               let facing_direction = face.normal();
               let facing_coord = coord + facing_direction;
-              let facing_descriptor = get_block(facing_coord).descriptor();
+              let facing_block = get_block(facing_coord);
+              let facing_descriptor = facing_block.descriptor();
               let face_obstructed = match descriptor.render {
                 RenderType::SolidBlock(_) => matches!(facing_descriptor.render, RenderType::SolidBlock(_)),
-                RenderType::BinaryTransparency(_) => matches!(facing_descriptor.render, RenderType::SolidBlock(_) | RenderType::BinaryTransparency(_)),
+                RenderType::BinaryTransparency(_) => {
+                  match facing_descriptor.render {
+                    RenderType::SolidBlock(_) => true,
+                    RenderType::BinaryTransparency(_) => block == facing_block,
+                    _ => false,
+                  }
+                },
                 _ => unreachable!(),
               };
               if !face_obstructed {

@@ -124,7 +124,7 @@ impl Block {
         name: "water",
         render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::WaterSolid)),
         collision: CollisionType::None,
-        raycast_collision: false,
+        raycast_collision: true,
       },
     }
   }
