@@ -12,7 +12,7 @@ log = "*"
 shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66" }
 serde = "1.0"
 toml = "0.7"
-glam = { version = "0.22", features = ["debug-glam-assert", "fast-math"] }
+glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"] }
 hashbrown = "0.13"
 nohash-hasher = "0.2.0"
 anyhow = "1.0"

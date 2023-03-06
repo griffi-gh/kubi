@@ -7,7 +7,7 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-glam = { version = "0.22", features = ["debug-glam-assert", "fast-math", "serde"] }
+glam = { version = "0.23", features = ["debug-glam-assert", "fast-math", "serde"] }
 shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66" }
 strum = { version = "0.24", features = ["derive"] }
 bincode = "2.0.0-rc"
