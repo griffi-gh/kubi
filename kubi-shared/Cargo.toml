@@ -8,7 +8,7 @@ publish = false
 
 [dependencies]
 glam = { version = "0.22", features = ["debug-glam-assert", "fast-math", "serde"] }
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "e30dece" }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66" }
 strum = { version = "0.24", features = ["derive"] }
 bincode = "2.0.0-rc"
 anyhow = "1.0"
