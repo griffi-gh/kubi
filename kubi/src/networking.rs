@@ -111,7 +111,7 @@ pub fn update_networking() -> Workload {
     (
       check_server_hello_response,
     ).into_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
-  ).into_sequential_workload() //Fixes
+  ).into_sequential_workload() //HACK Weird issues with shipyard removed
 }
 
 pub fn disconnect_on_exit(
