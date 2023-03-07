@@ -14,7 +14,7 @@ pub mod tasks;
 
 use chunk::Chunk;
 
-use self::{tasks::{ChunkTaskManager, ChunkTask, ChunkTaskResponse}, chunk::ChunkState};
+use self::{tasks::{ChunkTaskManager, ChunkTask, ChunkTaskResponse, init_chunk_task_manager}, chunk::ChunkState};
 
 #[derive(Unique, Default)]
 pub struct ChunkManager {
@@ -99,7 +99,8 @@ fn init_chunk_manager(
 
 pub fn init_world() -> Workload {
   (
-    init_chunk_manager
+    init_chunk_manager,
+    init_chunk_task_manager,
   ).into_workload()
 }
 

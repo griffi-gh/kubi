@@ -4,4 +4,4 @@ max_clients = 254
 timeout_ms = 10000
 
 [world]
-seed = 0xbeef_face_dead_cafe
+seed = 0xfeb_face_dead_cafe
