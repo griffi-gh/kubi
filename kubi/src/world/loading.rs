@@ -1,12 +1,14 @@
 use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
+use kubi_shared::networking::messages::ClientToServerMessage;
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use crate::{
   player::MainPlayer,
   transform::Transform,
   settings::GameSettings,
   rendering::Renderer, 
-  state::GameState
+  state::GameState, 
+  networking::UdpClient,
 };
 use super::{
   ChunkStorage, ChunkMeshStorage,
@@ -118,6 +120,7 @@ fn unload_downgrade_chunks(
 
 fn start_required_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
+  udp_client: Option<UniqueView<UdpClient>>,
   mut world: UniqueViewMut<ChunkStorage>,
 ) {
   if !world.is_modified() {
@@ -130,10 +133,16 @@ fn start_required_tasks(
     match chunk.desired_state {
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         //start load task
-        task_manager.spawn_task(ChunkTask::LoadChunk {
-          seed: 0xbeef_face_dead_cafe,
-          position
-        });
+        if let Some(client) = &udp_client {
+          client.0.send_message(ClientToServerMessage::ChunkRequest {
+            chunk: position.to_array()
+          }).unwrap();
+        } else {
+          task_manager.spawn_task(ChunkTask::LoadChunk {
+            seed: 0xbeef_face_dead_cafe,
+            position
+          });
+        }
         //Update chunk state
         let chunk = world.chunks.get_mut(&position).unwrap();
         chunk.current_state = CurrentChunkState::Loading;

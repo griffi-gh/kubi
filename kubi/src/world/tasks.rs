@@ -77,24 +77,6 @@ impl ChunkTaskManager {
   }
 }
 
-pub fn spawn_task_or_get_from_network_if_possible(client: Option<&mut UdpClient>, manager: &mut ChunkTaskManager, task: ChunkTask) {
-  match &task {
-    ChunkTask::LoadChunk { seed, position } => {
-      match client {
-        Some(client) => {
-          client.0.send_message(ClientToServerMessage::ChunkRequest { chunk: position.to_array() }).unwrap();
-        },
-        None => {
-          manager.spawn_task(task)
-        }
-      }
-    },
-    _ => {
-      manager.spawn_task(task)
-    }
-  }
-}
-
 //TODO get rid of this, this is awfulll
 pub fn inject_network_responses_into_manager_queue(
   manager: UniqueView<ChunkTaskManager>,
