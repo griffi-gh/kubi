@@ -9,7 +9,7 @@ use std::{
 use crate::{
   BINCODE_CONFIG, 
   packet::{ClientPacket, IdClientPacket, IdServerPacket, ServerPacket, Message},
-  common::{ClientId, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID}
+  common::{ClientId, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID, PACKET_SIZE}
 };
 
 #[derive(Default, Clone, Debug)]
@@ -201,7 +201,7 @@ impl<S, R> Client<S, R> where S: Message, R: Message {
       self.last_heartbeat = Instant::now();
     }
     //receive
-    let mut buf = [0; u16::MAX as usize];
+    let mut buf = [0; PACKET_SIZE];
     loop {
       match self.socket.recv(&mut buf) {
         Ok(length) => {

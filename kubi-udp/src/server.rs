@@ -10,7 +10,7 @@ use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use crate::{
   BINCODE_CONFIG,
-  common::{ClientId, ClientIdRepr, MAX_CLIENTS, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID},
+  common::{ClientId, ClientIdRepr, MAX_CLIENTS, PROTOCOL_ID, DEFAULT_USER_PROTOCOL_ID, PACKET_SIZE},
   packet::{IdClientPacket, ClientPacket, ServerPacket, IdServerPacket, Message}
 };
 
@@ -177,7 +177,7 @@ impl<S, R> Server<S, R> where S: Message, R: Message {
       true
     });
 
-    let mut buf = [0; u16::MAX as usize];
+    let mut buf = [0; PACKET_SIZE];
     loop {
       match self.socket.recv_from(&mut buf) {
         Ok((len, addr)) => {
