@@ -6,7 +6,6 @@ publish = false
 
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
-kubi-udp = { path = "../kubi-udp" }
 kubi-logging = { path = "../kubi-logging" }
 log = "*"
 glium = "0.32"
