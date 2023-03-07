@@ -2,7 +2,6 @@ use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllSto
 use glam::IVec3;
 use hashbrown::HashMap;
 use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage};
-use kubi_udp::server::ServerEvent;
 use crate::{
   server::{UdpServer, ServerEvents}, 
   config::ConfigTable,
