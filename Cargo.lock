@@ -928,6 +928,7 @@ name = "kubi-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "flume",
  "glam",
  "hashbrown 0.13.2",
  "kubi-logging",
@@ -935,6 +936,7 @@ dependencies = [
  "kubi-udp",
  "log",
  "nohash-hasher",
+ "rayon",
  "serde",
  "shipyard",
  "toml",

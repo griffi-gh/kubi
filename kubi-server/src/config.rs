@@ -10,9 +10,15 @@ pub struct ConfigTableServer {
   pub password: Option<String>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ConfigTableWorld {
+  pub seed: u64,
+}
+
 #[derive(Unique, Serialize, Deserialize)]
 pub struct ConfigTable {
-  pub server: ConfigTableServer
+  pub server: ConfigTableServer,
+  pub world: ConfigTableWorld,
 }
 
 pub fn read_config(

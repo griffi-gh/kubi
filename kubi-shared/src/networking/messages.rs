@@ -1,7 +1,6 @@
 use std::num::NonZeroUsize;
-
 use bincode::{Encode, Decode};
-use crate::chunk::BlockData;
+use crate::{chunk::BlockData, block::Block};
 
 type IVec3Arr = [i32; 3];
 type Vec3Arr = [f32; 3];
@@ -20,7 +19,7 @@ pub enum ClientToServerMessage {
     velocity: Vec3Arr,
     direction: QuatArr,
   },
-  ChunkRequest {
+  ChunkSubRequest {
     chunk: IVec3Arr,
   },
 }
@@ -54,6 +53,7 @@ pub enum ServerToClientMessage {
   },
   ChunkResponse {
     chunk: IVec3Arr,
-    data: BlockData
+    data: BlockData,
+    queued: Vec<(IVec3Arr, Block)>,
   }
 }

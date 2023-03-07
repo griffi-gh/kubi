@@ -134,7 +134,7 @@ fn start_required_tasks(
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         //start load task
         if let Some(client) = &udp_client {
-          client.0.send_message(ClientToServerMessage::ChunkRequest {
+          client.0.send_message(ClientToServerMessage::ChunkSubRequest {
             chunk: position.to_array()
           }).unwrap();
         } else {

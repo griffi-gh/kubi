@@ -83,12 +83,15 @@ pub fn inject_network_responses_into_manager_queue(
   events: View<NetworkEvent>
 ) {
   for event in events.iter() {
-    if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { chunk, data }) = &event.0 {
+    if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { chunk, data, queued }) = &event.0 {
       let position = IVec3::from_array(*chunk);
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
         position, 
         chunk_data: data.clone(),
-        queued: Vec::with_capacity(0)
+        queued: queued.iter().map(|&(position, block_type)| QueuedBlock {
+          position: IVec3::from_array(position),
+          block_type
+        }).collect()
       });
     }
   }
