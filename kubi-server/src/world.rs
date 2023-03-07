@@ -70,6 +70,7 @@ fn process_finished_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut chunk_manager: UniqueViewMut<ChunkManager>,
 ) {
+  let mut limit: usize = 8;
   while let Some(res) = task_manager.receive() {
     let ChunkTaskResponse::ChunkLoaded { chunk_position, blocks, queue } = res;
     let Some(chunk) = chunk_manager.chunks.get_mut(&chunk_position) else {
@@ -89,7 +90,12 @@ fn process_finished_tasks(
         queued: queue.iter().map(|item| (item.position.to_array(), item.block_type)).collect()
       }).map_err(log_error).ok();
     }
-    log::debug!("Chunk {chunk_position} loaded, {} subs", chunk.subscriptions.len())
+    log::debug!("Chunk {chunk_position} loaded, {} subs", chunk.subscriptions.len());
+    //HACK: Implement proper flow control/reliable transport in kubi-udp
+    limit -= 1;
+    if limit == 0 {
+      break; 
+    }
   }
 }
 
