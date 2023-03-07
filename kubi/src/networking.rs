@@ -111,7 +111,7 @@ pub fn update_networking() -> Workload {
     (
       check_server_hello_response,
     ).into_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
-  ).into_workload()
+  ).into_sequential_workload() //Fixes
 }
 
 pub fn disconnect_on_exit(
@@ -133,7 +133,7 @@ pub fn disconnect_on_exit(
 fn if_just_connected(
   network_events: View<NetworkEvent>,
 ) -> bool {
-  network_events.iter().any(|event| matches!(event.0, ClientEvent::Connected(_)))
+  network_events.iter().any(|event| matches!(&event.0, ClientEvent::Connected(_)))
 }
 
 fn is_join_state<const STATE: u8>(
