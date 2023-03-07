@@ -18,9 +18,6 @@ use chunk::{Chunk, ChunkMesh, CHUNK_SIZE};
 use tasks::ChunkTaskManager;
 use queue::BlockUpdateQueue;
 
-//TODO separate world struct for render data
-// because this is not send-sync
-
 #[derive(Default, Unique)]
 pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>

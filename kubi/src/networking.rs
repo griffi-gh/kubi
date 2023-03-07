@@ -1,4 +1,4 @@
-use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter};
+use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use kubi_udp::client::{Client, ClientConfig, ClientEvent};
@@ -6,7 +6,6 @@ use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage},
   state::ClientJoinState
 };
-
 use crate::{events::EventComponent, control_flow::SetControlFlow};
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
@@ -36,15 +35,17 @@ fn create_client(
   storages.add_unique(ClientJoinState::Disconnected);
 }
 
-fn connect_client_if_needed(
+fn connect_client(
   mut client: UniqueViewMut<UdpClient>
 ) {
-  //NOTE: this used to be a condition function
-  //but that caused some issues for no reason
-  if client.0.has_not_made_connection_attempts() {
-    log::info!("Connect called");
-    client.0.connect().unwrap();
-  }
+  log::info!("Connect called");
+  client.0.connect().unwrap();
+}
+
+fn should_connect(
+  client: UniqueView<UdpClient>
+) -> bool {
+  client.0.has_not_made_connection_attempts()
 }
 
 fn update_client(
@@ -67,12 +68,49 @@ fn insert_client_events(
   }));
 }
 
+fn set_client_join_state_to_connected(
+  mut join_state: UniqueViewMut<ClientJoinState>
+) {
+  log::info!("Setting ClientJoinState");
+  *join_state = ClientJoinState::Connected;
+}
+
+fn say_hello(
+  client: UniqueViewMut<UdpClient>,
+) {
+  log::info!("Authenticating");
+  client.0.send_message(ClientToServerMessage::ClientHello {
+    username: "Sbeve".into(),
+    password: None
+  }).unwrap();
+}
+
+fn check_server_hello_response(
+  network_events: View<NetworkEvent>,
+  mut join_state: UniqueViewMut<ClientJoinState>
+) {
+  for event in network_events.iter() {
+    if let ClientEvent::MessageReceived(ServerToClientMessage::ServerHello { init }) = &event.0 {
+      log::info!("Joined the server!");
+      //TODO handle init data
+      *join_state = ClientJoinState::Joined;
+    }
+  }
+}
+
 pub fn update_networking() -> Workload {
   (
     create_client.run_if_missing_unique::<UdpClient>(),
-    connect_client_if_needed,
+    connect_client.run_if(should_connect),
     update_client,
     insert_client_events,
+    (
+      set_client_join_state_to_connected,
+      say_hello,
+    ).into_workload().run_if(if_just_connected),
+    (
+      check_server_hello_response,
+    ).into_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
   ).into_workload()
 }
 
@@ -88,6 +126,20 @@ pub fn disconnect_on_exit(
       log::info!("Client disconnected");
     }
   }
+}
+
+// conditions
+
+fn if_just_connected(
+  network_events: View<NetworkEvent>,
+) -> bool {
+  network_events.iter().any(|event| matches!(event.0, ClientEvent::Connected(_)))
+}
+
+fn is_join_state<const STATE: u8>(
+  join_state: UniqueView<ClientJoinState>
+) -> bool {
+  (*join_state as u8) == STATE
 }
 
 pub fn is_multiplayer(

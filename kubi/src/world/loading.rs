@@ -34,7 +34,7 @@ pub fn update_chunks_if_player_moved(
   mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {
   //Check if the player actually moved 
-  //TODO fix this also triggers on rotation, only activate when the player crosses the chnk border
+  //TODO fix this also triggers on rotation, only activate when the player crosses the chunk border
   let Some((_, transform)) = (&v_local_player, v_transform.inserted_or_modified()).iter().next() else {
     return
   };

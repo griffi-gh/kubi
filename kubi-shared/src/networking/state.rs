@@ -1,7 +1,8 @@
 use shipyard::{Unique, Component};
 
 // disconnected => connect => join => load => ingame
-#[derive(Unique, Component, PartialEq, Eq, Clone, Copy)]
+#[derive(Unique, Component, PartialEq, Eq, Clone, Copy, Debug)]
+#[repr(u8)]
 pub enum ClientJoinState {
   /// Not connected yet
   Disconnected,

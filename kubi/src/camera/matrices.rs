@@ -20,7 +20,6 @@ fn update_perspective_matrix(
   mut vm_camera: ViewMut<Camera>,
   resize: View<WindowResizedEvent>,
 ) {
-  //TODO update on launch
   let Some(&size) = resize.iter().next() else {
     return
   };

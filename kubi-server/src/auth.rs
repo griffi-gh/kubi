@@ -16,6 +16,8 @@ pub fn authenticate_players(
         password
       } 
     } = event {
+      log::info!("ClientHello from {} with username {} and password {:?}", from, username, password);
+
       // Handle password auth
       if let Some(server_password) = &config.server.password {
         if let Some(user_password) = &password {
@@ -34,12 +36,12 @@ pub fn authenticate_players(
       }
 
       //Spawn the user
-      //  TODO
+      //TODO Spawn the user on server side
 
       //Approve the user
       server.0.send_message(*from, ServerToClientMessage::ServerHello {
         init: InitData {
-          users: todo!()
+          users: vec![] //TODO create init data
         }
       }).map_err(log_error).ok();
     }
