@@ -54,6 +54,7 @@ fn process_chunk_requests(
       } else {
         let mut chunk = Chunk::new(chunk_position);
         chunk.state = ChunkState::Loading;
+        chunk.subscriptions.insert(*client_id);
         chunk_manager.chunks.insert(chunk_position, chunk);
         task_manager.spawn_task(ChunkTask::LoadChunk {
           position: chunk_position,
@@ -88,6 +89,7 @@ fn process_finished_tasks(
         queued: queue.iter().map(|item| (item.position.to_array(), item.block_type)).collect()
       }).map_err(log_error).ok();
     }
+    log::debug!("Chunk {chunk_position} loaded, {} subs", chunk.subscriptions.len())
   }
 }
 

@@ -1,4 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, EntityId, Unique, AllStoragesViewMut, ViewMut, Get, SystemModificator, track};
+use glium::glutin::event::VirtualKeyCode;
 use glam::{Mat3, vec2};
 use crate::{
   world::ChunkStorage, 
@@ -7,7 +8,9 @@ use crate::{
   gui::{
     GuiComponent, 
     progressbar::ProgressbarComponent
-  }, rendering::{WindowSize, if_resized}, 
+  },
+  rendering::{WindowSize, if_resized}, 
+  input::RawKbmInputState, 
 };
 
 #[derive(Unique, Clone, Copy)]
@@ -69,6 +72,15 @@ fn switch_to_ingame_if_loaded(
   }
 }
 
+fn override_loading(
+  kbm_state: UniqueView<RawKbmInputState>,
+  mut state: UniqueViewMut<NextState>
+) {
+  if kbm_state.keyboard_state.contains(&VirtualKeyCode::F) {
+    state.0 = Some(GameState::InGame);
+  }
+}
+
 fn despawn_loading_screen_if_switching_state(
   mut storages: AllStoragesViewMut,
 ) {
@@ -85,6 +97,7 @@ pub fn update_loading_screen() -> Workload {
     spawn_loading_screen.run_if_missing_unique::<ProgressbarId>(),
     resize_progress_bar.run_if(if_resized),
     update_progress_bar_progress,
+    override_loading,
     switch_to_ingame_if_loaded,
     despawn_loading_screen_if_switching_state.run_if(is_changing_state),
   ).into_workload()

@@ -110,7 +110,7 @@ fn update() -> Workload {
     (
       update_networking,
       inject_network_responses_into_manager_queue,
-    ).into_workload().run_if(is_multiplayer),
+    ).into_sequential_workload().run_if(is_multiplayer),
     (
       switch_to_loading_if_connected
     ).into_workload().run_if(is_connecting),

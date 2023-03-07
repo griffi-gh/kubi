@@ -80,7 +80,7 @@ fn test_connection() {
             log::info!("client received message");
             assert_eq!(data, STC_MSG, "Received message not equal");
             message_received = true;
-            client.disconnect();
+            client.disconnect().unwrap();
           },
           _ => ()
         }

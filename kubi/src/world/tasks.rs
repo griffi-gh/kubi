@@ -1,7 +1,7 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
 use kubi_shared::{
-  networking::messages::{ClientToServerMessage, ServerToClientMessage}, 
+  networking::messages::ServerToClientMessage, 
   worldgen::QueuedBlock
 };
 use shipyard::{Unique, UniqueView, View, IntoIter};
@@ -13,7 +13,7 @@ use super::{
 };
 use crate::{
   rendering::world::ChunkVertex, 
-  networking::{UdpClient, NetworkEvent}
+  networking::NetworkEvent,
 };
 use kubi_udp::client::ClientEvent;
 
