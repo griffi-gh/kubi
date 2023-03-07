@@ -2,7 +2,6 @@ use glam::IVec3;
 use hashbrown::HashSet;
 use nohash_hasher::BuildNoHashHasher;
 use kubi_shared::chunk::BlockData;
-use kubi_udp::{ClientId, ClientIdRepr};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ChunkState {

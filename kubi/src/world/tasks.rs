@@ -15,7 +15,6 @@ use crate::{
   rendering::world::ChunkVertex, 
   networking::NetworkEvent,
 };
-use kubi_udp::client::ClientEvent;
 
 pub enum ChunkTask {
   LoadChunk {

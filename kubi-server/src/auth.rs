@@ -1,6 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut};
 use kubi_shared::networking::messages::{ClientToServerMessage, ServerToClientMessage, InitData};
-use kubi_udp::server::ServerEvent;
 use crate::{server::{ServerEvents, UdpServer}, config::ConfigTable, util::log_error};
 
 pub fn authenticate_players(

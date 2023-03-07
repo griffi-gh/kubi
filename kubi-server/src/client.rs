@@ -1,7 +1,6 @@
 use shipyard::{Component, EntityId};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
-use kubi_udp::{ClientId, ClientIdRepr};
 
 #[derive(Component)]
 pub struct Client(ClientId);

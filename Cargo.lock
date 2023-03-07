@@ -906,7 +906,6 @@ dependencies = [
  "image",
  "kubi-logging",
  "kubi-shared",
- "kubi-udp",
  "log",
  "nohash-hasher",
  "rayon",
@@ -933,7 +932,6 @@ dependencies = [
  "hashbrown 0.13.2",
  "kubi-logging",
  "kubi-shared",
- "kubi-udp",
  "log",
  "nohash-hasher",
  "rayon",
@@ -954,18 +952,6 @@ dependencies = [
  "rand_xoshiro",
  "shipyard",
  "strum",
-]
-
-[[package]]
-name = "kubi-udp"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "hashbrown 0.13.2",
- "kubi-logging",
- "log",
- "nohash-hasher",
 ]
 
 [[package]]

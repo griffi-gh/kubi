@@ -1,7 +1,6 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use kubi_udp::client::{Client, ClientConfig, ClientEvent};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage},
   state::ClientJoinState
