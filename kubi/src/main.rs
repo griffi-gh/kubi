@@ -47,7 +47,7 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::inject_network_responses_into_manager_queue, ChunkStorage
+  tasks::{inject_network_responses_into_manager_queue, ChunkTaskManager}, ChunkStorage
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -97,8 +97,6 @@ fn startup() -> Workload {
     lock_cursor_now,
     init_input,
     init_gui,
-    
-    
     insert_control_flow_unique,
     init_delta_time,
   ).into_workload()
@@ -109,22 +107,22 @@ fn update() -> Workload {
     update_cursor_lock_state,
     process_inputs,
     (
-      init_game_world.run_if_missing_unique::<ChunkStorage>(),
+      init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
       spawn_player.run_if_storage_empty::<MainPlayer>(),
-    ).into_workload().run_if(is_ingame_or_loading),
+    ).into_sequential_workload().run_if(is_ingame_or_loading).tag("game_init"),
     (
       update_networking,
-      inject_network_responses_into_manager_queue,
-    ).into_sequential_workload().run_if(is_multiplayer),
+      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading),
+    ).into_sequential_workload().run_if(is_multiplayer).tag("networking").after_all("game_init"),
     (
       switch_to_loading_if_connected
-    ).into_workload().run_if(is_connecting),
+    ).into_workload().run_if(is_connecting).after_all("networking"),
     (
       update_loading_screen,
-    ).into_workload().run_if(is_loading),
+    ).into_workload().run_if(is_loading).after_all("game_init"),
     (
       update_loaded_world_around_player,
-    ).into_workload().run_if(is_ingame_or_loading),
+    ).into_workload().run_if(is_ingame_or_loading).after_all("game_init"),
     (
       update_controllers,
       generate_move_events,
