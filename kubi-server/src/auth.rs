@@ -1,4 +1,4 @@
-use shipyard::{UniqueView, UniqueViewMut, NonSendSync};
+use shipyard::{UniqueView, NonSendSync};
 use uflow::{server::Event as ServerEvent, SendMode};
 use kubi_shared::networking::messages::{
   ClientToServerMessage,
@@ -8,11 +8,11 @@ use kubi_shared::networking::messages::{
 };
 use crate::{
   server::{ServerEvents, UdpServer, IsMessageOfType}, 
-  config::ConfigTable, util::log_error
+  config::ConfigTable
 };
 
 pub fn authenticate_players(
-  mut server: NonSendSync<UniqueViewMut<UdpServer>>,
+  server: NonSendSync<UniqueView<UdpServer>>,
   events: UniqueView<ServerEvents>,
   config: UniqueView<ConfigTable>
 ) {
@@ -36,7 +36,7 @@ pub fn authenticate_players(
       continue
     }
     let Ok(parsed_message) = postcard::from_bytes(data) else {
-      log::error!("Malformed message 00");
+      log::error!("Malformed message");
       continue
     };
     let ClientToServerMessage::ClientHello { username, password } = parsed_message else {

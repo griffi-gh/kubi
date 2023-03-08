@@ -3,7 +3,7 @@ use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage},
+  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
   state::ClientJoinState
 };
 use crate::{events::EventComponent, control_flow::SetControlFlow};
@@ -87,13 +87,23 @@ fn check_server_hello_response(
   mut join_state: UniqueViewMut<ClientJoinState>
 ) {
   for event in network_events.iter() {
-    if let ClientEvent::Receive(data) = &event.0 {
-      
-      log::info!("Joined the server!");
-      //TODO handle init data
-      *join_state = ClientJoinState::Joined;
-      return;
+    let ClientEvent::Receive(data) = &event.0 else {
+      continue
+    };
+    if !event.is_message_of_type::<S_SERVER_HELLO>() {
+      continue
     }
+    let Ok(parsed_message) = postcard::from_bytes(data) else {
+      log::error!("Malformed message");
+      continue
+    };
+    let ServerToClientMessage::ServerHello { init } = parsed_message else {
+      unreachable!()
+    };
+    //TODO handle init data
+    *join_state = ClientJoinState::Joined;
+    log::info!("Joined the server!");
+    return;
   }
 }
 
@@ -119,7 +129,7 @@ pub fn disconnect_on_exit(
     if client.0.is_active() {
       client.0.flush();
       client.0.disconnect();
-      while client.0.is_active() { client.0.step(); }
+      while client.0.is_active() { client.0.step().for_each(|_|()); }
       log::info!("Client disconnected");
     } else {
       log::info!("Client inactive")
