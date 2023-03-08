@@ -112,7 +112,7 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame_or_loading).tag("game_init"),
     (
       update_networking,
-      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading),
+      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(),
     ).into_sequential_workload().run_if(is_multiplayer).tag("networking").after_all("game_init"),
     (
       switch_to_loading_if_connected
