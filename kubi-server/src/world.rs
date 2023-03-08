@@ -86,7 +86,7 @@ fn process_finished_tasks(
       server.0.send_message(subscriber, ServerToClientMessage::ChunkResponse {
         chunk: chunk_position.to_array(),
         data: blocks.clone(),
-        queued: queue.iter().map(|item| (item.position.to_array(), item.block_type)).collect()
+        queued: queue
       }).map_err(log_error).ok();
     }
     log::debug!("Chunk {chunk_position} loaded, {} subs", chunk.subscriptions.len());

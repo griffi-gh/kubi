@@ -1,6 +1,7 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
+use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage},
   state::ClientJoinState
@@ -17,43 +18,34 @@ pub enum GameType {
 pub struct ServerAddress(pub SocketAddr);
 
 #[derive(Unique)]
-pub struct UdpClient(pub Client<ClientToServerMessage, ServerToClientMessage>);
+pub struct UdpClient(pub Client);
 
 #[derive(Component)]
-pub struct NetworkEvent(pub ClientEvent<ServerToClientMessage>);
+pub struct NetworkEvent(pub ClientEvent);
 
-fn create_client(
+impl NetworkEvent {
+  ///Checks if postcard-encoded message has a type
+  pub fn is_message_of_type<const T: u8>(&self) -> bool {
+    let ClientEvent::Receive(data) = &self.0 else { return false };
+    if data.len() == 0 { return false }
+    data[0] == T
+  }
+}
+
+#[derive(Component)]
+pub struct NetworkMessageEvent(pub ServerToClientMessage);
+
+fn connect_client(
   storages: AllStoragesView
 ) {
   log::info!("Creating client");
   let address = storages.borrow::<UniqueView<ServerAddress>>().unwrap();
-  storages.add_unique(UdpClient(Client::new(
-    address.0, 
-    ClientConfig::default()
-  ).unwrap()));
+  let client = Client::connect(address.0, ClientConfig::default()).expect("Client connection failed");
+  storages.add_unique(UdpClient(client));
   storages.add_unique(ClientJoinState::Disconnected);
 }
 
-fn connect_client(
-  mut client: UniqueViewMut<UdpClient>
-) {
-  log::info!("Connect called");
-  client.0.connect().unwrap();
-}
-
-fn should_connect(
-  client: UniqueView<UdpClient>
-) -> bool {
-  client.0.has_not_made_connection_attempts()
-}
-
-fn update_client(
-  mut client: UniqueViewMut<UdpClient>,
-) {
-  client.0.update().unwrap();
-}
-
-fn insert_client_events(
+fn poll_client(
   mut client: UniqueViewMut<UdpClient>,
   mut entities: EntitiesViewMut,
   mut events: ViewMut<EventComponent>,
@@ -62,7 +54,7 @@ fn insert_client_events(
   entities.bulk_add_entity((
     &mut events,
     &mut network_events,
-  ), client.0.process_events().map(|event| {
+  ), client.0.step().map(|event| {
     (EventComponent, NetworkEvent(event))
   }));
 }
@@ -75,13 +67,19 @@ fn set_client_join_state_to_connected(
 }
 
 fn say_hello(
-  client: UniqueViewMut<UdpClient>,
+  mut client: UniqueViewMut<UdpClient>,
 ) {
   log::info!("Authenticating");
-  client.0.send_message(ClientToServerMessage::ClientHello {
-    username: "Sbeve".into(),
-    password: None
-  }).unwrap();
+  client.0.send(
+    postcard::to_allocvec(
+      &ClientToServerMessage::ClientHello {
+        username: "Sbeve".into(),
+        password: None
+      }
+    ).unwrap().into_boxed_slice(),
+    0,
+    uflow::SendMode::Reliable
+  );
 }
 
 fn check_server_hello_response(
@@ -89,20 +87,20 @@ fn check_server_hello_response(
   mut join_state: UniqueViewMut<ClientJoinState>
 ) {
   for event in network_events.iter() {
-    if let ClientEvent::MessageReceived(ServerToClientMessage::ServerHello { init }) = &event.0 {
+    if let ClientEvent::Receive(data) = &event.0 {
+      
       log::info!("Joined the server!");
       //TODO handle init data
       *join_state = ClientJoinState::Joined;
+      return;
     }
   }
 }
 
 pub fn update_networking() -> Workload {
   (
-    create_client.run_if_missing_unique::<UdpClient>(),
-    connect_client.run_if(should_connect),
-    update_client,
-    insert_client_events,
+    connect_client.run_if_missing_unique::<UdpClient>(),
+    poll_client,
     (
       set_client_join_state_to_connected,
       say_hello,
@@ -118,12 +116,19 @@ pub fn disconnect_on_exit(
   mut client: UniqueViewMut<UdpClient>,
 ) {
   if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
-    client.0.set_nonblocking(false).expect("Failed to switch socket to blocking mode");
-    if let Err(error) = client.0.disconnect() {
-      log::error!("failed to disconnect: {}", error);
-    } else {
+    if client.0.is_active() {
+      client.0.flush();
+      client.0.disconnect();
+      while client.0.is_active() { client.0.step(); }
       log::info!("Client disconnected");
+    } else {
+      log::info!("Client inactive")
     }
+    // if let Err(error) = client.0. {
+    //   log::error!("failed to disconnect: {}", error);
+    // } else {
+    //   log::info!("Client disconnected");
+    // }
   }
 }
 
@@ -132,7 +137,7 @@ pub fn disconnect_on_exit(
 fn if_just_connected(
   network_events: View<NetworkEvent>,
 ) -> bool {
-  network_events.iter().any(|event| matches!(&event.0, ClientEvent::Connected(_)))
+  network_events.iter().any(|event| matches!(&event.0, ClientEvent::Connect))
 }
 
 fn is_join_state<const STATE: u8>(

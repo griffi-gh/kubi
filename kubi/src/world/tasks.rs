@@ -1,11 +1,12 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
 use kubi_shared::{
-  networking::messages::ServerToClientMessage, 
-  worldgen::QueuedBlock
+  networking::messages::{S_CHUNK_RESPONSE, ServerToClientMessage}, 
+  queue::QueuedBlock
 };
 use shipyard::{Unique, UniqueView, View, IntoIter};
 use rayon::{ThreadPool, ThreadPoolBuilder};
+use uflow::client::Event as ClientEvent;
 use super::{
   chunk::BlockData,
   mesh::{generate_mesh, data::MeshGenData},
@@ -82,16 +83,24 @@ pub fn inject_network_responses_into_manager_queue(
   events: View<NetworkEvent>
 ) {
   for event in events.iter() {
-    if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { chunk, data, queued }) = &event.0 {
-      let position = IVec3::from_array(*chunk);
+    if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
+      let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
+      let ServerToClientMessage::ChunkResponse {
+        chunk, data, queued
+      } = postcard::from_bytes(data).expect("Chunk decode failed") else { unreachable!() };
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position, 
-        chunk_data: data.clone(),
-        queued: queued.iter().map(|&(position, block_type)| QueuedBlock {
-          position: IVec3::from_array(position),
-          block_type
-        }).collect()
+        position: IVec3::from_array(chunk), 
+        chunk_data: data,
+        queued
       });
     }
+    // if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { &chunk, data, queued }) = &event.0 {
+    //   let position = IVec3::from_array(chunk);
+    //   manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
+    //     position, 
+    //     chunk_data: data.clone(),
+    //     queued
+    //   });
+    // }
   }
 }
