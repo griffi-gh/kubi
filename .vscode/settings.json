@@ -3,6 +3,7 @@
   "rust-analyzer.diagnostics.disabled": [
     //rust-analyzer issue #14269,
     "unresolved-method", 
-    "unresolved-import"
+    "unresolved-import",
+    "unresolved-field"
   ]
 }
