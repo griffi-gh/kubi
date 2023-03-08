@@ -80,5 +80,7 @@ pub fn authenticate_players(
     client.borrow_mut().send(
       res, 0, SendMode::Reliable
     );
+
+    log::info!("{username} joined the game!")
   }
 }
