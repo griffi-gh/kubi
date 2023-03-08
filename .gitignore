@@ -11,3 +11,5 @@ target/
 
 #old source
 _src
+
+_visualizer.json

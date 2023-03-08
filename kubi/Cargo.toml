@@ -21,11 +21,13 @@ flume = "0.10"
 gilrs = { version = "0.10", default_features = false, features = ["xinput"] }
 uflow = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
+serde_json = { version = "1.0", optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3" }
 
 [features]
 default = []
+generate_visualizer_data = ["serde_json", "shipyard/serde1"]
 parallel = ["shipyard/parallel"]
 nightly = ["glam/core-simd", "kubi-shared/nightly"]

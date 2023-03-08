@@ -187,6 +187,13 @@ fn main() {
   world.add_workload(render);
   world.add_workload(after_frame_end);
 
+  //Save _visualizer.json
+  #[cfg(feature = "generate_visualizer_data")]
+  std::fs::write(
+    "_visualizer.json",
+    serde_json::to_string(&world.workloads_type_usage()).unwrap(),
+  ).unwrap();
+
   //Run startup systems
   world.run_workload(startup).unwrap();
 
