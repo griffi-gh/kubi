@@ -4,7 +4,8 @@ use glam::{IVec3, ivec3, Vec3Swizzles, IVec2};
 use rand_xoshiro::Xoshiro256StarStar;
 use crate::{
   chunk::{BlockData, CHUNK_SIZE},
-  block::Block
+  block::Block,
+  queue::QueuedBlock,
 };
 
 fn mountain_ramp(mut x: f32) -> f32 {
@@ -29,10 +30,6 @@ fn local_y_position(height: i32, chunk_position: IVec3) -> Option<usize> {
   (0..CHUNK_SIZE as i32).contains(&position).then_some(position as usize)
 }
 
-pub struct QueuedBlock {
-  pub position: IVec3,
-  pub block_type: Block,
-}
 
 pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<QueuedBlock>) {
   let offset = chunk_position * CHUNK_SIZE as i32;
@@ -47,7 +44,8 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       });
       queue.push(QueuedBlock {
         position: event_pos, 
-        block_type: block
+        block_type: block,
+        soft: true
       });
     } else {
       blocks[position.x as usize][position.y as usize][position.z as usize] = block;

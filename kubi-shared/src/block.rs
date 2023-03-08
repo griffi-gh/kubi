@@ -1,7 +1,7 @@
-use bincode::{Encode, Decode};
+use serde::{Serialize, Deserialize};
 use strum::EnumIter;
 
-#[derive(Clone, Copy, Debug, EnumIter)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, EnumIter)]
 #[repr(u8)]
 pub enum BlockTexture {
   Stone,
@@ -22,7 +22,7 @@ pub enum BlockTexture {
   WaterSolid,
 }
 
-#[derive(Encode, Decode, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
 #[repr(u8)]
 pub enum Block {
   Air,

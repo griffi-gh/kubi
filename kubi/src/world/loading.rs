@@ -2,6 +2,8 @@ use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use kubi_shared::networking::messages::ClientToServerMessage;
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
+use kubi_shared::queue::QueuedBlock;
+use uflow::SendMode;
 use crate::{
   player::MainPlayer,
   transform::Transform,
@@ -14,7 +16,7 @@ use super::{
   ChunkStorage, ChunkMeshStorage,
   chunk::{Chunk, DesiredChunkState, CHUNK_SIZE, ChunkMesh, CurrentChunkState, ChunkData},
   tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask}, 
-  queue::{BlockUpdateQueue, BlockUpdateEvent},
+  queue::BlockUpdateQueue
 };
 
 const MAX_CHUNK_OPS_INGAME: usize = 6;
@@ -120,7 +122,7 @@ fn unload_downgrade_chunks(
 
 fn start_required_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
-  udp_client: Option<UniqueView<UdpClient>>,
+  mut udp_client: Option<UniqueViewMut<UdpClient>>,
   mut world: UniqueViewMut<ChunkStorage>,
 ) {
   if !world.is_modified() {
@@ -133,10 +135,14 @@ fn start_required_tasks(
     match chunk.desired_state {
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         //start load task
-        if let Some(client) = &udp_client {
-          client.0.send_message(ClientToServerMessage::ChunkSubRequest {
-            chunk: position.to_array()
-          }).unwrap();
+        if let Some(client) = &mut udp_client {
+          client.0.send(
+            postcard::to_allocvec(&ClientToServerMessage::ChunkSubRequest {
+              chunk: position.to_array()
+            }).unwrap().into_boxed_slice(),
+            0,
+            SendMode::Reliable
+          );
         } else {
           task_manager.spawn_task(ChunkTask::LoadChunk {
             seed: 0xbeef_face_dead_cafe,
@@ -208,12 +214,9 @@ fn process_completed_tasks(
         chunk.current_state = CurrentChunkState::Loaded;
 
         //push queued blocks
-        for event in queued {
-          queue.push(BlockUpdateEvent {
-            position: event.position,
-            value: event.block_type,
-            soft: true,
-          });
+        //TODO use extend
+        for item in queued {
+          queue.push(item);
         }
 
         //increase ops counter

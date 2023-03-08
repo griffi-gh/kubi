@@ -5,7 +5,8 @@ use rayon::{ThreadPool, ThreadPoolBuilder};
 use anyhow::Result;
 use kubi_shared::{
   chunk::BlockData, 
-  worldgen::{QueuedBlock, generate_world}
+  worldgen::generate_world,
+  queue::QueuedBlock,
 };
 
 pub enum ChunkTask {

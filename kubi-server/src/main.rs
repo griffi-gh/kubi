@@ -5,29 +5,31 @@ pub(crate) mod util;
 pub(crate) mod config;
 pub(crate) mod server;
 pub(crate) mod client;
-pub(crate) mod world;
+//pub(crate) mod world;
 pub(crate) mod auth;
 
 use config::read_config;
-use server::{bind_server, update_server, update_server_events};
+use server::{bind_server, update_server, log_server_errors};
 use auth::authenticate_players;
-use world::{update_world, init_world};
+//use world::{update_world, init_world};
 
 fn initialize() -> Workload {
   (
     read_config,
     bind_server,
-    init_world,
+    //init_world,
   ).into_workload()
 }
 
 fn update() -> Workload {
   (
     update_server,
-    update_server_events,
-    authenticate_players,
-    update_world,
-  ).into_workload()
+    (
+      log_server_errors,
+      authenticate_players,
+      //update_world,
+    ).into_workload()
+  ).into_sequential_workload()
 }
 
 fn main() {

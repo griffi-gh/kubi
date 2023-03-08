@@ -126,7 +126,7 @@ impl MeshBuilder {
     let face_type = face_type as usize;
     let vertices = CROSS_FACES[face_type];
     let normal_front = CROSS_FACE_NORMALS[face_type].to_array();
-    let normal_back = CROSS_FACE_NORMALS[face_type].to_array();
+    let normal_back = CROSS_FACE_NORMALS_BACK[face_type].to_array();
     self.vertex_buffer.reserve(8);
     for i in 0..4 { //push front vertices
       self.vertex_buffer.push(ChunkVertex {

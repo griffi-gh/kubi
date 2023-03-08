@@ -1,26 +1,17 @@
 use glam::{IVec3, ivec3};
-use kubi_shared::{block::Block, chunk::CHUNK_SIZE};
+use kubi_shared::{block::Block, chunk::CHUNK_SIZE, queue::QueuedBlock};
 use shipyard::{UniqueViewMut, Unique};
-
 use super::ChunkStorage;
-
-#[derive(Clone, Copy, Debug)]
-pub struct BlockUpdateEvent {
-  pub position: IVec3,
-  pub value: Block,
-  //Only replace air blocks
-  pub soft: bool,
-}
 
 #[derive(Unique, Default, Clone)]
 pub struct BlockUpdateQueue {
-  queue: Vec<BlockUpdateEvent>
+  queue: Vec<QueuedBlock>
 }
 impl BlockUpdateQueue {
   pub fn new() -> Self {
     Self::default()
   }
-  pub fn push(&mut self, event: BlockUpdateEvent) {
+  pub fn push(&mut self, event: QueuedBlock) {
     self.queue.push(event)
   }
 }
@@ -35,7 +26,7 @@ pub fn apply_queued_blocks(
       if event.soft && *block != Block::Air {
         return false
       }
-      *block = event.value;
+      *block = event.block_type;
       //mark chunk as dirty
       let (chunk_pos, block_pos) = ChunkStorage::to_chunk_coords(event.position);
       let chunk = world.chunks.get_mut(&chunk_pos).expect("This error should never happen, if it does then something is super fucked up and the whole project needs to be burnt down.");

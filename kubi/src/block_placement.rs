@@ -1,9 +1,12 @@
 use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut, Component, Workload, IntoWorkload};
 use glium::glutin::event::VirtualKeyCode;
-use kubi_shared::block::Block;
+use kubi_shared::{
+  block::Block,
+  queue::QueuedBlock,
+};
 use crate::{
   player::MainPlayer, 
-  world::{raycast::{LookingAtBlock, RAYCAST_STEP}, queue::{BlockUpdateQueue, BlockUpdateEvent}}, 
+  world::{raycast::{LookingAtBlock, RAYCAST_STEP}, queue::BlockUpdateQueue}, 
   input::{Inputs, PrevInputs, RawKbmInputState}, 
   events::{EventComponent, player_actions::PlayerActionEvent},
 };
@@ -67,9 +70,9 @@ fn block_placement_system(
       (ray.block_position, Block::Air)
     };
     //queue place
-    block_event_queue.push(BlockUpdateEvent {
+    block_event_queue.push(QueuedBlock {
       position: place_position,
-      value: place_block,
+      block_type: place_block,
       soft: place_block != Block::Air,
     });
     //send event
