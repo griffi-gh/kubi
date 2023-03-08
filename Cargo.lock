@@ -961,10 +961,13 @@ dependencies = [
  "kubi-shared",
  "log",
  "nohash-hasher",
+ "postcard",
+ "rand",
  "rayon",
  "serde",
  "shipyard",
  "toml",
+ "uflow",
 ]
 
 [[package]]
