@@ -1,4 +1,4 @@
-use shipyard::{Component, AllStoragesViewMut};
+use shipyard::{Component, AllStoragesViewMut, View, IntoIter};
 use crate::{
   transform::Transform,
   camera::Camera, 
@@ -6,9 +6,7 @@ use crate::{
   world::raycast::LookingAtBlock, 
   block_placement::PlayerHolding,
 };
-
-#[derive(Component)]
-pub struct Player;
+pub use kubi_shared::player::Player;
 
 #[derive(Component)]
 pub struct MainPlayer;
@@ -17,7 +15,7 @@ pub fn spawn_player (
   mut storages: AllStoragesViewMut
 ) {
   log::info!("spawning player");
-  storages.add_entity((
+  let entity_id = storages.add_entity((
     Player,
     MainPlayer,
     Transform::default(),

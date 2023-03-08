@@ -7,7 +7,8 @@
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
-  NonSendSync, WorkloadModificator, SystemModificator
+  NonSendSync, WorkloadModificator, 
+  SystemModificator
 };
 use glium::{
   glutin::{
@@ -46,9 +47,9 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::inject_network_responses_into_manager_queue
+  tasks::inject_network_responses_into_manager_queue, ChunkStorage
 };
-use player::spawn_player;
+use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
 use settings::load_settings;
 use camera::compute_cameras;
@@ -96,8 +97,8 @@ fn startup() -> Workload {
     lock_cursor_now,
     init_input,
     init_gui,
-    init_game_world,
-    spawn_player,
+    
+    
     insert_control_flow_unique,
     init_delta_time,
   ).into_workload()
@@ -107,6 +108,10 @@ fn update() -> Workload {
     update_window_size,
     update_cursor_lock_state,
     process_inputs,
+    (
+      init_game_world.run_if_missing_unique::<ChunkStorage>(),
+      spawn_player.run_if_storage_empty::<MainPlayer>(),
+    ).into_workload().run_if(is_ingame_or_loading),
     (
       update_networking,
       inject_network_responses_into_manager_queue,
