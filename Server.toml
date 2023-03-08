@@ -1,0 +1,7 @@
+[server]
+address = "0.0.0.0:12345"
+max_clients = 254
+timeout_ms = 10000
+
+[world]
+seed = 0xfeb_face_dead_cafe

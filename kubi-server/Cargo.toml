@@ -1,0 +1,26 @@
+[package]
+name = "kubi-server"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+kubi-shared = { path = "../kubi-shared" }
+kubi-logging = { path = "../kubi-logging" }
+log = "*"
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66", features = ["thread_local"] }
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
+toml = "0.7"
+glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"] }
+hashbrown = "0.13"
+nohash-hasher = "0.2.0"
+anyhow = "1.0"
+rayon = "1.6"
+flume = "0.10"
+rand = "0.8"
+uflow = "0.7"
+postcard = { version = "1.0", features = ["alloc"] }
+
+[features]
+default = []
+nightly = ["rand/nightly", "rand/simd_support", "serde/unstable", "glam/core-simd", "kubi-shared/nightly"]
