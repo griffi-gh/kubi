@@ -112,17 +112,18 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame_or_loading).tag("game_init"),
     (
       update_networking,
-      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(),
-    ).into_sequential_workload().run_if(is_multiplayer).tag("networking").after_all("game_init"),
+      //I don't know why skip_if_missing_unique is required??
+      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(), 
+    ).into_sequential_workload().run_if(is_multiplayer).tag("networking"),
     (
       switch_to_loading_if_connected
-    ).into_workload().run_if(is_connecting).after_all("networking"),
+    ).into_workload().run_if(is_connecting),
     (
       update_loading_screen,
-    ).into_workload().run_if(is_loading).after_all("game_init"),
+    ).into_workload().run_if(is_loading),
     (
       update_loaded_world_around_player,
-    ).into_workload().run_if(is_ingame_or_loading).after_all("game_init"),
+    ).into_workload().run_if(is_ingame_or_loading),
     (
       update_controllers,
       generate_move_events,
