@@ -8,7 +8,7 @@ publish = false
 
 [dependencies]
 glam = { version = "0.23", features = ["debug-glam-assert", "fast-math", "serde"] }
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66" }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66", default-features = false, features = ["std"] }
 strum = { version = "0.24", features = ["derive"] }
 postcard = { version = "1.0", features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }

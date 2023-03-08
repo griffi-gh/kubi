@@ -1,6 +1,6 @@
 use glam::{Vec3, Mat4};
-use shipyard::{ViewMut, View, IntoIter, Workload, IntoWorkload, track};
-use crate::{transform::Transform, events::WindowResizedEvent};
+use shipyard::{ViewMut, View, IntoIter, Workload, IntoWorkload, track, UniqueView, SystemModificator};
+use crate::{transform::Transform, rendering::WindowSize, events::WindowResizedEvent};
 use super::Camera;
 
 //maybe parallelize these two?
@@ -18,11 +18,8 @@ fn update_view_matrix(
 
 fn update_perspective_matrix(
   mut vm_camera: ViewMut<Camera>,
-  resize: View<WindowResizedEvent>,
+  size: UniqueView<WindowSize>,
 ) {
-  let Some(&size) = resize.iter().next() else {
-    return
-  };
   for mut camera in (&mut vm_camera).iter() {
     camera.perspective_matrix = Mat4::perspective_rh_gl(
       camera.fov, 
@@ -33,9 +30,19 @@ fn update_perspective_matrix(
   }
 }
 
+fn need_perspective_calc(
+  v_camera: View<Camera>,
+  resize_event: View<WindowResizedEvent>,
+) -> bool {
+  (resize_event.len() > 0) ||
+  (v_camera.iter().any(|camera| {
+    camera.perspective_matrix == Mat4::default()
+  }))
+}
+
 pub fn update_matrices() -> Workload {
   (
     update_view_matrix, 
-    update_perspective_matrix,
+    update_perspective_matrix.run_if(need_perspective_calc),
   ).into_workload()
 }
