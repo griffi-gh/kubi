@@ -8,6 +8,7 @@ pub const PROTOCOL_ID: u16 = 3;
 pub const C_CLIENT_HELLO: u8 = 0;
 pub const C_POSITION_CHANGED: u8 = 1;
 pub const C_CHUNK_SUB_REQUEST: u8 = 2;
+pub const C_QUEUE_BLOCK: u8 = 3;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[repr(u8)]
@@ -24,12 +25,16 @@ pub enum ClientToServerMessage {
   ChunkSubRequest {
     chunk: IVec3,
   } = C_CHUNK_SUB_REQUEST,
+  QueueBlock {
+    item: QueuedBlock
+  } = C_QUEUE_BLOCK,
 }
 
 pub const S_SERVER_HELLO: u8 = 0;
 pub const S_SERVER_FUCK_OFF: u8 = 1;
 pub const S_PLAYER_POSITION_CHANGED: u8 = 2;
 pub const S_CHUNK_RESPONSE: u8 = 3;
+pub const S_QUEUE_BLOCK: u8 = 4;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[repr(u8)]
@@ -51,6 +56,9 @@ pub enum ServerToClientMessage {
     data: BlockData,
     queued: Vec<QueuedBlock>,
   } = S_CHUNK_RESPONSE,
+  QueueBlock {
+    item: QueuedBlock
+  } = S_QUEUE_BLOCK,
 }
 
 //---
