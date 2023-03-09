@@ -20,6 +20,7 @@ flume = "0.10"
 rand = "0.8"
 uflow = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
+lz4_flex = { version = "0.10", default-features = false, features = ["checked-decode"] }
 
 [features]
 default = []

@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::{chunk::BlockData, queue::QueuedBlock};
 use super::client::ClientId;
 
-pub const PROTOCOL_ID: u16 = 2;
+pub const PROTOCOL_ID: u16 = 3;
 
 pub const C_CLIENT_HELLO: u8 = 0;
 pub const C_POSITION_CHANGED: u8 = 1;
@@ -45,6 +45,7 @@ pub enum ServerToClientMessage {
     position: Vec3,
     direction: Quat,
   } = S_PLAYER_POSITION_CHANGED,
+  ///WARNING: THIS IS COMPRESSED
   ChunkResponse {
     chunk: IVec3,
     data: BlockData,

@@ -939,6 +939,7 @@ dependencies = [
  "kubi-logging",
  "kubi-shared",
  "log",
+ "lz4_flex",
  "nohash-hasher",
  "postcard",
  "rayon",
@@ -968,6 +969,7 @@ dependencies = [
  "kubi-logging",
  "kubi-shared",
  "log",
+ "lz4_flex",
  "nohash-hasher",
  "postcard",
  "rand",
@@ -1055,6 +1057,12 @@ checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "lz4_flex"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b8c72594ac26bfd34f2d99dfced2edfaddfe8a476e3ff2ca0eb293d925c4f83"
 
 [[package]]
 name = "mach"
