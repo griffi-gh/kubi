@@ -50,7 +50,10 @@ pub enum ServerToClientMessage {
     position: Vec3,
     direction: Quat,
   } = S_PLAYER_POSITION_CHANGED,
-  ///WARNING: THIS IS COMPRESSED
+  ///## WARNING: THIS IS COMPRESSED  
+  ///MESSAGES OF THIS TYPE ARE FULLY 
+  ///COMPRESSED EXCEPT THE FIRST BYTE
+  ///TO REDUCE NETWORK USAGE
   ChunkResponse {
     chunk: IVec3,
     data: BlockData,
