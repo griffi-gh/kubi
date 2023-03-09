@@ -2,6 +2,8 @@ use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, Int
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
+use lz4_flex::decompress_size_prepended;
+use anyhow::{Result, Context};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO, S_CHUNK_RESPONSE},
   state::ClientJoinState, 
@@ -108,8 +110,16 @@ fn check_server_hello_response(
   }
 }
 
+//TODO multithreaded decompression
+fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
+  let data_ref = &data[1..];
+  let decompressed = decompress_size_prepended(data_ref).ok().context("Decompress failed")?;
+  let deserialized = postcard::from_bytes(&decompressed)?;
+  Ok(deserialized)
+}
+
 //TODO get rid of this, this is awfulll
-pub fn inject_network_responses_into_manager_queue(
+fn inject_network_responses_into_manager_queue(
   manager: UniqueView<ChunkTaskManager>,
   events: View<NetworkEvent>
 ) {
@@ -118,7 +128,7 @@ pub fn inject_network_responses_into_manager_queue(
       let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
       let ServerToClientMessage::ChunkResponse {
         chunk, data, queued
-      } = postcard::from_bytes(data).expect("Chunk decode failed") else { unreachable!() };
+      } = decompress_chunk_packet(data).expect("Chunk decode failed") else { unreachable!() };
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
         position: chunk, 
         chunk_data: data,
