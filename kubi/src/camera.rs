@@ -39,5 +39,5 @@ pub fn compute_cameras() -> Workload {
   (
     update_matrices,
     update_frustum,
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }

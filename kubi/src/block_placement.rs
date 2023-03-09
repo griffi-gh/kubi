@@ -90,5 +90,5 @@ pub fn update_block_placement() -> Workload {
   (
     pick_block_with_number_keys,
     block_placement_system
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }

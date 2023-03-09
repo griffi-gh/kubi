@@ -23,5 +23,5 @@ pub fn init_primitives() -> Workload {
   (
     init_cube_primitive,
     init_rect_primitive,
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }

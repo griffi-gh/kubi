@@ -99,7 +99,7 @@ fn startup() -> Workload {
     init_gui,
     insert_control_flow_unique,
     init_delta_time,
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }
 fn update() -> Workload {
   (
@@ -117,26 +117,26 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_multiplayer).tag("networking"),
     (
       switch_to_loading_if_connected
-    ).into_sequential_workload(/*into_workload*/).run_if(is_connecting),
+    ).into_sequential_workload().run_if(is_connecting),
     (
       update_loading_screen,
-    ).into_sequential_workload(/*into_workload*/).run_if(is_loading),
+    ).into_sequential_workload().run_if(is_loading),
     (
       update_loaded_world_around_player,
-    ).into_sequential_workload(/*into_workload*/).run_if(is_ingame_or_loading),
+    ).into_sequential_workload().run_if(is_ingame_or_loading),
     (
       update_controllers,
       generate_move_events,
       update_raycasts,
       update_block_placement,
       apply_queued_blocks,
-    ).into_sequential_workload(/*into_workload*/).run_if(is_ingame),
+    ).into_sequential_workload().run_if(is_ingame),
     compute_cameras,
     update_gui,
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }
 fn render() -> Workload {
   (
@@ -152,7 +152,7 @@ fn render() -> Workload {
 fn after_frame_end() -> Workload {
   (
     clear_events,
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }
 
 #[cfg(all(windows, not(debug_assertions)))]

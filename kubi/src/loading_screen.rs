@@ -100,5 +100,5 @@ pub fn update_loading_screen() -> Workload {
     override_loading,
     switch_to_ingame_if_loaded,
     despawn_loading_screen_if_switching_state.run_if(is_changing_state),
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }

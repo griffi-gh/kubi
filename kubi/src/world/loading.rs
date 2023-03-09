@@ -28,7 +28,7 @@ pub fn update_loaded_world_around_player() -> Workload {
     unload_downgrade_chunks,
     start_required_tasks,
     process_completed_tasks,
-  ).into_sequential_workload(/*into_workload*/)
+  ).into_sequential_workload()
 }
 
 pub fn update_chunks_if_player_moved(
