@@ -15,10 +15,16 @@ pub struct ConfigTableWorld {
   pub seed: u64,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ConfigTableQuery {
+  pub name: Option<String>
+}
+
 #[derive(Unique, Serialize, Deserialize)]
 pub struct ConfigTable {
   pub server: ConfigTableServer,
   pub world: ConfigTableWorld,
+  pub query: ConfigTableQuery,
 }
 
 pub fn read_config(

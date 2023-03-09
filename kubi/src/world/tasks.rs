@@ -89,7 +89,7 @@ pub fn inject_network_responses_into_manager_queue(
         chunk, data, queued
       } = postcard::from_bytes(data).expect("Chunk decode failed") else { unreachable!() };
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position: IVec3::from_array(chunk), 
+        position: chunk, 
         chunk_data: data,
         queued
       });

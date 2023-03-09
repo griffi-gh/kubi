@@ -4,7 +4,8 @@ use std::net::SocketAddr;
 use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
-  state::ClientJoinState
+  state::ClientJoinState, 
+  channels::CHANNEL_AUTH,
 };
 use crate::{events::EventComponent, control_flow::SetControlFlow};
 
@@ -77,7 +78,7 @@ fn say_hello(
         password: None
       }
     ).unwrap().into_boxed_slice(),
-    0,
+    CHANNEL_AUTH,
     uflow::SendMode::Reliable
   );
 }

@@ -138,7 +138,7 @@ fn start_required_tasks(
         if let Some(client) = &mut udp_client {
           client.0.send(
             postcard::to_allocvec(&ClientToServerMessage::ChunkSubRequest {
-              chunk: position.to_array()
+              chunk: position,
             }).unwrap().into_boxed_slice(),
             0,
             SendMode::Reliable

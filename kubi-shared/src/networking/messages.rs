@@ -1,10 +1,7 @@
-use std::num::NonZeroUsize;
+use glam::{Vec3, IVec3, Quat};
 use serde::{Serialize, Deserialize};
 use crate::{chunk::BlockData, queue::QueuedBlock};
-
-pub type IVec3Arr = [i32; 3];
-pub type Vec3Arr = [f32; 3];
-pub type QuatArr = [f32; 3];
+use super::client::ClientId;
 
 pub const PROTOCOL_ID: u16 = 2;
 
@@ -20,12 +17,12 @@ pub enum ClientToServerMessage {
     password: Option<String>,
   } = C_CLIENT_HELLO,
   PositionChanged {
-    position: Vec3Arr,
-    velocity: Vec3Arr,
-    direction: QuatArr,
+    position: Vec3,
+    velocity: Vec3,
+    direction: Quat,
   } = C_POSITION_CHANGED,
   ChunkSubRequest {
-    chunk: IVec3Arr,
+    chunk: IVec3,
   } = C_CHUNK_SUB_REQUEST,
 }
 
@@ -45,11 +42,11 @@ pub enum ServerToClientMessage {
   } = S_SERVER_FUCK_OFF,
   PlayerPositionChanged {
     client_id: u8,
-    position: Vec3Arr,
-    direction: QuatArr,
+    position: Vec3,
+    direction: Quat,
   } = S_PLAYER_POSITION_CHANGED,
   ChunkResponse {
-    chunk: IVec3Arr,
+    chunk: IVec3,
     data: BlockData,
     queued: Vec<QueuedBlock>,
   } = S_CHUNK_RESPONSE,
@@ -59,11 +56,11 @@ pub enum ServerToClientMessage {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserInitData {
-  pub client_id: NonZeroUsize, //maybe use the proper type instead
+  pub client_id: ClientId,
   pub username: String,
-  pub position: Vec3Arr,
-  pub velocity: Vec3Arr,
-  pub direction: QuatArr,
+  pub position: Vec3,
+  pub velocity: Vec3,
+  pub direction: Quat,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

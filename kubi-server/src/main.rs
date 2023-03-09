@@ -1,23 +1,25 @@
 use shipyard::{World, Workload, IntoWorkload};
 use std::{thread, time::Duration};
 
-pub(crate) mod util;
-pub(crate) mod config;
-pub(crate) mod server;
-pub(crate) mod client;
-//pub(crate) mod world;
-pub(crate) mod auth;
+mod util;
+mod config;
+mod server;
+mod client;
+mod world;
+mod auth;
 
 use config::read_config;
 use server::{bind_server, update_server, log_server_errors};
+use client::init_client_maps;
 use auth::authenticate_players;
-//use world::{update_world, init_world};
+use world::{update_world, init_world};
 
 fn initialize() -> Workload {
   (
     read_config,
     bind_server,
-    //init_world,
+    init_client_maps,
+    init_world,
   ).into_workload()
 }
 
@@ -27,7 +29,7 @@ fn update() -> Workload {
     (
       log_server_errors,
       authenticate_players,
-      //update_world,
+      update_world,
     ).into_workload()
   ).into_sequential_workload()
 }
