@@ -3,11 +3,11 @@ use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
+  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO, S_CHUNK_RESPONSE},
   state::ClientJoinState, 
   channels::CHANNEL_AUTH,
 };
-use crate::{events::EventComponent, control_flow::SetControlFlow};
+use crate::{events::EventComponent, control_flow::SetControlFlow, world::tasks::{ChunkTaskResponse, ChunkTaskManager}, state::is_ingame_or_loading};
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -108,6 +108,26 @@ fn check_server_hello_response(
   }
 }
 
+//TODO get rid of this, this is awfulll
+pub fn inject_network_responses_into_manager_queue(
+  manager: UniqueView<ChunkTaskManager>,
+  events: View<NetworkEvent>
+) {
+  for event in events.iter() {
+    if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
+      let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
+      let ServerToClientMessage::ChunkResponse {
+        chunk, data, queued
+      } = postcard::from_bytes(data).expect("Chunk decode failed") else { unreachable!() };
+      manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
+        position: chunk, 
+        chunk_data: data,
+        queued
+      });
+    }
+  }
+}
+
 pub fn update_networking() -> Workload {
   (
     connect_client.run_if_missing_unique::<UdpClient>(),
@@ -118,7 +138,8 @@ pub fn update_networking() -> Workload {
     ).into_sequential_workload().run_if(if_just_connected),
     (
       check_server_hello_response,
-    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
+    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
+    inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(),
   ).into_sequential_workload() //HACK Weird issues with shipyard removed
 }
 

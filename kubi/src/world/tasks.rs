@@ -1,21 +1,14 @@
 use flume::{Sender, Receiver};
 use glam::IVec3;
-use kubi_shared::{
-  networking::messages::{S_CHUNK_RESPONSE, ServerToClientMessage}, 
-  queue::QueuedBlock
-};
-use shipyard::{Unique, UniqueView, View, IntoIter};
+use kubi_shared::queue::QueuedBlock;
+use shipyard::Unique;
 use rayon::{ThreadPool, ThreadPoolBuilder};
-use uflow::client::Event as ClientEvent;
 use super::{
   chunk::BlockData,
   mesh::{generate_mesh, data::MeshGenData},
   worldgen::generate_world,
 };
-use crate::{
-  rendering::world::ChunkVertex, 
-  networking::NetworkEvent,
-};
+use crate::rendering::world::ChunkVertex;
 
 pub enum ChunkTask {
   LoadChunk {
@@ -74,33 +67,5 @@ impl ChunkTaskManager {
   }
   pub fn receive(&self) -> Option<ChunkTaskResponse> {
     self.channel.1.try_recv().ok()
-  }
-}
-
-//TODO get rid of this, this is awfulll
-pub fn inject_network_responses_into_manager_queue(
-  manager: UniqueView<ChunkTaskManager>,
-  events: View<NetworkEvent>
-) {
-  for event in events.iter() {
-    if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
-      let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
-      let ServerToClientMessage::ChunkResponse {
-        chunk, data, queued
-      } = postcard::from_bytes(data).expect("Chunk decode failed") else { unreachable!() };
-      manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position: chunk, 
-        chunk_data: data,
-        queued
-      });
-    }
-    // if let ClientEvent::MessageReceived(ServerToClientMessage::ChunkResponse { &chunk, data, queued }) = &event.0 {
-    //   let position = IVec3::from_array(chunk);
-    //   manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-    //     position, 
-    //     chunk_data: data.clone(),
-    //     queued
-    //   });
-    // }
   }
 }

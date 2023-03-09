@@ -47,7 +47,7 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::{inject_network_responses_into_manager_queue, ChunkTaskManager}, ChunkStorage
+  tasks::{ChunkTaskManager}, ChunkStorage
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -113,7 +113,6 @@ fn update() -> Workload {
     (
       update_networking,
       //I don't know why skip_if_missing_unique is required??
-      inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(), 
     ).into_sequential_workload().run_if(is_multiplayer).tag("networking"),
     (
       switch_to_loading_if_connected
