@@ -114,10 +114,10 @@ pub fn update_networking() -> Workload {
     (
       set_client_join_state_to_connected,
       say_hello,
-    ).into_workload().run_if(if_just_connected),
+    ).into_sequential_workload(/*into_workload*/).run_if(if_just_connected),
     (
       check_server_hello_response,
-    ).into_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
+    ).into_sequential_workload(/*into_workload*/).run_if(is_join_state::<{ClientJoinState::Connected as u8}>)
   ).into_sequential_workload() //HACK Weird issues with shipyard removed
 }
 

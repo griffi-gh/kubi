@@ -134,5 +134,5 @@ pub fn process_inputs() -> Workload {
     update_input_state,
     update_input_state_gamepad,
     input_end,
-  ).into_workload()
+  ).into_sequential_workload(/*into_workload*/)
 }

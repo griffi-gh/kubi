@@ -50,13 +50,13 @@ pub fn init_gui(
 pub fn update_gui() -> Workload {
   (
     update_gui_view
-  ).into_workload()
+  ).into_sequential_workload(/*into_workload*/)
 }
 
 pub fn render_gui() -> Workload {
   (
     render_progressbars
-  ).into_workload()
+  ).into_sequential_workload(/*into_workload*/)
 }
 
 // pub fn gui_testing(

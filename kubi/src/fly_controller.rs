@@ -10,7 +10,7 @@ pub fn update_controllers() -> Workload {
   (
     update_look,
     update_movement
-  ).into_workload()
+  ).into_sequential_workload(/*into_workload*/)
 }
 
 const MAX_PITCH: f32 = PI/2. - 0.05;
