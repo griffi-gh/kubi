@@ -112,8 +112,8 @@ fn check_server_hello_response(
 
 //TODO multithreaded decompression
 fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
-  let data_ref = &data[1..];
-  let decompressed = decompress_size_prepended(data_ref)?;
+  let mut decompressed = decompress_size_prepended(&data[1..])?;
+  decompressed.insert(0, data[0]);
   let deserialized = postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?;
   Ok(deserialized)
 }
