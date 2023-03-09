@@ -114,8 +114,7 @@ fn check_server_hello_response(
 fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
   let mut decompressed = decompress_size_prepended(&data[1..])?;
   decompressed.insert(0, data[0]);
-  let deserialized = postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?;
-  Ok(deserialized)
+  Ok(postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?)
 }
 
 //TODO get rid of this, this is awfulll
