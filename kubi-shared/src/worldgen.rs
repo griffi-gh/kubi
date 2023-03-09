@@ -242,6 +242,11 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
       }
       //place trees!
       if rng_map_a[x][z] < 0.001 {
+        //Replace grass with dirt under the tree
+        if let Some(y) = local_y_position(height, chunk_position) {
+          blocks[x][y][z] = Block::Dirt;
+        }
+
         //Place wood (no smart_place needed here!)
         let tree_height = 4 + (rng_map_b[x][z] * 3.).round() as i32;
         for tree_y in 0..tree_height {
