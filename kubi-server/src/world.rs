@@ -42,8 +42,7 @@ pub fn send_chunk_compressed(
   message: &ServerToClientMessage
 ) -> Result<()> {
   let mut ser_message = postcard::to_allocvec(&message)?;
-  let (_, data) = ser_message.split_at_mut(1);
-  let mut compressed = lz4_compress(&data);
+  let mut compressed = lz4_compress(&ser_message[1..]);
   ser_message.truncate(1);
   ser_message.append(&mut compressed);
   let ser_message = ser_message.into_boxed_slice();
