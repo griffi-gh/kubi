@@ -113,7 +113,7 @@ fn check_server_hello_response(
 //TODO multithreaded decompression
 fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
   let data_ref = &data[1..];
-  let decompressed = decompress_size_prepended(data_ref).map_err(|x| println!("{x}")).ok().context("Decompress failed")?;
+  let decompressed = decompress_size_prepended(data_ref)?;
   let deserialized = postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?;
   Ok(deserialized)
 }
@@ -126,9 +126,10 @@ fn inject_network_responses_into_manager_queue(
   for event in events.iter() {
     if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
       let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
+      let packet = decompress_chunk_packet(data).expect("Chunk decode failed");
       let ServerToClientMessage::ChunkResponse {
         chunk, data, queued
-      } = decompress_chunk_packet(data).expect("Chunk decode failed") else { unreachable!() };
+      } = packet else { unreachable!() };
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
         position: chunk, 
         chunk_data: data,
