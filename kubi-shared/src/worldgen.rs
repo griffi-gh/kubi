@@ -170,7 +170,7 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
             within_heightmap = true;
           }
           //Place stone
-          for y in 0..local_height(height - 1, chunk_position) {
+          for y in 0..local_height(height, chunk_position) {
             blocks[x][y][z] = Block::Stone;
             within_heightmap = true;
           }
