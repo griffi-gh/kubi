@@ -114,7 +114,7 @@ fn check_server_hello_response(
 fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
   let data_ref = &data[1..];
   let decompressed = decompress_size_prepended(data_ref).ok().context("Decompress failed")?;
-  let deserialized = postcard::from_bytes(&decompressed)?;
+  let deserialized = postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?;
   Ok(deserialized)
 }
 
