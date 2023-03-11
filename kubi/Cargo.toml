@@ -22,7 +22,7 @@ gilrs = { version = "0.10", default_features = false, features = ["xinput"] }
 uflow = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
 serde_json = { version = "1.0", optional = true }
-lz4_flex = { version = "0.10", default-features = false, features = ["checked-decode", "std"] }
+lz4_flex = { version = "0.10", default-features = false, features = ["std", "checked-decode"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3" }
@@ -30,5 +30,6 @@ winapi = { version = "0.3" }
 [features]
 default = []
 generate_visualizer_data = ["serde_json", "shipyard/serde1"]
+safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
 parallel = ["shipyard/parallel"]
 nightly = ["glam/core-simd", "kubi-shared/nightly"]
