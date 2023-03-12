@@ -112,7 +112,6 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame_or_loading).tag("game_init"),
     (
       update_networking,
-      //I don't know why skip_if_missing_unique is required??
     ).into_sequential_workload().run_if(is_multiplayer).tag("networking"),
     (
       switch_to_loading_if_connected
