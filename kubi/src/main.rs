@@ -47,7 +47,7 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::{ChunkTaskManager}, ChunkStorage
+  tasks::{ChunkTaskManager},
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -78,7 +78,7 @@ use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
-use networking::{update_networking, is_multiplayer, disconnect_on_exit};
+use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit};
 use init::initialize_from_args;
 use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
@@ -109,10 +109,8 @@ fn update() -> Workload {
     (
       init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
       spawn_player.run_if_storage_empty::<MainPlayer>(),
-    ).into_sequential_workload().run_if(is_ingame_or_loading).tag("game_init"),
-    (
-      update_networking,
-    ).into_sequential_workload().run_if(is_multiplayer).tag("networking"),
+    ).into_sequential_workload().run_if(is_ingame_or_loading),
+    update_networking.run_if(is_multiplayer),
     (
       switch_to_loading_if_connected
     ).into_sequential_workload().run_if(is_connecting),
@@ -129,6 +127,7 @@ fn update() -> Workload {
       update_block_placement,
       apply_queued_blocks,
     ).into_sequential_workload().run_if(is_ingame),
+    update_networking_late.run_if(is_multiplayer),
     compute_cameras,
     update_gui,
     update_state,

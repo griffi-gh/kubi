@@ -47,6 +47,7 @@ pub fn update_server(
   mut server: NonSendSync<UniqueViewMut<UdpServer>>,
   mut events: UniqueViewMut<ServerEvents>,
 ) {
+  server.0.flush();
   events.0.clear();
   events.0.extend(server.0.step());
 }

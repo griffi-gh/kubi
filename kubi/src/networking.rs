@@ -1,15 +1,23 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
+use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, SendMode};
 use lz4_flex::decompress_size_prepended;
 use anyhow::{Result, Context};
-use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO, S_CHUNK_RESPONSE},
-  state::ClientJoinState, 
-  channels::CHANNEL_AUTH,
+use kubi_shared::{
+  networking::{
+    messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO, S_CHUNK_RESPONSE, S_QUEUE_BLOCK},
+    state::ClientJoinState, 
+    channels::{CHANNEL_AUTH, CHANNEL_BLOCK},
+  }, 
+  queue::QueuedBlock
 };
-use crate::{events::EventComponent, control_flow::SetControlFlow, world::tasks::{ChunkTaskResponse, ChunkTaskManager}, state::is_ingame_or_loading};
+use crate::{
+  events::{EventComponent, player_actions::PlayerActionEvent}, 
+  control_flow::SetControlFlow, 
+  world::{tasks::{ChunkTaskResponse, ChunkTaskManager}, queue::BlockUpdateQueue}, 
+  state::is_ingame_or_loading
+};
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -60,6 +68,12 @@ fn poll_client(
   ), client.0.step().map(|event| {
     (EventComponent, NetworkEvent(event))
   }));
+}
+
+fn flush_client(
+  mut client: UniqueViewMut<UdpClient>,
+) {
+  client.0.flush();
 }
 
 fn set_client_join_state_to_connected(
@@ -138,6 +152,50 @@ fn inject_network_responses_into_manager_queue(
   }
 }
 
+fn send_block_place_events(
+  action_events: View<PlayerActionEvent>,
+  mut client: UniqueViewMut<UdpClient>,
+) {
+  for event in action_events.iter() {
+    let PlayerActionEvent::UpdatedBlock { position, block } = event else {
+      continue
+    };
+    client.0.send(
+      postcard::to_allocvec(&ClientToServerMessage::QueueBlock {
+        item: QueuedBlock { 
+          position: *position, 
+          block_type: *block, 
+          soft: false
+        }
+      }).unwrap().into_boxed_slice(), 
+      CHANNEL_BLOCK, 
+      SendMode::Reliable,
+    );
+  }
+}
+
+fn recv_block_place_events(
+  mut queue: UniqueViewMut<BlockUpdateQueue>,
+  network_events: View<NetworkEvent>,
+) {
+  for event in network_events.iter() {
+    let ClientEvent::Receive(data) = &event.0 else {
+      continue
+    };
+    if !event.is_message_of_type::<S_QUEUE_BLOCK>() {
+      continue
+    }
+    let Ok(parsed_message) = postcard::from_bytes(data) else {
+      log::error!("Malformed message");
+      continue
+    };
+    let ServerToClientMessage::QueueBlock { item } = parsed_message else {
+      unreachable!()
+    };
+    queue.push(item);
+  }
+}
+
 pub fn update_networking() -> Workload {
   (
     connect_client.run_if_missing_unique::<UdpClient>(),
@@ -147,10 +205,20 @@ pub fn update_networking() -> Workload {
       say_hello,
     ).into_sequential_workload().run_if(if_just_connected),
     (
-      check_server_hello_response,
-    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
+      check_server_hello_response
+    ).run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
+    (
+      recv_block_place_events
+    ).run_if(is_join_state::<{ClientJoinState::Joined as u8}>).run_if(is_ingame_or_loading),
     inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(),
-  ).into_sequential_workload() //HACK Weird issues with shipyard removed
+  ).into_sequential_workload()
+}
+
+pub fn update_networking_late() -> Workload {
+  (
+    send_block_place_events.run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
+    flush_client,
+  ).into_sequential_workload()
 }
 
 pub fn disconnect_on_exit(

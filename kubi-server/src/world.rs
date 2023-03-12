@@ -1,9 +1,9 @@
-use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllStoragesView, View, Get, NonSendSync};
+use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllStoragesView, View, Get, NonSendSync, IntoIter};
 use glam::IVec3;
 use hashbrown::HashMap;
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, C_CHUNK_SUB_REQUEST}, 
-  channels::CHANNEL_WORLD, 
+  messages::{ClientToServerMessage, ServerToClientMessage, C_CHUNK_SUB_REQUEST, C_QUEUE_BLOCK}, 
+  channels::{CHANNEL_WORLD, CHANNEL_BLOCK}, 
   client::Client,
 };
 use uflow::{
@@ -163,6 +163,59 @@ fn process_finished_tasks(
   }
 }
 
+fn process_block_queue_messages(
+  server: NonSendSync<UniqueView<UdpServer>>,
+  events: UniqueView<ServerEvents>,
+  addr_map: UniqueView<ClientAddressMap>,
+  clients: View<Client>,
+  addrs: View<ClientAddress>,
+) {
+  for event in &events.0 {
+    let ServerEvent::Receive(client_addr, data) = event else{
+      continue
+    };
+    if !event.is_message_of_type::<C_QUEUE_BLOCK>() {
+      continue
+    }
+    let Some(&entity_id) = addr_map.0.get(client_addr) else {
+      log::error!("Client not authenticated");
+      continue
+    };
+    let Ok(&Client(client_id)) = (&clients).get(entity_id) else {
+      log::error!("Entity ID is invalid");
+      continue
+    };
+    let Ok(parsed_message) = postcard::from_bytes(data) else {
+      log::error!("Malformed message");
+      continue
+    };
+    let ClientToServerMessage::QueueBlock { item } = parsed_message else {
+      unreachable!()
+    };
+    //TODO place in our own queue, for now just send to other clients
+    log::info!("Placed block {:?} at {}", item.block_type, item.position);
+    for (other_client, other_client_address) in (&clients, &addrs).iter() {
+      //No need to send the event back
+      if client_id == other_client.0 {
+        continue 
+      }
+      //Get client
+      let Some(client) = server.0.client(&other_client_address.0) else {
+        log::error!("Client with address not found");
+        continue
+      };
+      //Send the message
+      client.borrow_mut().send(
+        postcard::to_allocvec(
+          &ServerToClientMessage::QueueBlock { item }
+        ).unwrap().into_boxed_slice(), 
+        CHANNEL_BLOCK, 
+        SendMode::Reliable,
+      );
+    }
+  }
+}
+
 fn init_chunk_manager(
   storages: AllStoragesView
 ) {
@@ -180,5 +233,6 @@ pub fn update_world() -> Workload {
   (
     process_chunk_requests,
     process_finished_tasks,
+    process_block_queue_messages,
   ).into_workload()
 }
