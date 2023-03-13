@@ -34,6 +34,8 @@ pub fn bind_server(
       enable_handshake_errors: true,
       endpoint_config: EndpointConfig {
         active_timeout_ms: config.server.timeout_ms,
+        keepalive: true,
+        keepalive_interval_ms: 1000,
         ..Default::default()
       },
       ..Default::default()

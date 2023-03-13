@@ -1,7 +1,7 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
+use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
   state::ClientJoinState, 
@@ -54,7 +54,14 @@ fn connect_client(
 ) {
   log::info!("Creating client");
   let address = storages.borrow::<UniqueView<ServerAddress>>().unwrap();
-  let client = Client::connect(address.0, ClientConfig::default()).expect("Client connection failed");
+  let client = Client::connect(address.0, ClientConfig {
+    endpoint_config: EndpointConfig {
+      active_timeout_ms: 10000,
+      keepalive: true,
+      keepalive_interval_ms: 1000,
+      ..Default::default()
+    },
+  }).expect("Client connection failed");
   storages.add_unique(UdpClient(client));
   storages.add_unique(ClientJoinState::Disconnected);
 }
