@@ -1,22 +1,25 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, SendMode};
-use lz4_flex::decompress_size_prepended;
-use anyhow::{Result, Context};
-use kubi_shared::{
-  networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO, S_CHUNK_RESPONSE, S_QUEUE_BLOCK},
-    state::ClientJoinState, 
-    channels::{CHANNEL_AUTH, CHANNEL_BLOCK},
-  }, 
-  queue::QueuedBlock
+use uflow::client::{Client, Config as ClientConfig, Event as ClientEvent};
+use kubi_shared::networking::{
+  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
+  state::ClientJoinState, 
+  channels::CHANNEL_AUTH,
 };
 use crate::{
-  events::{EventComponent, player_actions::PlayerActionEvent}, 
+  events::EventComponent, 
   control_flow::SetControlFlow, 
-  world::{tasks::{ChunkTaskResponse, ChunkTaskManager}, queue::BlockUpdateQueue}, 
+  world::tasks::ChunkTaskManager, 
   state::is_ingame_or_loading
+};
+
+mod world;
+
+use world::{
+  inject_network_responses_into_manager_queue,
+  send_block_place_events,
+  recv_block_place_events,
 };
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
@@ -121,78 +124,6 @@ fn check_server_hello_response(
     *join_state = ClientJoinState::Joined;
     log::info!("Joined the server!");
     return;
-  }
-}
-
-//TODO multithreaded decompression
-fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
-  let mut decompressed = decompress_size_prepended(&data[1..])?;
-  decompressed.insert(0, data[0]);
-  Ok(postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?)
-}
-
-//TODO get rid of this, this is awfulll
-fn inject_network_responses_into_manager_queue(
-  manager: UniqueView<ChunkTaskManager>,
-  events: View<NetworkEvent>
-) {
-  for event in events.iter() {
-    if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
-      let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
-      let packet = decompress_chunk_packet(data).expect("Chunk decode failed");
-      let ServerToClientMessage::ChunkResponse {
-        chunk, data, queued
-      } = packet else { unreachable!() };
-      manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position: chunk, 
-        chunk_data: data,
-        queued
-      });
-    }
-  }
-}
-
-fn send_block_place_events(
-  action_events: View<PlayerActionEvent>,
-  mut client: UniqueViewMut<UdpClient>,
-) {
-  for event in action_events.iter() {
-    let PlayerActionEvent::UpdatedBlock { position, block } = event else {
-      continue
-    };
-    client.0.send(
-      postcard::to_allocvec(&ClientToServerMessage::QueueBlock {
-        item: QueuedBlock { 
-          position: *position, 
-          block_type: *block, 
-          soft: false
-        }
-      }).unwrap().into_boxed_slice(), 
-      CHANNEL_BLOCK, 
-      SendMode::Reliable,
-    );
-  }
-}
-
-fn recv_block_place_events(
-  mut queue: UniqueViewMut<BlockUpdateQueue>,
-  network_events: View<NetworkEvent>,
-) {
-  for event in network_events.iter() {
-    let ClientEvent::Receive(data) = &event.0 else {
-      continue
-    };
-    if !event.is_message_of_type::<S_QUEUE_BLOCK>() {
-      continue
-    }
-    let Ok(parsed_message) = postcard::from_bytes(data) else {
-      log::error!("Malformed message");
-      continue
-    };
-    let ServerToClientMessage::QueueBlock { item } = parsed_message else {
-      unreachable!()
-    };
-    queue.push(item);
   }
 }
 

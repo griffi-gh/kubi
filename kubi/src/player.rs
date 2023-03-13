@@ -1,4 +1,4 @@
-use shipyard::{Component, AllStoragesViewMut, View, IntoIter};
+use shipyard::{Component, AllStoragesViewMut};
 use crate::{
   transform::Transform,
   camera::Camera, 
@@ -15,7 +15,7 @@ pub fn spawn_player (
   mut storages: AllStoragesViewMut
 ) {
   log::info!("spawning player");
-  let entity_id = storages.add_entity((
+  storages.add_entity((
     Player,
     MainPlayer,
     Transform::default(),

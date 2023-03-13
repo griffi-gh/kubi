@@ -1,4 +1,4 @@
-use shipyard::{Component, EntityId, Unique, Workload, AllStoragesView};
+use shipyard::{Component, EntityId, Unique, AllStoragesView};
 use hashbrown::HashMap;
 use nohash_hasher::BuildNoHashHasher;
 use std::net::SocketAddr;
