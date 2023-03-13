@@ -9,7 +9,7 @@ pub struct Health {
   pub max: u8,
 }
 impl Health {
-  fn new(health: u8) -> Self {
+  pub fn new(health: u8) -> Self {
     Self {
       current: health,
       max: health

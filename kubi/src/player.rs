@@ -1,4 +1,8 @@
 use shipyard::{Component, AllStoragesViewMut};
+use kubi_shared::{
+  entity::{Entity, Health}, 
+  player::PLAYER_HEALTH
+};
 use crate::{
   transform::Transform,
   camera::Camera, 
@@ -18,6 +22,8 @@ pub fn spawn_player (
   storages.add_entity((
     Player,
     MainPlayer,
+    Entity,
+    Health::new(PLAYER_HEALTH),
     Transform::default(),
     Camera::default(),
     FlyController,

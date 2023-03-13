@@ -1,4 +1,4 @@
-use shipyard::{UniqueView, NonSendSync, EntitiesViewMut, ViewMut, UniqueViewMut};
+use shipyard::{UniqueView, NonSendSync, EntitiesViewMut, ViewMut, UniqueViewMut, AllStoragesView};
 use uflow::{server::Event as ServerEvent, SendMode};
 use kubi_shared::{
   networking::{
@@ -10,8 +10,8 @@ use kubi_shared::{
     }, 
     client::{Client, ClientId}, channels::CHANNEL_AUTH
   }, 
-  player::Player, 
-  transform::Transform
+  player::{Player, PLAYER_HEALTH}, 
+  transform::Transform, entity::{Entity, Health}
 };
 use crate::{
   server::{ServerEvents, UdpServer, IsMessageOfType}, 
@@ -20,17 +20,14 @@ use crate::{
 };
 
 pub fn authenticate_players(
-  mut entities: EntitiesViewMut,
-  mut players: ViewMut<Player>,
-  mut clients: ViewMut<Client>,
-  mut client_addrs: ViewMut<ClientAddress>,
-  mut transforms: ViewMut<Transform>,
-  mut client_entity_map: UniqueViewMut<ClientIdMap>,
-  mut client_addr_map: UniqueViewMut<ClientAddressMap>,
-  server: NonSendSync<UniqueView<UdpServer>>,
-  events: UniqueView<ServerEvents>,
-  config: UniqueView<ConfigTable>
+  storages: AllStoragesView,
 ) {
+  let mut client_entity_map = storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();
+  let mut client_addr_map = storages.borrow::<UniqueViewMut<ClientAddressMap>>().unwrap();
+  let server = storages.borrow::<NonSendSync<UniqueView<UdpServer>>>().unwrap();
+  let events = storages.borrow::<UniqueView<ServerEvents>>().unwrap();
+  let config = storages.borrow::<UniqueView<ConfigTable>>().unwrap();
+  
   for event in &events.0 {
     let ServerEvent::Receive(client_addr, data) = event else{
       continue
@@ -93,17 +90,23 @@ pub fn authenticate_players(
     };
 
     //Spawn the user
-    let entity_id = entities.add_entity((
-      &mut players,
-      &mut clients,
-      &mut client_addrs,
-      &mut transforms,
-    ), (
-      Player,
-      Client(client_id),
-      ClientAddress(*client_addr),
-      Transform::default(),
-    ));
+    let entity_id = {
+      storages.borrow::<EntitiesViewMut>().unwrap().add_entity((
+        &mut storages.borrow::<ViewMut<Entity>>().unwrap(),
+        &mut storages.borrow::<ViewMut<Player>>().unwrap(),
+        &mut storages.borrow::<ViewMut<Health>>().unwrap(),
+        &mut storages.borrow::<ViewMut<Client>>().unwrap(),
+        &mut storages.borrow::<ViewMut<ClientAddress>>().unwrap(),
+        &mut storages.borrow::<ViewMut<Transform>>().unwrap(),
+      ), (
+        Entity,
+        Player,
+        Health::new(PLAYER_HEALTH),
+        Client(client_id),
+        ClientAddress(*client_addr),
+        Transform::default(),
+      ))
+    };
 
     //Add the user to the ClientIdMap and ClientAddressMap
     client_entity_map.0.insert(client_id, entity_id);
