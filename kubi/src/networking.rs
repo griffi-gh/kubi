@@ -134,6 +134,19 @@ fn check_server_hello_response(
   }
 }
 
+fn handle_disconnect(
+  network_events: View<NetworkEvent>,
+  mut join_state: UniqueViewMut<ClientJoinState>
+) {
+  for event in network_events.iter() {
+    if matches!(event.0, ClientEvent::Disconnect) {
+      log::warn!("Disconnected from server");
+      *join_state = ClientJoinState::Disconnected;
+      return;
+    }
+  }
+}
+
 pub fn update_networking() -> Workload {
   (
     connect_client.run_if_missing_unique::<UdpClient>(),
@@ -143,8 +156,9 @@ pub fn update_networking() -> Workload {
       say_hello,
     ).into_sequential_workload().run_if(if_just_connected),
     (
-      check_server_hello_response
-    ).run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
+      check_server_hello_response,
+      handle_disconnect,
+    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
     (
       recv_block_place_events
     ).run_if(is_join_state::<{ClientJoinState::Joined as u8}>).run_if(is_ingame_or_loading),
