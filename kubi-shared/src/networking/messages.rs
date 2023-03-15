@@ -3,12 +3,13 @@ use serde::{Serialize, Deserialize};
 use crate::{chunk::BlockData, queue::QueuedBlock};
 use super::client::ClientId;
 
-pub const PROTOCOL_ID: u16 = 3;
+pub const PROTOCOL_ID: u16 = 0; //protocol id not used yet
 
 pub const C_CLIENT_HELLO: u8 = 0;
 pub const C_POSITION_CHANGED: u8 = 1;
 pub const C_CHUNK_SUB_REQUEST: u8 = 2;
-pub const C_QUEUE_BLOCK: u8 = 3;
+pub const C_CHUNK_UNUBSCRIBE: u8 = 3;
+pub const C_QUEUE_BLOCK: u8 = 4;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[repr(u8)]
@@ -25,6 +26,9 @@ pub enum ClientToServerMessage {
   ChunkSubRequest {
     chunk: IVec3,
   } = C_CHUNK_SUB_REQUEST,
+  ChunkUnsubscribe {
+    chunk: IVec3,
+  },
   QueueBlock {
     item: QueuedBlock
   } = C_QUEUE_BLOCK,
