@@ -1,0 +1,6 @@
+[target.'cfg(target_arch = "x86_64")']
+rustflags = "-C target-feature=+sse,+sse2,+sse3,+avx,+avx2,+fma"
+
+[registries.crates-io]
+protocol = "sparse"
+

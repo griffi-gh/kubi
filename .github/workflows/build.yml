@@ -8,30 +8,23 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TERM_VERBOSE: true
   CARGO_TERM_PROGRESS_WHEN: "never"
-  CARGO_PROFILE_RELEASE_LTO: "fat"
-  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 1
-  
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - uses: Swatinem/rust-cache@v2
     - name: Build
-      run: cargo build --release --package kubi --package kubi-server
+      run: cargo build
+        --release
+        --bin kubi
+        --bin kubi-server
     - uses: actions/upload-artifact@v3
       with:
-        name: release-linux
+        name: linux-x64-release
         path: |
           ./target/release/kubi
           ./target/release/kubi-server
           ./assets
-
-
-
-
