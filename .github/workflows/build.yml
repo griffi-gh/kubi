@@ -25,10 +25,14 @@ jobs:
         --release
         --bin kubi
         --bin kubi-server
+    - name: Create artifact
+      - run: |
+          mkdir artifact;
+          cp ./target/release/kubi ./artifact;
+          cp ./target/release/kubi-server ./artifact;
+          cp -r ./assets ./artifact;
     - uses: actions/upload-artifact@v3
       with:
         name: linux-x64-release
-        path: |
-          ./target/release/kubi
-          ./target/release/kubi-server
-          ./assets
+        path: ./artifact/linux/*
+        if-no-files-found: error
