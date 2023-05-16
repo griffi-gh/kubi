@@ -26,11 +26,11 @@ jobs:
         --bin kubi
         --bin kubi-server
     - name: Create artifact
-      - run: |
-          mkdir artifact;
-          cp ./target/release/kubi ./artifact;
-          cp ./target/release/kubi-server ./artifact;
-          cp -r ./assets ./artifact;
+      run: |
+        mkdir artifact;
+        cp ./target/release/kubi ./artifact;
+        cp ./target/release/kubi-server ./artifact;
+        cp -r ./assets ./artifact;
     - uses: actions/upload-artifact@v3
       with:
         name: linux-x64-release
