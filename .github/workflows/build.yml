@@ -34,5 +34,5 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: linux-x64-release
-        path: ./artifact/linux/*
+        path: ./artifact/*
         if-no-files-found: error
