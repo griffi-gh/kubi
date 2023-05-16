@@ -51,7 +51,7 @@ use world::{
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
-use settings::load_settings;
+use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
 use events::{
   clear_events, 
@@ -84,11 +84,17 @@ use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 
+/// stuff required to init the renderer and other basic systems
+fn pre_startup() -> Workload {
+  (
+    load_settings,
+  ).into_sequential_workload()
+}
+
 fn startup() -> Workload {
   (
     initial_resize_event,
     init_window_size,
-    load_settings,
     load_prefabs,
     init_primitives,
     insert_lock_state,
@@ -170,19 +176,26 @@ fn main() {
 
   //Create a shipyard world
   let mut world = World::new();
-
-  //Create event loop
-  let event_loop = EventLoop::new();
-
-  //Add systems and uniques, Init and load things
-  world.add_unique_non_send_sync(Renderer::init(&event_loop));
-  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
-
+  
   //Register workloads
+  world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
   world.add_workload(render);
   world.add_workload(after_frame_end);
+  
+  //Run pre-startup procedure
+  world.run_workload(pre_startup).unwrap();
+  
+  //Create event loop
+  let event_loop = EventLoop::new();
+
+  //Initialize renderer
+  {
+    let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
+    world.add_unique_non_send_sync(Renderer::init(&event_loop, &settings));
+  }
+  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
 
   //Save _visualizer.json
   #[cfg(feature = "generate_visualizer_data")]

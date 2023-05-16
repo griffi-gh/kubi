@@ -9,7 +9,7 @@ use glium::{
   }, 
 };
 use glam::{Vec3, UVec2};
-use crate::events::WindowResizedEvent;
+use crate::{events::WindowResizedEvent, settings::GameSettings};
 
 pub mod primitives;
 pub mod world;
@@ -29,13 +29,14 @@ pub struct Renderer {
   pub display: Display
 }
 impl Renderer {
-  pub fn init(event_loop: &EventLoop<()>) -> Self {
+  pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
     let wb = WindowBuilder::new()
       .with_title("uwu")
       .with_maximized(true);
     let cb = ContextBuilder::new()
       .with_depth_buffer(24)
+      .with_multisampling(settings.msaa.unwrap_or_default())
       .with_gl_profile(GlProfile::Core);
     let display = Display::new(wb, cb, event_loop)
       .expect("Failed to create a glium Display");

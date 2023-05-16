@@ -2,7 +2,7 @@ use shipyard::{Unique, AllStoragesView};
 
 #[derive(Unique)]
 pub struct GameSettings {
-  pub msaa: Option<u8>,
+  pub msaa: Option<u16>,
   pub max_anisotropy: Option<u16>,
   /// there's a 1 chunk border of loaded but invisible around this
   pub render_distance: u8,
@@ -24,6 +24,7 @@ impl Default for GameSettings {
 pub fn load_settings(
   storages: AllStoragesView
 ) {
+  log::info!("loading game settings");
   //todo
   storages.add_unique(GameSettings::default());
 }
