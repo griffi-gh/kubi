@@ -31,6 +31,7 @@ jobs:
         cp ./target/release/kubi ./artifact;
         cp ./target/release/kubi-server ./artifact;
         cp -r ./assets ./artifact;
+        cp ./Server.toml ./artifact;
     - uses: actions/upload-artifact@v3
       with:
         name: linux-x64-release
