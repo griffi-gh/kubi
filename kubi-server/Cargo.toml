@@ -25,4 +25,4 @@ lz4_flex = { version = "0.10", default-features = false, features = ["std", "che
 [features]
 default = []
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
-nightly = ["hashbrown/nightly", "rand/nightly", "rand/simd_support", "serde/unstable", "glam/core-simd", "kubi-shared/nightly"]
+nightly = ["hashbrown/nightly", "rand/nightly", "rand/simd_support", "glam/core-simd", "kubi-shared/nightly"]
