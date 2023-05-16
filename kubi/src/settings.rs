@@ -1,7 +1,17 @@
 use shipyard::{Unique, AllStoragesView};
 
+pub enum FullscreenMode {
+  Borderless,
+  Exclusive,
+}
+
+pub struct FullscreenSettings {
+  pub mode: FullscreenMode,
+}
+
 #[derive(Unique)]
 pub struct GameSettings {
+  pub fullscreen: Option<FullscreenSettings>,
   pub msaa: Option<u16>,
   pub max_anisotropy: Option<u16>,
   /// there's a 1 chunk border of loaded but invisible around this
@@ -12,6 +22,7 @@ pub struct GameSettings {
 impl Default for GameSettings {
   fn default() -> Self {
     Self {
+      fullscreen: None,
       msaa: Some(4), //not used yet
       max_anisotropy: Some(16),
       render_distance: 6,

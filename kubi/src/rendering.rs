@@ -4,12 +4,12 @@ use glium::{
   Version, Api,
   glutin::{
     event_loop::EventLoop, 
-    window::WindowBuilder, 
-    ContextBuilder, GlProfile
+    window::{WindowBuilder, Fullscreen}, 
+    ContextBuilder, GlProfile,
   }, 
 };
 use glam::{Vec3, UVec2};
-use crate::{events::WindowResizedEvent, settings::GameSettings};
+use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
 pub mod primitives;
 pub mod world;
@@ -31,19 +31,67 @@ pub struct Renderer {
 impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
+    
     let wb = WindowBuilder::new()
       .with_title("uwu")
+      .with_fullscreen({
+        if let Some(fs_settings) = &settings.fullscreen {
+          let monitor = event_loop.primary_monitor().or_else(|| {
+            event_loop.available_monitors().next()
+          });
+          if let Some(monitor) = monitor {
+            log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
+            match fs_settings.mode {
+              FullscreenMode::Borderless => {
+                log::info!("starting in borderless fullscreen mode");
+                Some(Fullscreen::Borderless(Some(monitor)))
+              },
+              FullscreenMode::Exclusive => {
+                log::info!("starting in exclusive fullscreen mode");
+                //TODO: grabbing the first video mode is probably not the best idea...
+                monitor.video_modes().next()
+                  .map(|vmode| {
+                    log::info!("video mode: {}", vmode.to_string());
+                    Some(Fullscreen::Exclusive(vmode))
+                  })
+                  .unwrap_or_else(|| {
+                    log::warn!("no valid video modes found, falling back to windowed mode instead");
+                    None
+                  })
+              }
+            }
+          } else {
+            log::warn!("no monitors found, falling back to windowed mode");
+            None
+          }
+        } else {
+          log::info!("starting in windowed mode");
+          None
+        }
+      })
       .with_maximized(true);
+
     let cb = ContextBuilder::new()
       .with_depth_buffer(24)
       .with_multisampling(settings.msaa.unwrap_or_default())
       .with_gl_profile(GlProfile::Core);
+
     let display = Display::new(wb, cb, event_loop)
       .expect("Failed to create a glium Display");
+
+    log::info!("Vendor: {}", display.get_opengl_vendor_string());
     log::info!("Renderer: {}", display.get_opengl_renderer_string());
     log::info!("OpenGL {}", display.get_opengl_version_string());
-    log::info!("Supports GLES {:?}", display.get_supported_glsl_version());
+    log::info!("Supports GLSL {:?}", display.get_supported_glsl_version());
+    if display.is_context_loss_possible() {
+      log::warn!("ogl context loss possible");
+    }
+    if display.is_robust() {
+      log::warn!("ogl implementation is not robust");
+    }
+    
     assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
+
     Self { display }
   }
 }

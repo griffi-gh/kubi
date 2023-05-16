@@ -97,4 +97,5 @@ pub fn load_prefabs(
       &renderer.display
     )
   ));
+  renderer.display.release_shader_compiler();
 }
