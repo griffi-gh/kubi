@@ -74,6 +74,7 @@ impl Renderer {
     let cb = ContextBuilder::new()
       .with_depth_buffer(24)
       .with_multisampling(settings.msaa.unwrap_or_default())
+      .with_vsync(settings.vsync)
       .with_gl_profile(GlProfile::Core);
 
     let display = Display::new(wb, cb, event_loop)
@@ -81,14 +82,12 @@ impl Renderer {
 
     log::info!("Vendor: {}", display.get_opengl_vendor_string());
     log::info!("Renderer: {}", display.get_opengl_renderer_string());
-    log::info!("OpenGL {}", display.get_opengl_version_string());
-    log::info!("Supports GLSL {:?}", display.get_supported_glsl_version());
-    if display.is_context_loss_possible() {
-      log::warn!("ogl context loss possible");
-    }
-    if display.is_robust() {
-      log::warn!("ogl implementation is not robust");
-    }
+    log::info!("OpenGL: {}", display.get_opengl_version_string());
+    log::info!("Supports GLSL: {:?}", display.get_supported_glsl_version());
+    log::info!("Framebuffer dimensions: {:?}", display.get_framebuffer_dimensions());
+    if display.is_context_loss_possible() { log::warn!("OpenGL context loss possible") }
+    if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
+    if display.is_debug() { log::info!("OpenGL context is in debug mode") }
     
     assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
 
