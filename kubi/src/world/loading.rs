@@ -33,7 +33,7 @@ pub fn update_loaded_world_around_player() -> Workload {
 pub fn update_chunks_if_player_moved(
   v_settings: UniqueView<GameSettings>,
   v_local_player: View<MainPlayer>,
-  v_transform: View<Transform, { track::All }>,
+  v_transform: View<Transform, track::All>,
   mut vm_world: UniqueViewMut<ChunkStorage>,
 ) {
   //Check if the player actually moved 

@@ -124,7 +124,7 @@ fn check_server_hello_response(
       log::error!("Malformed message");
       continue
     };
-    let ServerToClientMessage::ServerHello { init } = parsed_message else {
+    let ServerToClientMessage::ServerHello { init: _ } = parsed_message else {
       unreachable!()
     };
     //TODO handle init data

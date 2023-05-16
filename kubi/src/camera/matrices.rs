@@ -7,7 +7,7 @@ use super::Camera;
 
 fn update_view_matrix(
   mut vm_camera: ViewMut<Camera>,
-  v_transform: View<Transform, { track::All }>
+  v_transform: View<Transform, track::All>
 ) {
   for (mut camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();

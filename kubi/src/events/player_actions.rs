@@ -20,7 +20,7 @@ pub enum PlayerActionEvent {
 }
 
 pub fn generate_move_events(
-  transforms: View<Transform, { track::All }>,
+  transforms: View<Transform, track::All>,
   player: View<MainPlayer>,
   mut entities: EntitiesViewMut,
   mut events: ViewMut<EventComponent>,

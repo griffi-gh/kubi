@@ -14,7 +14,7 @@ image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.24", features = ["derive"] }
 hashbrown = "0.13"
 rayon = "1.6"
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "eb189f66", default-features = false, features = ["std", "proc", "thread_local"] }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "a4f4d27edcf", default-features = false, features = ["std", "proc", "thread_local"] }
 nohash-hasher = "0.2.0"
 anyhow = "1.0"
 flume = "0.10"

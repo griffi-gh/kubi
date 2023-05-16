@@ -49,7 +49,7 @@ impl ChunkStorage {
 pub struct LookingAtBlock(pub Option<RaycastReport>);
 
 pub fn update_raycasts(
-  transform: View<Transform, { track::All }>,
+  transform: View<Transform, track::All>,
   mut raycast: ViewMut<LookingAtBlock>,
   world: UniqueView<ChunkStorage>,
 ) {

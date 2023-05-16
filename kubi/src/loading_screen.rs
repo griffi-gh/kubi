@@ -37,7 +37,7 @@ fn spawn_loading_screen(
 fn resize_progress_bar(
   size: UniqueView<WindowSize>,
   bar: UniqueView<ProgressbarId>,
-  mut transforms: ViewMut<Transform2d, { track::All }>
+  mut transforms: ViewMut<Transform2d, track::All>
 ) {
   let mut trans = (&mut transforms).get(bar.0).unwrap();
   trans.0.x_axis.x = size.0.x as f32;

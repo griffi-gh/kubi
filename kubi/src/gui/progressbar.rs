@@ -21,7 +21,7 @@ pub fn render_progressbars(
   program: NonSendSync<UniqueView<ProgressbarShaderPrefab>>,
   view: UniqueView<GuiView>,
   components: View<GuiComponent>,
-  transforms: View<Transform2d, { track::All }>,
+  transforms: View<Transform2d, track::All>,
   progressbars: View<ProgressbarComponent>,
   primary: View<PrimaryColor>,
   secondary: View<SecondaryColor>,

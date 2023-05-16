@@ -51,6 +51,7 @@ pub fn draw_world(
   program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
   texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
   camera: View<Camera>,
+  settings: UniqueView<GameSettings>
 ) {
   let camera = camera.iter().next().expect("No cameras in the scene");
   let draw_parameters = DrawParameters {
@@ -59,6 +60,7 @@ pub fn draw_world(
       write: true,
       ..Default::default()
     },
+    multisampling: settings.msaa.is_some(),
     polygon_mode: PolygonMode::Fill, //Change to Line for wireframe
     backface_culling: BackfaceCullingMode::CullClockwise,
     ..Default::default()
@@ -66,7 +68,7 @@ pub fn draw_world(
   let texture_sampler = Sampler(&texture.0, SamplerBehavior {
     minify_filter: MinifySamplerFilter::LinearMipmapLinear,
     magnify_filter: MagnifySamplerFilter::Nearest,
-    max_anisotropy: 8,
+    max_anisotropy: settings.max_anisotropy.unwrap_or_default(),
     wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
     ..Default::default()
   });
@@ -112,7 +114,7 @@ pub fn draw_world(
 pub fn draw_current_chunk_border(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   player: View<MainPlayer>,
-  transforms: View<Transform, { track::All }>,
+  transforms: View<Transform, track::All>,
   buffers: NonSendSync<UniqueView<CubePrimitive>>,
   program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
   camera: View<Camera>,

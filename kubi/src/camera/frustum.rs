@@ -122,7 +122,7 @@ fn intersection<const A: usize, const B: usize, const C: usize>(planes: &[Vec4; 
 
 pub fn update_frustum(
   mut cameras: ViewMut<Camera>,
-  transforms: View<Transform, { track::All }>
+  transforms: View<Transform, track::All>
 ) {
   for (mut camera, _) in (&mut cameras, transforms.inserted_or_modified()).iter() {
     camera.frustum = Frustum::compute(&camera);
