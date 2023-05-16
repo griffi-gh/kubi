@@ -686,15 +686,14 @@ dependencies = [
 [[package]]
 name = "glium"
 version = "0.32.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2766728ecb86014b91d3d687614b32d65aacbbdc887f424a7b03cba3ab593bf"
+source = "git+https://github.com/glium/glium?rev=5d50e7#5d50e70628b5516cfd02751d70239586ceb18c92"
 dependencies = [
  "backtrace",
  "fnv",
  "gl_generator",
  "glutin",
  "lazy_static",
- "memoffset 0.6.5",
+ "memoffset 0.8.0",
  "smallvec",
  "takeable-option",
 ]
