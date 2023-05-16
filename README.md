@@ -58,10 +58,4 @@ seed = 0xfeb_face_dead_cafe   # worldgen seed to use
 name = "Kubi Server"          # server name
 ```
 
-<p>
-  <ul>
-    <li>multithreaded procedural world generation</li>
-  </ul>
-</p>
-
 <h6 align="right"><i>~ uwu</i></h6>
