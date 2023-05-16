@@ -8,14 +8,18 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TERM_PROGRESS_WHEN: "never"
+  CARGO_TERM_PROGRESS_WHEN: never
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: Swatinem/rust-cache@v2
+    - name: Cache APT packages
+      uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+      packages: libudev-dev
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.3.0
     - name: Build
       run: cargo build
         --release
