@@ -42,7 +42,7 @@ jobs:
         cp ./Server.toml ./artifact;
     - uses: actions/upload-artifact@v3
       with:
-        name: ${{ runner.temp }}_${{ runner.arch }}
+        name: ${{ runner.os }}_${{ runner.arch }}
         path: ./artifact/*
         if-no-files-found: error
   
