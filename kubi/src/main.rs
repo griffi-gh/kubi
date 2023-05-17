@@ -201,7 +201,7 @@ fn main() {
   #[cfg(feature = "generate_visualizer_data")]
   std::fs::write(
     "_visualizer.json",
-    serde_json::to_string(&world.workloads_type_usage()).unwrap(),
+    serde_json::to_string(&world.workloads_info()).unwrap(),
   ).unwrap();
 
   //Run startup systems
