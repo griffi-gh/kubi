@@ -1,6 +1,6 @@
 <h1 align="center">Kubi</h1>
 <p align="center">
-  Minecraft clone written in Rust
+  Voxel engine written in Rust
 </p>
 <div align="center">
   <img src=".readme/game.gif" width="512">
