@@ -28,7 +28,7 @@ pub enum ClientToServerMessage {
   } = C_CHUNK_SUB_REQUEST,
   ChunkUnsubscribe {
     chunk: IVec3,
-  },
+  } = C_CHUNK_UNUBSCRIBE,
   QueueBlock {
     item: QueuedBlock
   } = C_QUEUE_BLOCK,
