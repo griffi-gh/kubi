@@ -3,6 +3,8 @@ name: Build
 on:
   push:
     branches: [ "master" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "master" ]
 
@@ -12,10 +14,15 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+      if: runner.os == 'Linux'
       with:
         packages: libudev-dev
         version: 1.0
@@ -26,6 +33,7 @@ jobs:
         --bin kubi
         --bin kubi-server
     - name: Create artifact
+      shell: bash
       run: |
         mkdir artifact;
         cp ./target/release/kubi ./artifact;
@@ -34,6 +42,21 @@ jobs:
         cp ./Server.toml ./artifact;
     - uses: actions/upload-artifact@v3
       with:
-        name: linux-x64-release
+        name: ${{ runner.temp }}_${{ runner.arch }}
         path: ./artifact/*
         if-no-files-found: error
+  
+  publish-release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        path: ./artifacts
+    - uses: rlespinasse/github-slug-action@v4
+    - uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ env.GITHUB_REF_SLUG_URL }}
+        makeLatest: true
+        artifacts: ./artifacts/* 
