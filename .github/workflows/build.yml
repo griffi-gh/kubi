@@ -54,7 +54,7 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: ./artifacts
-    - uses: rlespinasse/github-slug-action@v4
+    - uses: rlespinasse/github-slug-action@v4.4.1
     - uses: ncipollo/release-action@v1
       with:
         tag: ${{ env.GITHUB_REF_SLUG_URL }}
