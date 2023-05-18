@@ -5,7 +5,7 @@ use glium::{
   glutin::{
     event_loop::EventLoop, 
     window::{WindowBuilder, Fullscreen}, 
-    ContextBuilder, GlProfile,
+    ContextBuilder, GlProfile, GlRequest, dpi::PhysicalSize
   }, 
 };
 use glam::{Vec3, UVec2};
@@ -32,8 +32,11 @@ impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
     
+    
     let wb = WindowBuilder::new()
-      .with_title("uwu")
+      .with_title("kubi")
+      .with_maximized(true)
+      .with_min_inner_size(PhysicalSize::new(640, 480))
       .with_fullscreen({
         if let Some(fs_settings) = &settings.fullscreen {
           let monitor = event_loop.primary_monitor().or_else(|| {
@@ -47,6 +50,7 @@ impl Renderer {
                 Some(Fullscreen::Borderless(Some(monitor)))
               },
               FullscreenMode::Exclusive => {
+                log::warn!("exclusive fullscreen mode is experimental");
                 log::info!("starting in exclusive fullscreen mode");
                 //TODO: grabbing the first video mode is probably not the best idea...
                 monitor.video_modes().next()
@@ -68,14 +72,14 @@ impl Renderer {
           log::info!("starting in windowed mode");
           None
         }
-      })
-      .with_maximized(true);
+      });
 
     let cb = ContextBuilder::new()
       .with_depth_buffer(24)
       .with_multisampling(settings.msaa.unwrap_or_default())
       .with_vsync(settings.vsync)
-      .with_gl_profile(GlProfile::Core);
+      .with_gl_profile(GlProfile::Core)
+      .with_gl(GlRequest::Latest);
 
     let display = Display::new(wb, cb, event_loop)
       .expect("Failed to create a glium Display");
@@ -89,7 +93,7 @@ impl Renderer {
     if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
     if display.is_debug() { log::info!("OpenGL context is in debug mode") }
     
-    assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLES 3.0 is not supported");
+    assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
 
     Self { display }
   }
