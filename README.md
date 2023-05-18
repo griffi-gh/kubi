@@ -5,7 +5,9 @@
 <div align="center">
   <img src=".readme/game.gif" width="512">
 </div>
+
 <h2>features</h2>
+
 <p>
   <ul>
     <li>multithreaded procedural world generation</li>
@@ -19,6 +21,9 @@
     <li>partial gamepad input support</li>
   </ul>
 </p>
+
+<h2>download</h2>
+<a href="https://github.com/griffi-gh/kubi/releases/tag/nightly">Latest nightly release</a>
 
 <h2>building</h2>
 
