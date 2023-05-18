@@ -46,6 +46,27 @@ jobs:
         path: ./artifact/*
         if-no-files-found: error
   
+  publish-nightly:
+    needs: build
+    if: (github.ref == 'refs/heads/master') && (!startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: ./artifacts
+      - uses: ncipollo/release-action@v1
+        with:
+          name: nightly
+          tag: nightly
+          allowUpdates: true
+          removeArtifacts: true
+          replacesArtifacts: true
+          prerelease: true
+          generateReleaseNotes: true
+          updateOnlyUnreleased: true
+          artifacts: ./artifacts/* 
+
+
   publish-release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
@@ -58,5 +79,6 @@ jobs:
     - uses: ncipollo/release-action@v1
       with:
         tag: ${{ env.GITHUB_REF_SLUG_URL }}
+        generateReleaseNotes: true
         makeLatest: true
         artifacts: ./artifacts/* 
