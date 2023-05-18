@@ -8,6 +8,10 @@ use kubi_shared::networking::{
 use crate::events::player_actions::PlayerActionEvent;
 use super::{UdpClient, NetworkEvent};
 
+pub fn add_net_player() {
+  //TODO
+}
+
 pub fn send_player_movement_events(
   actions: View<PlayerActionEvent>,
   mut client: UniqueViewMut<UdpClient>,
@@ -47,4 +51,11 @@ pub fn receive_player_movement_events(
     } = parsed_message else { unreachable!() };
     //TODO apply position to local player
   }
+}
+
+
+pub fn receive_connected_players(
+  network_events: View<NetworkEvent>,
+) {
+
 }

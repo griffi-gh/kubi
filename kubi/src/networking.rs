@@ -1,23 +1,27 @@
-use glam::Vec3;
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig, SendMode};
+use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig};
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
-  state::ClientJoinState, 
-  channels::{CHANNEL_AUTH, CHANNEL_MOVE},
+  messages::ServerToClientMessage,
+  state::ClientJoinState,
 };
 use crate::{
-  events::{EventComponent, player_actions::PlayerActionEvent}, 
+  events::EventComponent, 
   control_flow::SetControlFlow, 
   world::tasks::ChunkTaskManager, 
   state::is_ingame_or_loading
 };
 
+mod handshake;
 mod world;
 mod player;
 
+use handshake::{
+  set_client_join_state_to_connected,
+  say_hello,
+  check_server_hello_response
+};
 use world::{
   inject_network_responses_into_manager_queue,
   send_block_place_events,
@@ -89,53 +93,6 @@ fn flush_client(
   client.0.flush();
 }
 
-fn set_client_join_state_to_connected(
-  mut join_state: UniqueViewMut<ClientJoinState>
-) {
-  log::info!("Setting ClientJoinState");
-  *join_state = ClientJoinState::Connected;
-}
-
-fn say_hello(
-  mut client: UniqueViewMut<UdpClient>,
-) {
-  log::info!("Authenticating");
-  client.0.send(
-    postcard::to_allocvec(
-      &ClientToServerMessage::ClientHello {
-        username: "Sbeve".into(),
-        password: None
-      }
-    ).unwrap().into_boxed_slice(),
-    CHANNEL_AUTH,
-    uflow::SendMode::Reliable
-  );
-}
-
-fn check_server_hello_response(
-  network_events: View<NetworkEvent>,
-  mut join_state: UniqueViewMut<ClientJoinState>
-) {
-  for event in network_events.iter() {
-    let ClientEvent::Receive(data) = &event.0 else {
-      continue
-    };
-    if !event.is_message_of_type::<S_SERVER_HELLO>() {
-      continue
-    }
-    let Ok(parsed_message) = postcard::from_bytes(data) else {
-      log::error!("Malformed message");
-      continue
-    };
-    let ServerToClientMessage::ServerHello { init: _ } = parsed_message else {
-      unreachable!()
-    };
-    //TODO handle init data
-    *join_state = ClientJoinState::Joined;
-    log::info!("Joined the server!");
-    return;
-  }
-}
 
 fn handle_disconnect(
   network_events: View<NetworkEvent>,
