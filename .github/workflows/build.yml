@@ -55,6 +55,14 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: ./artifacts
+      - name: Create zip files
+        run: |
+          cd ./artifacts; 
+          for folder in */; 
+            do zip -r "${folder%/}.zip" "$folder"; 
+            rm -rf "$folder"
+          done;
+          cd ..;
       - uses: ncipollo/release-action@v1
         with:
           name: nightly
@@ -65,8 +73,7 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           updateOnlyUnreleased: true
-          artifacts: ./artifacts/* 
-
+          artifacts: ./artifacts/*
 
   publish-release:
     needs: build
@@ -77,6 +84,14 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: ./artifacts
+    - name: Create zip files
+      run: |
+        cd ./artifacts; 
+        for folder in */; 
+          do zip -r "${folder%/}.zip" "$folder"; 
+          rm -rf "$folder"
+        done;
+        cd ..;
     - uses: rlespinasse/github-slug-action@v4.4.1
     - uses: ncipollo/release-action@v1
       with:
