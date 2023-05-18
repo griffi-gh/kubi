@@ -48,6 +48,7 @@ jobs:
   
   publish-nightly:
     needs: build
+    permissions: write-all
     if: (github.ref == 'refs/heads/master') && (!startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     steps:
@@ -69,6 +70,7 @@ jobs:
 
   publish-release:
     needs: build
+    permissions: write-all
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
