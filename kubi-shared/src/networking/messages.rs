@@ -3,7 +3,8 @@ use serde::{Serialize, Deserialize};
 use crate::{chunk::BlockData, queue::QueuedBlock};
 use super::client::ClientId;
 
-pub const PROTOCOL_ID: u16 = 0; //protocol id not used yet
+//protocol id not used yet
+pub const PROTOCOL_ID: u16 = 0; 
 
 pub const C_CLIENT_HELLO: u8 = 0;
 pub const C_POSITION_CHANGED: u8 = 1;
@@ -39,6 +40,7 @@ pub const S_SERVER_FUCK_OFF: u8 = 1;
 pub const S_PLAYER_POSITION_CHANGED: u8 = 2;
 pub const S_CHUNK_RESPONSE: u8 = 3;
 pub const S_QUEUE_BLOCK: u8 = 4;
+pub const S_PLAYER_CONNECTED: u8 = 5;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[repr(u8)]
@@ -56,7 +58,7 @@ pub enum ServerToClientMessage {
   } = S_PLAYER_POSITION_CHANGED,
   ///## WARNING: THIS IS COMPRESSED  
   ///MESSAGES OF THIS TYPE ARE FULLY 
-  ///COMPRESSED EXCEPT THE FIRST BYTE
+  ///COMPRESSED ***EXCEPT THE FIRST BYTE***
   ///TO REDUCE NETWORK USAGE
   ChunkResponse {
     chunk: IVec3,
@@ -66,6 +68,9 @@ pub enum ServerToClientMessage {
   QueueBlock {
     item: QueuedBlock
   } = S_QUEUE_BLOCK,
+  PlayerConnected {
+    init: UserInitData
+  } = S_PLAYER_CONNECTED,
 }
 
 //---

@@ -1,26 +1,29 @@
+use glam::Vec3;
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig};
+use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig, SendMode};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
   state::ClientJoinState, 
-  channels::CHANNEL_AUTH,
+  channels::{CHANNEL_AUTH, CHANNEL_MOVE},
 };
 use crate::{
-  events::EventComponent, 
+  events::{EventComponent, player_actions::PlayerActionEvent}, 
   control_flow::SetControlFlow, 
   world::tasks::ChunkTaskManager, 
   state::is_ingame_or_loading
 };
 
 mod world;
+mod player;
 
 use world::{
   inject_network_responses_into_manager_queue,
   send_block_place_events,
   recv_block_place_events,
 };
+use player::send_player_movement_events;
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -168,7 +171,10 @@ pub fn update_networking() -> Workload {
 
 pub fn update_networking_late() -> Workload {
   (
-    send_block_place_events.run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
+    (
+      send_block_place_events,
+      send_player_movement_events,
+    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
     flush_client,
   ).into_sequential_workload()
 }
