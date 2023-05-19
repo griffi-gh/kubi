@@ -73,7 +73,6 @@ jobs:
         with:
           name: nightly
           tag: nightly
-          commit: ${GITHUB_SHA}
           allowUpdates: true
           removeArtifacts: true
           replacesArtifacts: true
