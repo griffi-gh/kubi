@@ -8,6 +8,10 @@ use kubi_shared::networking::{
 use crate::events::player_actions::PlayerActionEvent;
 use super::{UdpClient, NetworkEvent};
 
+pub fn init_net_player_map() {
+  //TODO
+}
+
 pub fn add_net_player() {
   //TODO
 }
