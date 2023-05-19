@@ -56,11 +56,15 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: ./artifacts
-      - uses: rickstaa/action-create-tag@v1
-        with:
-          tag: nightly
-          tag_exists_error: false
-          force_push_tag: true
+      - name: Delete existing tag
+        continue-on-error: true
+        run: |
+          git tag -d nightly;
+          git push --delete origin refs/tags/nightly;
+      - name: Create nightly tag
+        run: |
+          git tag nightly;
+          git push origin nightly;
       - name: Create zip files
         run: |
           cd ./artifacts;
@@ -92,10 +96,10 @@ jobs:
         path: ./artifacts
     - name: Create zip files
       run: |
-        cd ./artifacts; 
-        for folder in */; 
-          do zip -r "${folder%/}.zip" "$folder"; 
-          rm -rf "$folder"
+        cd ./artifacts;
+        for folder in */; do
+        zip -r "${folder%/}.zip" "$folder"*;
+        rm -rf "$folder";
         done;
         cd ..;
     - uses: rlespinasse/github-slug-action@v4.4.1
