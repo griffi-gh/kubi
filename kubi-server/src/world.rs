@@ -18,6 +18,7 @@ use crate::{
   server::{UdpServer, ServerEvents, IsMessageOfType}, 
   config::ConfigTable,
   client::{ClientAddress, ClientAddressMap}, 
+  util::check_message_auth, 
 };
 
 pub mod chunk;
@@ -61,38 +62,19 @@ fn process_chunk_requests(
   clients: View<Client>
 ) {
   for event in &events.0 {
-    let ServerEvent::Receive(client_addr, data) = event else{
-      continue
+    let Some(message) = check_message_auth::<C_CHUNK_SUB_REQUEST>(&server, event, &clients, &addr_map) else {
+      continue;
     };
-    if !event.is_message_of_type::<C_CHUNK_SUB_REQUEST>() {
-      continue
-    }
-    let Some(client) = server.0.client(client_addr) else {
-      log::error!("Client doesn't exist");
-      continue
-    };
-    let Some(&entity_id) = addr_map.0.get(client_addr) else {
-      log::error!("Client not authenticated");
-      continue
-    };
-    let Ok(&Client(client_id)) = (&clients).get(entity_id) else {
-      log::error!("Entity ID is invalid");
-      continue
-    };
-    let Ok(parsed_message) = postcard::from_bytes(data) else {
-      log::error!("Malformed message");
-      continue
-    };
-    let ClientToServerMessage::ChunkSubRequest { chunk: chunk_position } = parsed_message else {
+    let ClientToServerMessage::ChunkSubRequest { chunk: chunk_position } = message.message else {
       unreachable!()
     };
 
     if let Some(chunk) = chunk_manager.chunks.get_mut(&chunk_position) {
-      chunk.subscriptions.insert(client_id);
+      chunk.subscriptions.insert(message.client_id);
       //TODO Start task here if status is "Nothing"
       if let Some(blocks) = &chunk.blocks {
         send_chunk_compressed(
-          &client,
+          &message.client,
           &ServerToClientMessage::ChunkResponse {
             chunk: chunk_position,
             data: blocks.clone(),
@@ -103,7 +85,7 @@ fn process_chunk_requests(
     } else {
       let mut chunk = Chunk::new(chunk_position);
       chunk.state = ChunkState::Loading;
-      chunk.subscriptions.insert(client_id);
+      chunk.subscriptions.insert(message.client_id);
       chunk_manager.chunks.insert(chunk_position, chunk);
       task_manager.spawn_task(ChunkTask::LoadChunk {
         position: chunk_position,
@@ -172,32 +154,15 @@ fn process_block_queue_messages(
   addrs: View<ClientAddress>,
 ) {
   for event in &events.0 {
-    let ServerEvent::Receive(client_addr, data) = event else{
-      continue
+    let Some(message) = check_message_auth::<C_QUEUE_BLOCK>(&server, event, &clients, &addr_map) else {
+      continue;
     };
-    if !event.is_message_of_type::<C_QUEUE_BLOCK>() {
-      continue
-    }
-    let Some(&entity_id) = addr_map.0.get(client_addr) else {
-      log::error!("Client not authenticated");
-      continue
-    };
-    let Ok(&Client(client_id)) = (&clients).get(entity_id) else {
-      log::error!("Entity ID is invalid");
-      continue
-    };
-    let Ok(parsed_message) = postcard::from_bytes(data) else {
-      log::error!("Malformed message");
-      continue
-    };
-    let ClientToServerMessage::QueueBlock { item } = parsed_message else {
-      unreachable!()
-    };
+    let ClientToServerMessage::QueueBlock { item } = message.message else { unreachable!() };
     //TODO place in our own queue, for now just send to other clients
     log::info!("Placed block {:?} at {}", item.block_type, item.position);
     for (other_client, other_client_address) in (&clients, &addrs).iter() {
       //No need to send the event back
-      if client_id == other_client.0 {
+      if message.client_id == other_client.0 {
         continue 
       }
       //Get client

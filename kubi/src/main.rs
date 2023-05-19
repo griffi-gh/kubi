@@ -78,7 +78,7 @@ use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
 use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
-use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit};
+use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
 use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
@@ -114,7 +114,9 @@ fn update() -> Workload {
     process_inputs,
     (
       init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
-      spawn_player.run_if_storage_empty::<MainPlayer>(),
+      (
+        spawn_player.run_if_storage_empty::<MainPlayer>(),
+      ).into_sequential_workload().run_if(is_singleplayer),
     ).into_sequential_workload().run_if(is_ingame_or_loading),
     update_networking.run_if(is_multiplayer),
     (

@@ -33,6 +33,7 @@ pub fn authenticate_players(
   let config = storages.borrow::<UniqueView<ConfigTable>>().unwrap();
   
   for event in &events.0 {
+    // NOT using `check_message_auth` here because the user is not authed yet!
     let ServerEvent::Receive(client_addr, data) = event else{
       continue
     };

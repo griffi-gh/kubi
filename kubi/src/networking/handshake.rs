@@ -1,17 +1,15 @@
-use glam::Mat4;
-use shipyard::{UniqueViewMut, View, IntoIter, AllStoragesViewMut, ViewMut, IntoWithId};
+use shipyard::{UniqueViewMut, View, IntoIter, AllStoragesViewMut};
 use uflow::{client::Event as ClientEvent, SendMode};
 use kubi_shared::{
   networking::{
     messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
     state::ClientJoinState, 
     channels::CHANNEL_AUTH, 
-    client::{Username, Client},
+    client::Username,
   }, 
-  transform::Transform, entity::Health
 };
-use crate::player::MainPlayer;
-use super::{UdpClient, NetworkEvent, player::add_net_player};
+use crate::player::{MainPlayer, spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
+use super::{UdpClient, NetworkEvent};
 
 pub fn set_client_join_state_to_connected(
   mut join_state: UniqueViewMut<ClientJoinState>
@@ -25,7 +23,7 @@ pub fn say_hello(
   main_player: View<MainPlayer>,
   username: View<Username>
 ) {
-  let username = (&main_player, &username).iter().next().unwrap().1.0.clone();
+  let username = "XxX-FishFucker-69420-XxX".into(); //(&main_player, &username).iter().next().unwrap().1.0.clone();
   let password = None;
   log::info!("Authenticating");
   client.0.send(
@@ -68,28 +66,11 @@ pub fn check_server_hello_response(
   //  }
   
   //Add components to main player
-  {
-    let entity = (&storages.borrow::<View<MainPlayer>>().unwrap()).iter().with_id().next().unwrap().0;
-    storages.add_component(entity, Client(init.user.client_id));
-  }
-
-  //Modify main player
-  {
-    for (entity, (_, mut username, mut transform, mut health)) in (
-      &storages.borrow::<View<MainPlayer>>().unwrap(),
-      &mut storages.borrow::<ViewMut<Username>>().unwrap(),
-      &mut storages.borrow::<ViewMut<Transform>>().unwrap(),
-      &mut storages.borrow::<ViewMut<Health>>().unwrap(),
-    ).iter().with_id() {
-      username.0 = init.user.username.clone();
-      transform.0 = Mat4::from_rotation_translation(init.user.direction, init.user.position);
-      *health = init.user.health;
-    }
-  }
+  spawn_local_player_multiplayer(&mut storages, init.user);
 
   //Init players
   for init_data in init.users {
-    add_net_player(&mut storages, init_data);
+    spawn_remote_player_multiplayer(&mut storages, init_data);
   }
 
   // Set state to connected

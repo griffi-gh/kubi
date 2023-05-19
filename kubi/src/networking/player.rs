@@ -2,51 +2,23 @@ use glam::{Vec3, Mat4};
 use shipyard::{UniqueViewMut, View, IntoIter, AllStoragesView, AllStoragesViewMut, UniqueView, ViewMut, Get};
 use uflow::{SendMode, client::Event as ClientEvent};
 use kubi_shared::{
-  player::{Player, PlayerHolding},
-  entity::Entity,
   transform::Transform,
   networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED, ClientInitData},
+    messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED},
     channels::CHANNEL_MOVE, 
-    client::{ClientIdMap, Username, Client},
+    client::ClientIdMap,
   }, 
 };
-use crate::events::player_actions::PlayerActionEvent;
+use crate::{
+  events::player_actions::PlayerActionEvent,
+  player::spawn_remote_player_multiplayer,
+};
 use super::{UdpClient, NetworkEvent};
 
 pub fn init_client_map(
   storages: AllStoragesView,
 ) {
   storages.add_unique(ClientIdMap::new());
-}
-
-pub fn add_net_player(
-  storages: &mut AllStoragesViewMut,
-  init: ClientInitData
-) {
-  //  struct ClientInitData {
-  //    client_id: ClientId,
-  //    username: String,
-  //    position: Vec3,
-  //    velocity: Vec3,
-  //    direction: Quat,
-  //    health: Health,
-  //  }
-  
-  //Spawn player locally
-  let entity_id = storages.add_entity((
-    Username(init.username),
-    Client(init.client_id),
-    Player,
-    Entity,
-    init.health,
-    Transform(Mat4::from_rotation_translation(init.direction, init.position)),
-    PlayerHolding::default(),
-  ));
-
-  //Add it to the client id map
-  let mut client_id_map = storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();
-  client_id_map.0.insert(init.client_id, entity_id);
 }
 
 pub fn send_player_movement_events(
@@ -124,6 +96,6 @@ pub fn receive_player_connect_events(
   for message in messages {
     let ServerToClientMessage::PlayerConnected { init } = message else { unreachable!() };
     log::info!("player connected: {} (id {})", init.username, init.client_id);
-    add_net_player(&mut storages, init);
+    spawn_remote_player_multiplayer(&mut storages, init);
   }
 }

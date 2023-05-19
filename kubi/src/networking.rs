@@ -4,7 +4,8 @@ use std::net::SocketAddr;
 use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig};
 use kubi_shared::networking::{
   messages::ServerToClientMessage,
-  state::ClientJoinState,
+  state::ClientJoinState, 
+  client::ClientIdMap,
 };
 use crate::{
   events::EventComponent, 
@@ -27,7 +28,10 @@ use world::{
   send_block_place_events,
   recv_block_place_events,
 };
-use player::send_player_movement_events;
+use player::{
+  init_client_map,
+  send_player_movement_events,
+};
 
 use self::player::{receive_player_movement_events, receive_player_connect_events};
 
@@ -111,6 +115,7 @@ fn handle_disconnect(
 
 pub fn update_networking() -> Workload {
   (
+    init_client_map.run_if_missing_unique::<ClientIdMap>(),
     connect_client.run_if_missing_unique::<UdpClient>(),
     poll_client,
     (

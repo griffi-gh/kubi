@@ -1,6 +1,7 @@
 use shipyard::{World, Workload, IntoWorkload};
 use std::{thread, time::Duration};
 
+mod util;
 mod config;
 mod server;
 mod client;
