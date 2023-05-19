@@ -2,7 +2,8 @@ use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewM
 use glium::glutin::event::VirtualKeyCode;
 use kubi_shared::{
   block::Block,
-  queue::QueuedBlock,
+  queue::QueuedBlock, 
+  player::PlayerHolding,
 };
 use crate::{
   player::MainPlayer, 
@@ -10,14 +11,6 @@ use crate::{
   input::{Inputs, PrevInputs, RawKbmInputState}, 
   events::{EventComponent, player_actions::PlayerActionEvent},
 };
-
-#[derive(Component)]
-pub struct PlayerHolding(pub Block);
-impl Default for PlayerHolding {
-  fn default() -> Self {
-    Self(Block::Cobblestone)    
-  }
-}
 
 const BLOCK_KEY_MAP: &[(VirtualKeyCode, Block)] = &[
   (VirtualKeyCode::Key1, Block::Cobblestone),
@@ -38,7 +31,7 @@ fn pick_block_with_number_keys(
   let Some((_, mut holding)) = (&main_player, &mut holding).iter().next() else { return };
   for &(key, block) in BLOCK_KEY_MAP {
     if input.keyboard_state.contains(&key) {
-      holding.0 = block;
+      holding.0 = Some(block);
       return
     }
   }
@@ -63,9 +56,9 @@ fn block_placement_system(
     let Some(ray) = ray.0 else { return };
     //get coord and block type
     let (place_position, place_block) = if action_place {
-      if block.0 == Block::Air { return }
+      if block.0.is_none() { return }
       let position = (ray.position - ray.direction * (RAYCAST_STEP + 0.001)).floor().as_ivec3();
-      (position, block.0)
+      (position, block.0.unwrap())
     } else {
       (ray.block_position, Block::Air)
     };

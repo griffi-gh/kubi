@@ -29,6 +29,8 @@ use world::{
 };
 use player::send_player_movement_events;
 
+use self::player::{receive_player_movement_events, receive_player_connect_events};
+
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
   Singleplayer,
@@ -120,8 +122,14 @@ pub fn update_networking() -> Workload {
       handle_disconnect,
     ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
     (
-      recv_block_place_events
-    ).run_if(is_join_state::<{ClientJoinState::Joined as u8}>).run_if(is_ingame_or_loading),
+      (
+        receive_player_connect_events
+      ),
+      (
+        recv_block_place_events,
+        receive_player_movement_events,
+      ).into_workload()
+    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Joined as u8}>).run_if(is_ingame_or_loading),
     inject_network_responses_into_manager_queue.run_if(is_ingame_or_loading).skip_if_missing_unique::<ChunkTaskManager>(),
   ).into_sequential_workload()
 }
@@ -131,7 +139,7 @@ pub fn update_networking_late() -> Workload {
     (
       send_block_place_events,
       send_player_movement_events,
-    ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
+    ).into_workload().run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
     flush_client,
   ).into_sequential_workload()
 }

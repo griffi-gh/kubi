@@ -1,6 +1,6 @@
 use glam::{Vec3, IVec3, Quat};
 use serde::{Serialize, Deserialize};
-use crate::{chunk::BlockData, queue::QueuedBlock};
+use crate::{chunk::BlockData, queue::QueuedBlock, entity::Health};
 use super::client::ClientId;
 
 //protocol id not used yet
@@ -41,6 +41,7 @@ pub const S_PLAYER_POSITION_CHANGED: u8 = 2;
 pub const S_CHUNK_RESPONSE: u8 = 3;
 pub const S_QUEUE_BLOCK: u8 = 4;
 pub const S_PLAYER_CONNECTED: u8 = 5;
+pub const S_PLAYER_DISCONNECTED: u8 = 6;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[repr(u8)]
@@ -52,7 +53,7 @@ pub enum ServerToClientMessage {
     reason: String,
   } = S_SERVER_FUCK_OFF,
   PlayerPositionChanged {
-    client_id: u8,
+    client_id: ClientId,
     position: Vec3,
     direction: Quat,
   } = S_PLAYER_POSITION_CHANGED,
@@ -69,22 +70,27 @@ pub enum ServerToClientMessage {
     item: QueuedBlock
   } = S_QUEUE_BLOCK,
   PlayerConnected {
-    init: UserInitData
+    init: ClientInitData
   } = S_PLAYER_CONNECTED,
+  PlayerDisconnected {
+    id: ClientId
+  } = S_PLAYER_DISCONNECTED,
 }
 
 //---
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct UserInitData {
+pub struct ClientInitData {
   pub client_id: ClientId,
   pub username: String,
   pub position: Vec3,
   pub velocity: Vec3,
   pub direction: Quat,
+  pub health: Health,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct InitData {
-  pub users: Vec<UserInitData>
+  pub user: ClientInitData,
+  pub users: Vec<ClientInitData>
 }

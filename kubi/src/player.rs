@@ -1,14 +1,14 @@
 use shipyard::{Component, AllStoragesViewMut};
 use kubi_shared::{
   entity::{Entity, Health}, 
-  player::PLAYER_HEALTH
+  player::{PLAYER_HEALTH, PlayerHolding}, 
+  networking::client::Username
 };
 use crate::{
   transform::Transform,
   camera::Camera, 
   fly_controller::FlyController, 
   world::raycast::LookingAtBlock, 
-  block_placement::PlayerHolding,
 };
 pub use kubi_shared::player::Player;
 
@@ -29,5 +29,6 @@ pub fn spawn_player (
     FlyController,
     LookingAtBlock::default(),
     PlayerHolding::default(),
+    Username("Sbeve".into())
   ));
 }

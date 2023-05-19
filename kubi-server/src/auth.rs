@@ -1,4 +1,5 @@
-use shipyard::{UniqueView, NonSendSync, EntitiesViewMut, ViewMut, UniqueViewMut, AllStoragesView};
+use glam::{Vec3, Mat4, vec3};
+use shipyard::{UniqueView, NonSendSync, EntitiesViewMut, ViewMut, UniqueViewMut, AllStoragesView, IntoIter};
 use uflow::{server::Event as ServerEvent, SendMode};
 use kubi_shared::{
   networking::{
@@ -6,9 +7,11 @@ use kubi_shared::{
       ClientToServerMessage,
       ServerToClientMessage,
       InitData,
-      C_CLIENT_HELLO
+      ClientInitData,
+      C_CLIENT_HELLO, 
     }, 
-    client::{Client, ClientId}, channels::CHANNEL_AUTH
+    client::{Client, ClientId, Username}, 
+    channels::{CHANNEL_AUTH, CHANNEL_SYS_EVT},
   }, 
   player::{Player, PLAYER_HEALTH}, 
   transform::Transform, entity::{Entity, Health}
@@ -99,13 +102,15 @@ pub fn authenticate_players(
         &mut storages.borrow::<ViewMut<Client>>().unwrap(),
         &mut storages.borrow::<ViewMut<ClientAddress>>().unwrap(),
         &mut storages.borrow::<ViewMut<Transform>>().unwrap(),
+        &mut storages.borrow::<ViewMut<Username>>().unwrap(),
       ), (
         Entity,
         Player,
         Health::new(PLAYER_HEALTH),
         Client(client_id),
         ClientAddress(*client_addr),
-        Transform::default(),
+        Transform(Mat4::from_translation(vec3(0., 60., 0.))),
+        Username(username.clone()),
       ))
     };
 
@@ -113,12 +118,60 @@ pub fn authenticate_players(
     client_entity_map.0.insert(client_id, entity_id);
     client_addr_map.0.insert(*client_addr, entity_id);
 
-    //Approve the user
+    //Create init data
+    let init_data = {
+      let mut user = None;
+      let mut users = Vec::with_capacity(client_entity_map.0.len() - 1);
+      for (client, username, transform, &health) in (
+        &storages.borrow::<ViewMut<Client>>().unwrap(),
+        &storages.borrow::<ViewMut<Username>>().unwrap(),
+        &storages.borrow::<ViewMut<Transform>>().unwrap(),
+        &storages.borrow::<ViewMut<Health>>().unwrap(),
+      ).iter() {
+        let (_, direction, position) = transform.0.to_scale_rotation_translation();
+        let idata = ClientInitData {
+          client_id: client.0,
+          username: username.0.clone(),
+          position,
+          velocity: Vec3::ZERO,
+          direction,
+          health,
+        };
+        if client_id == client.0 {
+          user = Some(idata);
+        } else {
+          users.push(idata);
+        }
+      }
+      InitData {
+        user: user.unwrap(),
+        users
+      }
+    };
+
+    //Announce new player to other clients
+    {
+      let message = &ServerToClientMessage::PlayerConnected {
+        init: init_data.user.clone()
+      };
+      for (other_client_addr, _) in client_addr_map.0.iter() {
+        //TODO: ONLY JOINED CLIENTS HERE!
+        let Some(other_client) = server.0.client(other_client_addr) else {
+          log::error!("Other client doesn't exist");
+          continue
+        };
+        other_client.borrow_mut().send(
+          postcard::to_allocvec(&message).unwrap().into_boxed_slice(),
+          CHANNEL_SYS_EVT,
+          SendMode::Reliable
+        );
+      }
+    }
+
+    //Approve the user and send init data
     client.borrow_mut().send(
       postcard::to_allocvec(&ServerToClientMessage::ServerHello {
-        init: InitData {
-          users: vec![] //TODO create init data
-        }
+        init: init_data
       }).unwrap().into_boxed_slice(), 
       CHANNEL_AUTH, 
       SendMode::Reliable

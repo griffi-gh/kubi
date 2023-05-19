@@ -13,10 +13,11 @@ use uflow::{
 use lz4_flex::compress_prepend_size as lz4_compress;
 use anyhow::Result;
 use std::{rc::Rc, cell::RefCell};
+use kubi_shared::networking::client::ClientIdMap;
 use crate::{
   server::{UdpServer, ServerEvents, IsMessageOfType}, 
   config::ConfigTable,
-  client::{ClientAddress, ClientIdMap, ClientAddressMap}, 
+  client::{ClientAddress, ClientAddressMap}, 
 };
 
 pub mod chunk;
