@@ -155,7 +155,8 @@ pub fn authenticate_players(
         init: init_data.user.clone()
       };
       for (other_client_addr, _) in client_addr_map.0.iter() {
-        //TODO: ONLY JOINED CLIENTS HERE!
+        //TODO: ONLY JOINED CLIENTS HERE! USE URL AS REFERENCE
+        // https://github.com/griffi-gh/kubi/blob/96a6693faa14580fca560f4a64f0e88e595a8ca0/kubi-server/src/world.rs#L144
         let Some(other_client) = server.0.client(other_client_addr) else {
           log::error!("Other client doesn't exist");
           continue

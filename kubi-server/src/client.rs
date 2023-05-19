@@ -57,6 +57,6 @@ pub fn sync_client_positions(
       unreachable!()
     };
 
-    
+    //TODO: sync positions on server
   }
 }
