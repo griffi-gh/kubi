@@ -1,15 +1,20 @@
 use glam::Vec3;
-use shipyard::{UniqueViewMut, View, IntoIter};
+use hashbrown::HashMap;
+use nohash_hasher::BuildNoHashHasher;
+use shipyard::{UniqueViewMut, View, IntoIter, Unique, EntityId, AllStoragesView};
 use uflow::{SendMode, client::Event as ClientEvent};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED},
-  channels::CHANNEL_MOVE,
+  channels::CHANNEL_MOVE, 
+  client::{ClientId, ClientIdMap},
 };
 use crate::events::player_actions::PlayerActionEvent;
 use super::{UdpClient, NetworkEvent};
 
-pub fn init_net_player_map() {
-  //TODO
+pub fn init_client_map(
+  storages: AllStoragesView,
+) {
+  storages.add_unique(ClientIdMap::new());
 }
 
 pub fn add_net_player() {

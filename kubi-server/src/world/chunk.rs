@@ -25,7 +25,7 @@ impl Chunk {
       position,
       state: ChunkState::Nothing,
       blocks: None,
-      subscriptions: HashSet::with_hasher(BuildNoHashHasher::default()),
+      subscriptions: HashSet::with_capacity_and_hasher(4, BuildNoHashHasher::default()),
     }
   }
 }

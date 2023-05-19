@@ -14,10 +14,11 @@ use kubi_shared::{
   transform::Transform, entity::{Entity, Health}
 };
 use crate::{
-  server::{ServerEvents, UdpServer, IsMessageOfType}, 
   config::ConfigTable, 
-  client::{ClientAddress, ClientIdMap, ClientAddressMap}
+  server::{ServerEvents, UdpServer, IsMessageOfType}, 
+  client::{ClientAddress, ClientAddressMap}
 };
+pub use kubi_shared::networking::client::ClientIdMap;
 
 pub fn authenticate_players(
   storages: AllStoragesView,

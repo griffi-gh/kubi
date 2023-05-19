@@ -996,6 +996,8 @@ dependencies = [
  "anyhow",
  "bracket-noise",
  "glam",
+ "hashbrown 0.13.2",
+ "nohash-hasher",
  "postcard",
  "rand",
  "rand_xoshiro",

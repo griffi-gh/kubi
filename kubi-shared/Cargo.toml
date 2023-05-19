@@ -4,8 +4,6 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 glam = { version = "0.23", features = ["debug-glam-assert", "fast-math", "serde"] }
 shipyard = { git = "https://github.com/leudz/shipyard", rev = "a4f4d27edcf", default-features = false, features = ["std"] }
@@ -16,7 +14,9 @@ anyhow = "1.0"
 bracket-noise = "0.8"
 rand = { version = "0.8", default_features = false, features = ["std", "min_const_gen"] }
 rand_xoshiro = "0.6"
+hashbrown = "0.13"
+nohash-hasher = "0.2.0"
 
 [features]
 default = []
-nightly = ["rand/nightly", "rand/simd_support", "glam/core-simd"]
+nightly = ["hashbrown/nightly", "rand/nightly", "rand/simd_support", "glam/core-simd"]
