@@ -55,6 +55,10 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: ./artifacts
+      - name: Move nightly tag to latest commit
+        run: |
+          git tag --force --annotate nightly ${GITHUB_SHA};
+          git push --tags --force;
       - name: Create zip files
         run: |
           cd ./artifacts; 
