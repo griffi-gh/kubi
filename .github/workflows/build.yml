@@ -59,9 +59,9 @@ jobs:
       - name: Delete existing tag
         continue-on-error: true
         run: |
-          git tag -d nightly;
           git push --delete origin refs/tags/nightly;
       - name: Create nightly tag
+        continue-on-error: true
         run: |
           git tag nightly;
           git push origin nightly;
