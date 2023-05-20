@@ -136,7 +136,6 @@ fn start_required_tasks(
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         //start load task
         if let Some(client) = &mut udp_client {
-          //crappy rate limiting
           client.0.send(
             postcard::to_allocvec(&ClientToServerMessage::ChunkSubRequest {
               chunk: position,
