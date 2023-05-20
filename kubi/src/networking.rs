@@ -74,7 +74,7 @@ fn connect_client(
     endpoint_config: EndpointConfig {
       active_timeout_ms: 10000,
       keepalive: true,
-      keepalive_interval_ms: 300,
+      keepalive_interval_ms: 5000,
       ..Default::default()
     },
   }).expect("Client connection failed");
@@ -101,7 +101,6 @@ fn flush_client(
 ) {
   client.0.flush();
 }
-
 
 fn handle_disconnect(
   network_events: View<NetworkEvent>,
