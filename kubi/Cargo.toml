@@ -34,3 +34,13 @@ generate_visualizer_data = ["serde_json", "shipyard/serde1"]
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
 parallel = ["shipyard/parallel"]
 nightly = ["hashbrown/nightly", "glam/core-simd", "static_assertions/nightly", "kubi-shared/nightly"]
+
+#part of wip android support
+[package.metadata.android]
+package = "com.ggh.kubi"
+build_targets = ["aarch64-linux-android"]
+assets = "../assets"
+apk_name = "kubi"
+theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+label = "Kubi"
+orientation = "landscape"
