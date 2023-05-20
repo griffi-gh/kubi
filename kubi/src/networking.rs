@@ -14,7 +14,8 @@ use crate::{
   events::EventComponent, 
   control_flow::SetControlFlow, 
   world::tasks::ChunkTaskManager, 
-  state::is_ingame_or_loading
+  state::is_ingame_or_loading, 
+  fixed_timestamp::FixedTimestamp
 };
 
 mod handshake;
@@ -34,9 +35,11 @@ use world::{
 use player::{
   init_client_map,
   send_player_movement_events,
+  receive_player_movement_events, 
+  receive_player_connect_events
 };
 
-use self::player::{receive_player_movement_events, receive_player_connect_events};
+const NET_TICKRATE: u16 = 33;
 
 #[derive(Unique, Clone, Copy, PartialEq, Eq)]
 pub enum GameType {
@@ -119,7 +122,7 @@ pub fn update_networking() -> Workload {
   (
     init_client_map.run_if_missing_unique::<ClientIdMap>(),
     connect_client.run_if_missing_unique::<UdpClient>(),
-    poll_client,
+    poll_client.into_workload().make_fixed(NET_TICKRATE, 0),
     (
       set_client_join_state_to_connected,
       say_hello,
@@ -147,7 +150,7 @@ pub fn update_networking_late() -> Workload {
       send_block_place_events,
       send_player_movement_events,
     ).into_workload().run_if(is_join_state::<{ClientJoinState::Joined as u8}>),
-    flush_client,
+    flush_client.into_workload().make_fixed(NET_TICKRATE, 1)
   ).into_sequential_workload()
 }
 

@@ -41,6 +41,7 @@ pub(crate) mod init;
 pub(crate) mod color;
 pub(crate) mod loading_screen;
 pub(crate) mod connecting_screen;
+pub(crate) mod fixed_timestamp;
 
 use world::{
   init_game_world,
@@ -83,6 +84,7 @@ use init::initialize_from_args;
 use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
+use fixed_timestamp::init_fixed_timestamp_storage;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -93,6 +95,7 @@ fn pre_startup() -> Workload {
 
 fn startup() -> Workload {
   (
+    init_fixed_timestamp_storage,
     initial_resize_event,
     init_window_size,
     load_prefabs,
@@ -119,7 +122,7 @@ fn update() -> Workload {
         spawn_player.run_if_storage_empty::<MainPlayer>(),
       ).into_sequential_workload().run_if(is_singleplayer),
     ).into_sequential_workload().run_if(is_ingame_or_loading),
-    update_networking.run_if(is_multiplayer),
+    update_networking().run_if(is_multiplayer),
     (
       switch_to_loading_if_connected
     ).into_sequential_workload().run_if(is_connecting),
