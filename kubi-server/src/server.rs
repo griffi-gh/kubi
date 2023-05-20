@@ -29,7 +29,7 @@ pub fn bind_server(
   let server = Server::bind(
     config.server.address, 
     ServerConfig {
-      max_total_connections: config.server.max_clients,
+      max_total_connections: config.server.max_clients * 2,
       max_active_connections: config.server.max_clients,
       enable_handshake_errors: true,
       endpoint_config: EndpointConfig {
