@@ -63,7 +63,7 @@ fn block_placement_system(
       (ray.block_position, Block::Air)
     };
     //queue place
-    block_event_queue.push(QueuedBlock {
+    block_event_queue.0.push(QueuedBlock {
       position: place_position,
       block_type: place_block,
       soft: place_block != Block::Air,

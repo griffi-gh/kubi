@@ -4,15 +4,11 @@ use shipyard::{UniqueViewMut, Unique};
 use super::ChunkStorage;
 
 #[derive(Unique, Default, Clone)]
-pub struct BlockUpdateQueue {
-  queue: Vec<QueuedBlock>
-}
+#[repr(transparent)]
+pub struct BlockUpdateQueue(pub Vec<QueuedBlock>);
 impl BlockUpdateQueue {
   pub fn new() -> Self {
     Self::default()
-  }
-  pub fn push(&mut self, event: QueuedBlock) {
-    self.queue.push(event)
   }
 }
 
@@ -21,7 +17,7 @@ pub fn apply_queued_blocks(
   mut world: UniqueViewMut<ChunkStorage>
 ) {
   //maybe i need to check for desired/current state here before marking as  dirty?
-  queue.queue.retain(|&event| {
+  queue.0.retain(|&event| {
     if let Some(block) = world.get_block_mut(event.position) {
       if event.soft && *block != Block::Air {
         return false

@@ -14,14 +14,18 @@ use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}
 pub mod primitives;
 pub mod world;
 pub mod selection_box;
+pub mod entities;
 
 #[derive(Unique)]
+#[repr(transparent)]
 pub struct RenderTarget(pub glium::Frame);
 
 #[derive(Unique)]
+#[repr(transparent)]
 pub struct BackgroundColor(pub Vec3);
 
 #[derive(Unique, Clone, Copy)]
+#[repr(transparent)]
 pub struct WindowSize(pub UVec2);
 
 #[derive(Unique)]
@@ -31,7 +35,6 @@ pub struct Renderer {
 impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
-    
     
     let wb = WindowBuilder::new()
       .with_title("kubi")

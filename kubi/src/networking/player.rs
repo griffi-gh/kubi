@@ -4,7 +4,7 @@ use uflow::{SendMode, client::Event as ClientEvent};
 use kubi_shared::{
   transform::Transform,
   networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED},
+    messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED, S_PLAYER_CONNECTED},
     channels::CHANNEL_MOVE, 
     client::ClientIdMap,
   }, 
@@ -83,7 +83,7 @@ pub fn receive_player_connect_events(
     let ClientEvent::Receive(data) = &event.0 else {
       return None
     };
-    if !event.is_message_of_type::<S_PLAYER_POSITION_CHANGED>() {
+    if !event.is_message_of_type::<S_PLAYER_CONNECTED>() {
       return None
     };
     let Ok(parsed_message) = postcard::from_bytes(data) else {

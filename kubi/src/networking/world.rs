@@ -86,6 +86,6 @@ pub fn recv_block_place_events(
     let ServerToClientMessage::QueueBlock { item } = parsed_message else {
       unreachable!()
     };
-    queue.push(item);
+    queue.0.push(item);
   }
 }

@@ -37,18 +37,19 @@ impl AssetPaths for BlockTexture {
 }
 
 #[derive(Unique)]
+#[repr(transparent)]
 pub struct BlockTexturesPrefab(pub SrgbTexture2dArray);
 
 #[derive(Unique)]
+#[repr(transparent)]
 pub struct ChunkShaderPrefab(pub Program);
 
 #[derive(Unique)]
-pub struct SelBoxShaderPrefab(pub Program);
-
-#[derive(Unique)]
+#[repr(transparent)]
 pub struct ColoredShaderPrefab(pub Program);
 
 #[derive(Unique)]
+#[repr(transparent)]
 pub struct ProgressbarShaderPrefab(pub Program);
 
 pub fn load_prefabs(
@@ -70,14 +71,6 @@ pub fn load_prefabs(
       "world",
       "../shaders/world.vert",
       "../shaders/world.frag",
-      &renderer.display
-    )
-  ));
-  storages.add_unique_non_send_sync(SelBoxShaderPrefab(
-    include_shader_prefab!(
-      "selection_box",
-      "../shaders/selection_box.vert",
-      "../shaders/selection_box.frag",
       &renderer.display
     )
   ));

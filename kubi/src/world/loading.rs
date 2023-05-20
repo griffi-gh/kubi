@@ -191,7 +191,7 @@ fn process_completed_tasks(
   let mut ops: usize = 0;
   while let Some(res) = task_manager.receive() {
     match res {
-      ChunkTaskResponse::LoadedChunk { position, chunk_data, queued } => {
+      ChunkTaskResponse::LoadedChunk { position, chunk_data, mut queued } => {
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
           log::warn!("blocks data discarded: chunk doesn't exist");
@@ -213,10 +213,8 @@ fn process_completed_tasks(
         chunk.current_state = CurrentChunkState::Loaded;
 
         //push queued blocks
-        //TODO use extend
-        for item in queued {
-          queue.push(item);
-        }
+        queue.0.append(&mut queued);
+        drop(queued); //`queued` is empty after `append`
 
         //increase ops counter
         ops += 1;

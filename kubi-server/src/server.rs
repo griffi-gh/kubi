@@ -35,7 +35,7 @@ pub fn bind_server(
       endpoint_config: EndpointConfig {
         active_timeout_ms: config.server.timeout_ms,
         keepalive: true,
-        keepalive_interval_ms: 1000,
+        keepalive_interval_ms: 300,
         ..Default::default()
       },
       ..Default::default()

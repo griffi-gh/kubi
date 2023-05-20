@@ -1,7 +1,10 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use glium::glutin::event_loop::ControlFlow;
 use std::net::SocketAddr;
-use uflow::{client::{Client, Config as ClientConfig, Event as ClientEvent}, EndpointConfig};
+use uflow::{
+  client::{Client, Config as ClientConfig, Event as ClientEvent}, 
+  EndpointConfig
+};
 use kubi_shared::networking::{
   messages::ServerToClientMessage,
   state::ClientJoinState, 
@@ -71,7 +74,7 @@ fn connect_client(
     endpoint_config: EndpointConfig {
       active_timeout_ms: 10000,
       keepalive: true,
-      keepalive_interval_ms: 1000,
+      keepalive_interval_ms: 300,
       ..Default::default()
     },
   }).expect("Client connection failed");
@@ -128,8 +131,8 @@ pub fn update_networking() -> Workload {
     ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
     (
       (
-        receive_player_connect_events
-      ),
+        receive_player_connect_events,
+      ).into_workload(),
       (
         recv_block_place_events,
         receive_player_movement_events,

@@ -69,9 +69,9 @@ use rendering::{
   init_window_size, 
   update_window_size,
   primitives::init_primitives,
+  world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
-  world::draw_world,
-  world::draw_current_chunk_border, 
+  entities::render_entities, 
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -107,6 +107,7 @@ fn startup() -> Workload {
     init_delta_time,
   ).into_sequential_workload()
 }
+
 fn update() -> Workload {
   (
     update_window_size,
@@ -143,6 +144,7 @@ fn update() -> Workload {
     disconnect_on_exit.run_if(is_multiplayer),
   ).into_sequential_workload()
 }
+
 fn render() -> Workload {
   (
     clear_background,
@@ -150,10 +152,12 @@ fn render() -> Workload {
       draw_world,
       draw_current_chunk_border,
       render_selection_box,
+      render_entities,
     ).into_sequential_workload().run_if(is_ingame),
     render_gui,
   ).into_sequential_workload()
 }
+
 fn after_frame_end() -> Workload {
   (
     clear_events,

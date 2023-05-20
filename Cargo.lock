@@ -954,6 +954,7 @@ dependencies = [
  "rayon",
  "serde_json",
  "shipyard",
+ "static_assertions",
  "strum",
  "uflow",
  "winapi",

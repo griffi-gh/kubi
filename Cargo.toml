@@ -12,6 +12,9 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 1
 
+[profile.dev.package.uflow]
+opt-level = 3
+
 [profile.dev.package.glium]
 opt-level = 3
 
