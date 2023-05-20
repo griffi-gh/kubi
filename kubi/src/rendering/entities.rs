@@ -4,18 +4,17 @@ use kubi_shared::{entity::Entity, transform::Transform};
 use crate::{
   prefabs::ColoredShaderPrefab,
   camera::Camera,
-  settings::GameSettings,
-  player::MainPlayer
+  settings::GameSettings
 };
 use super::{
   RenderTarget, 
-  primitives::cube::CubePrimitive
+  primitives::cube::CenteredCubePrimitive
 };
 
 // TODO: entity models
 pub fn render_entities(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
-  buffers: NonSendSync<UniqueView<CubePrimitive>>,
+  buffers: NonSendSync<UniqueView<CenteredCubePrimitive>>,
   program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
   camera: View<Camera>,
   settings: UniqueView<GameSettings>,
