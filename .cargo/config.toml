@@ -1,6 +1,20 @@
+#link crt statically on msvc
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+
+[target.i686-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+
+[target.i586-pc-windows-msvc]
+rustflags = ["-Ctarget-feature=+crt-static"]
+
+# enable sse,sse2,sse3,avx,avx2,fma
+
 [target.'cfg(target_arch = "x86_64")']
-rustflags = "-C target-feature=+sse,+sse2,+sse3,+avx,+avx2,+fma"
+rustflags = "-Ctarget-feature=+sse,+sse2,+sse3,+avx,+avx2,+fma"
+
+# use sparse crates.io protocol
 
 [registries.crates-io]
 protocol = "sparse"
-
