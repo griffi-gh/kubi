@@ -25,7 +25,7 @@ impl Default for GameSettings {
     Self {
       vsync: false,
       fullscreen: None,
-      msaa: Some(4), //not used yet
+      msaa: Some(4),
       max_anisotropy: Some(16),
       render_distance: 6,
       mouse_sensitivity: 1.,
