@@ -29,7 +29,7 @@ impl Default for GameSettings {
       max_anisotropy: Some(16),
       render_distance: 6,
       mouse_sensitivity: 1.,
-      debug_draw_current_chunk_border: cfg!(debug_assertions),
+      debug_draw_current_chunk_border: cfg!(not(target_os = "android")) && cfg!(debug_assertions),
     }
   }
 }

@@ -120,6 +120,9 @@ pub fn draw_current_chunk_border(
   camera: View<Camera>,
   settings: UniqueView<GameSettings>,
 ) {
+  if cfg!(target_os = "android") {
+    return
+  }
   if !settings.debug_draw_current_chunk_border {
     return
   }
