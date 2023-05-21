@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-log = "*"
+log = "0.4"
 glium = { git = "https://github.com/glium/glium", rev = "5d50e7" }
 glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }

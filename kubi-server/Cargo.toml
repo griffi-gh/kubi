@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-log = "*"
+log = "0.4"
 shipyard = { git = "https://github.com/leudz/shipyard", rev = "a4f4d27edcf", default-features = false, features = ["std", "proc", "thread_local"] }
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 toml = "0.7"
