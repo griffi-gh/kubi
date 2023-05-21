@@ -4,6 +4,9 @@ version = "0.0.0"
 edition = "2021"
 publish = false
 
+[lib]
+crate-type = ["lib", "cdylib"]
+
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
@@ -24,6 +27,9 @@ postcard = { version = "1.0", features = ["alloc"] }
 serde_json = { version = "1.0", optional = true }
 lz4_flex = { version = "0.10", default-features = false, features = ["std", "checked-decode"] }
 static_assertions = "1.1"
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk-glue = "0.7"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3" }

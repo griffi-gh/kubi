@@ -1,14 +1,13 @@
+//! Custom env_logger options and styling
+
 /// Custom env_logger options and styling
-
-use env_logger::{fmt::Color, Builder, Env};
-use log::Level;
-use std::io::Write;
-
-pub use log;
-pub use env_logger;
-
 #[inline]
+#[cfg(not(target_os = "android"))]
 pub fn init() {
+  use log::Level;
+  use std::io::Write;
+  use env_logger::{fmt::Color, Builder, Env};
+
   let env = Env::default()
     .filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn");
   Builder::from_env(env)
@@ -50,4 +49,15 @@ pub fn init() {
       )
     })
     .init();
+}
+
+/// Custom env_logger options and styling
+#[inline]
+#[cfg(target_os = "android")]
+pub fn init() {
+  use log::LevelFilter;
+  use android_logger::Config;
+  android_logger::init_once(
+    Config::default().with_max_level(LevelFilter::Trace),
+  );
 }
