@@ -175,7 +175,7 @@ fn attach_console() {
 pub fn kubi_main() {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
-  
+
   //Print version
   println!("{:─^54}", format!("[ ▄▀ Kubi client v. {} ]", env!("CARGO_PKG_VERSION")));
 

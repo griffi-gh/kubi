@@ -967,6 +967,7 @@ dependencies = [
  "kubi-shared",
  "log",
  "lz4_flex",
+ "ndk",
  "ndk-glue",
  "nohash-hasher",
  "postcard",
