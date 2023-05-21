@@ -2,6 +2,7 @@ use strum::IntoEnumIterator;
 use rayon::prelude::*;
 use std::{fs::File, path::PathBuf, io::BufReader};
 use glium::{texture::{SrgbTexture2dArray, RawImage2d, MipmapsOption}, backend::Facade};
+use crate::filesystem::open_asset;
 use super::AssetPaths;
 
 pub fn load_texture2darray_prefab<
@@ -20,11 +21,11 @@ pub fn load_texture2darray_prefab<
     //Get path to the image and open the file
     let reader = {
       let path = directory.join(file_name);
-      BufReader::new(File::open(path).expect("Failed to open texture file"))
+      BufReader::new(open_asset(&path).expect("Failed to open texture file"))
     };
     //Parse image data
     let (image_data, dimensions) = {
-      let image =image::load(
+      let image = image::load(
         reader,
         image::ImageFormat::Png
       ).unwrap().to_rgba8();

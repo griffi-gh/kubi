@@ -38,6 +38,7 @@ pub(crate) mod color;
 pub(crate) mod loading_screen;
 pub(crate) mod connecting_screen;
 pub(crate) mod fixed_timestamp;
+pub(crate) mod filesystem;
 
 use world::{
   init_game_world,
