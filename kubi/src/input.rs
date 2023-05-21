@@ -25,7 +25,7 @@ pub struct RawKbmInputState {
 }
 
 #[derive(Unique)]
-pub struct GilrsWrapper(Gilrs);
+pub struct GilrsWrapper(Option<Gilrs>);
 
 #[derive(Unique, Default, Clone, Copy)]
 pub struct ActiveGamepad(Option<GamepadId>);
@@ -65,8 +65,10 @@ fn process_gilrs_events(
   mut gilrs: NonSendSync<UniqueViewMut<GilrsWrapper>>,
   mut active_gamepad: UniqueViewMut<ActiveGamepad>
 ) {
-  while let Some(Event { id, event: _, time: _ }) = gilrs.0.next_event() {
-    active_gamepad.0 = Some(id);
+  if let Some(gilrs) = &mut gilrs.0 {
+    while let Some(Event { id, event: _, time: _ }) = gilrs.next_event() {
+      active_gamepad.0 = Some(id);
+    }
   }
 }
 
@@ -98,13 +100,15 @@ fn update_input_state_gamepad (
   active_gamepad: UniqueView<ActiveGamepad>,
   mut inputs: UniqueViewMut<Inputs>,
 ) {
-  if let Some(gamepad) = active_gamepad.0.map(|id| gilrs.0.gamepad(id)) {
-    let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
-    let right_stick = vec2(gamepad.value(Axis::RightStickX), -gamepad.value(Axis::RightStickY));
-    inputs.movement += left_stick;
-    inputs.look += right_stick;
-    inputs.action_a |= gamepad.is_pressed(Button::South);
-    inputs.action_b |= gamepad.is_pressed(Button::East);
+  if let Some(gilrs) = &gilrs.0 {
+    if let Some(gamepad) = active_gamepad.0.map(|id| gilrs.gamepad(id)) {
+      let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
+      let right_stick = vec2(gamepad.value(Axis::RightStickX), -gamepad.value(Axis::RightStickY));
+      inputs.movement += left_stick;
+      inputs.look += right_stick;
+      inputs.action_a |= gamepad.is_pressed(Button::South);
+      inputs.action_b |= gamepad.is_pressed(Button::East);
+    }
   }
 }
 
@@ -119,7 +123,12 @@ fn input_end(
 pub fn init_input (
   storages: AllStoragesView
 ) {
-  storages.add_unique_non_send_sync(GilrsWrapper(Gilrs::new().expect("Failed to initialize Gilrs")));
+  storages.add_unique_non_send_sync(GilrsWrapper(
+    Gilrs::new().map_err(|x| {
+      log::error!("Failed to initialize Gilrs");
+      x
+    }).ok()
+  ));
   storages.add_unique(ActiveGamepad::default());
   storages.add_unique(Inputs::default());
   storages.add_unique(PrevInputs::default());
