@@ -6,16 +6,13 @@ use kubi_shared::networking::{
   channels::{CHANNEL_WORLD, CHANNEL_BLOCK}, 
   client::Client,
 };
-use uflow::{
-  server::{Event as ServerEvent, RemoteClient},
-  SendMode
-};
+use uflow::{server::RemoteClient, SendMode};
 use lz4_flex::compress_prepend_size as lz4_compress;
 use anyhow::Result;
 use std::{rc::Rc, cell::RefCell};
 use kubi_shared::networking::client::ClientIdMap;
 use crate::{
-  server::{UdpServer, ServerEvents, IsMessageOfType}, 
+  server::{UdpServer, ServerEvents}, 
   config::ConfigTable,
   client::{ClientAddress, ClientAddressMap}, 
   util::check_message_auth, 
