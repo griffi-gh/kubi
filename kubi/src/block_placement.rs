@@ -1,4 +1,4 @@
-use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut, Component, Workload, IntoWorkload};
+use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut, Workload, IntoWorkload};
 use glium::glutin::event::VirtualKeyCode;
 use kubi_shared::{
   block::Block,

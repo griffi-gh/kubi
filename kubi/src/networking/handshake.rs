@@ -5,10 +5,9 @@ use kubi_shared::{
     messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
     state::ClientJoinState, 
     channels::CHANNEL_AUTH, 
-    client::Username,
   }, 
 };
-use crate::player::{MainPlayer, spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
+use crate::player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
 use super::{UdpClient, NetworkEvent};
 
 pub fn set_client_join_state_to_connected(
@@ -20,10 +19,8 @@ pub fn set_client_join_state_to_connected(
 
 pub fn say_hello(
   mut client: UniqueViewMut<UdpClient>,
-  main_player: View<MainPlayer>,
-  username: View<Username>
 ) {
-  let username = "XxX-FishFucker-69420-XxX".into(); //(&main_player, &username).iter().next().unwrap().1.0.clone();
+  let username = "XxX-FishFucker-69420-XxX".into(); 
   let password = None;
   log::info!("Authenticating");
   client.0.send(
