@@ -43,7 +43,11 @@ cargo +nightly build --bin kubi -r --features nightly
 
 build for android  
 
-prerequisites: Android SDK, NDK, platform-tools, latest JDK
+please note that android support is purely experimental!  
+gamepad, keyboard and mouse input is currently borked, and touch controls are not available.  
+srgb and blending are broken too, which leads to many rendering issues
+
+prerequisites: Android SDK, NDK, platform-tools, latest JDK (all should be in $PATH)
 
 ```bash
 cargo install cargo-apk  
