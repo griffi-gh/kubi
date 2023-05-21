@@ -19,6 +19,7 @@
     <li>work-in-progress multiplayer support</li>
     <li>block placement system</li>
     <li>partial gamepad input support</li>
+    <li>(experimental) android support</li>
   </ul>
 </p>
 
@@ -29,15 +30,26 @@
 
 build/run
 
-```sh
-cargo build -p kubi
-cargo run -p kubi
+```bash
+cargo build --bin kubi
+cargo run --bin kubi
 ```
 
 build with nightly features
 
-```sh
-RUSTFLAGS="-C target-cpu=native" cargo +nightly build -p kubi -r --features nightly --
+```bash
+cargo +nightly build --bin kubi -r --features nightly
+```
+
+build for android  
+
+prerequisites: Android SDK, NDK, platform-tools, latest JDK
+
+```bash
+cargo install cargo-apk  
+cargo target add aarch64-linux-android  
+cargo apk build -p kubi
+cargo apk run -p kubi
 ```
 
 <h2>mutiplayer</h2>
