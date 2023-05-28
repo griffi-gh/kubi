@@ -9,10 +9,10 @@ rustflags = ["-Ctarget-feature=+crt-static"]
 [target.i586-pc-windows-msvc]
 rustflags = ["-Ctarget-feature=+crt-static"]
 
-# enable sse,sse2,sse3,avx,avx2,fma
+# enable sse,sse2,avx
 
 [target.'cfg(target_arch = "x86_64")']
-rustflags = "-Ctarget-feature=+sse,+sse2,+sse3,+avx,+avx2,+fma"
+rustflags = "-Ctarget-feature=+sse,+sse2,+avx"
 
 # use sparse crates.io protocol
 
