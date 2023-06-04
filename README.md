@@ -16,11 +16,18 @@
     <li>cubic chunks (32x32x32)</li>
     <li>low-level OpenGL renderer, targetting OpenGL ES 3.0</li>
     <li>frustum culling</li>
-    <li>work-in-progress multiplayer support</li>
+    <li>multiplayer support <sup><code>[1]</code></sup></li>
     <li>block placement system</li>
     <li>partial gamepad input support</li>
-    <li>(experimental) android support</li>
+    <li>cross platform: windows, linux, osx <sup><code>[2]</code></sup>, android <sup><code>[3]</code></sup></li>
+    <li>universal input system: supports keyboard, mouse, gamepad and touch input <sup><code>[4]</code></sup></li>
   </ul>
+  <h6>
+    <code>[1]</code> - multiplayer is work-in-progress<br>
+    <code>[2]</code> - not tested on macos<br>
+    <code>[3]</code> - android support is experimental<br>
+    <code>[4]</code> - mouse/gamepad input is not supported on android
+  </h6>
 </p>
 
 <h2>download</h2>
