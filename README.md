@@ -74,7 +74,7 @@ cargo apk build -p kubi --no-default-features
 cargo apk run -p kubi --no-default-features
 ```
 
-<h2>android controls</h2>
+<h2>touch controls</h2>
 
 <img src=".readme/touch_controls.png" alt="touch control scheme" width="300">
 
