@@ -1,10 +1,14 @@
 use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
-use glam::{Vec2, DVec2, vec2};
-use glium::glutin::event::{DeviceEvent, VirtualKeyCode, ElementState};
-use hashbrown::HashSet;
+use glam::{Vec2, DVec2, vec2, dvec2};
+use glium::glutin::event::{DeviceEvent, DeviceId, VirtualKeyCode, ElementState, TouchPhase};
+use hashbrown::HashMap;
+use tinyset::{SetU32, SetU64};
 use nohash_hasher::BuildNoHashHasher;
 use shipyard::{AllStoragesView, Unique, View, IntoIter, UniqueViewMut, Workload, IntoWorkload, UniqueView, NonSendSync};
-use crate::events::InputDeviceEvent;
+use crate::{
+  events::{InputDeviceEvent, TouchEvent},
+  rendering::WindowSize
+};
 
 #[derive(Unique, Clone, Copy, Default, Debug)]
 pub struct Inputs {
@@ -19,9 +23,60 @@ pub struct PrevInputs(pub Inputs);
 
 #[derive(Unique, Clone, Default, Debug)]
 pub struct RawKbmInputState {
-  pub keyboard_state: HashSet<VirtualKeyCode, BuildNoHashHasher<u32>>,
+  pub keyboard_state: SetU32,
   pub button_state: [bool; 32],
   pub mouse_delta: DVec2
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub enum FingerCheck {
+  #[default]
+  Start,
+  Current,
+  StartOrCurrent,
+  StartAndCurrent,
+  NotMoved,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Finger {
+  pub id: u64,
+  pub device_id: DeviceId,
+  pub prev_position: DVec2,
+  pub start_position: DVec2,
+  pub current_position: DVec2,
+  pub has_moved: bool,
+}
+impl Finger {
+  pub fn within_area(&self, area_pos: DVec2, area_size: DVec2, check: FingerCheck) -> bool {
+    let within_area = |pos: DVec2| -> bool {
+      ((pos - area_pos).min_element() >= 0.) &&
+      ((pos - (area_pos + area_size)).max_element() <= 0.)
+    };
+    let start = within_area(self.start_position);
+    let current = within_area(self.current_position);
+    match check {
+      FingerCheck::Start => start,
+      FingerCheck::Current => current,
+      FingerCheck::StartOrCurrent => start || current,
+      FingerCheck::StartAndCurrent => start && current,
+      FingerCheck::NotMoved => current && !self.has_moved,
+    }
+  }
+}
+
+#[derive(Unique, Clone, Default, Debug)]
+pub struct RawTouchState {
+  //TODO: handle multiple touch devices somehow
+  pub fingers: HashMap<u64, Finger, BuildNoHashHasher<u64>>
+}
+
+impl RawTouchState {
+  pub fn query_area(&self, area_pos: DVec2, area_size: DVec2, check: FingerCheck) -> impl Iterator<Item = Finger> + '_ {
+    self.fingers.iter().filter_map(move |(_, &finger)| {
+      finger.within_area(area_pos, area_size, check).then_some(finger)
+    })
+  }
 }
 
 #[derive(Unique)]
@@ -46,8 +101,8 @@ fn process_events(
       DeviceEvent::Key(input) => {
         if let Some(keycode) = input.virtual_keycode {
           match input.state {
-            ElementState::Pressed  => input_state.keyboard_state.insert(keycode),
-            ElementState::Released => input_state.keyboard_state.remove(&keycode),
+            ElementState::Pressed  => input_state.keyboard_state.insert(keycode as u32),
+            ElementState::Released => input_state.keyboard_state.remove(keycode as u32),
           };
         }
       },
@@ -57,6 +112,39 @@ fn process_events(
         }
       },
       _ => ()
+    }
+  }
+}
+
+fn process_touch_events(
+  touch_events: View<TouchEvent>,
+  mut touch_state: UniqueViewMut<RawTouchState>,
+) {
+  for (_, finger) in &mut touch_state.fingers {
+    finger.prev_position = finger.current_position;
+  }
+  for event in touch_events.iter() {
+    let position = dvec2(event.0.location.x, event.0.location.y);
+    match event.0.phase {
+      TouchPhase::Started => {
+        touch_state.fingers.insert(event.0.id, Finger {
+          id: event.0.id,
+          device_id: event.0.device_id,
+          start_position: position,
+          current_position: position,
+          prev_position: position,
+          has_moved: false
+        });
+      },
+      TouchPhase::Moved => {
+        if let Some(finger) = touch_state.fingers.get_mut(&event.0.id) {
+          finger.has_moved = true;
+          finger.current_position = position;
+        }
+      },
+      TouchPhase::Ended | TouchPhase::Cancelled => {
+        touch_state.fingers.remove(&event.0.id);
+      },
     }
   }
 }
@@ -85,10 +173,10 @@ fn update_input_state (
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   inputs.movement += Vec2::new(
-    raw_inputs.keyboard_state.contains(&VirtualKeyCode::D) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(&VirtualKeyCode::A) as u32 as f32,
-    raw_inputs.keyboard_state.contains(&VirtualKeyCode::W) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(&VirtualKeyCode::S) as u32 as f32
+    raw_inputs.keyboard_state.contains(VirtualKeyCode::D as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(VirtualKeyCode::A as u32) as u32 as f32,
+    raw_inputs.keyboard_state.contains(VirtualKeyCode::W  as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(VirtualKeyCode::S as u32) as u32 as f32
   );
   inputs.look += raw_inputs.mouse_delta.as_vec2();
   inputs.action_a |= raw_inputs.button_state[1];
@@ -109,6 +197,60 @@ fn update_input_state_gamepad (
       inputs.action_a |= gamepad.is_pressed(Button::South);
       inputs.action_b |= gamepad.is_pressed(Button::East);
     }
+  }
+}
+
+fn update_input_state_touch (
+  touch_state: UniqueView<RawTouchState>,
+  win_size: UniqueView<WindowSize>,
+  mut inputs: UniqueViewMut<Inputs>,
+) {
+  let w = win_size.0.as_dvec2();
+
+  //Movement
+  if let Some(finger) = touch_state.query_area(
+    dvec2(0., 0.),
+    dvec2(w.x / 2., w.y),
+    FingerCheck::Start
+  ).next() {
+    inputs.movement += (((finger.current_position - finger.start_position) / (w.x / 4.)) * dvec2(1., -1.)).as_vec2();
+  }
+
+  //Action buttons
+  let action_button_fingers = {
+    let mut action_button_fingers = SetU64::new();
+
+    //Creates iterator of fingers that started within action button area
+    let action_finger_iter = || touch_state.query_area(
+      dvec2(w.x * 0.75, w.y * 0.666),
+      dvec2(w.x * 0.25, w.y * 0.333),
+      FingerCheck::Start
+    );
+
+    //Action button A
+    inputs.action_a |= action_finger_iter().filter(|finger| finger.within_area(
+      dvec2(w.x * (0.75 + 0.125), w.y * 0.666),
+      dvec2(w.x * 0.125, w.y * 0.333),
+      FingerCheck::StartOrCurrent
+    )).map(|x| action_button_fingers.insert(x.id)).next().is_some();
+    
+    //Action button B
+    inputs.action_b |= action_finger_iter().filter(|finger| finger.within_area(
+      dvec2(w.x * 0.75, w.y * 0.666),
+      dvec2(w.x * 0.125, w.y * 0.333),
+      FingerCheck::StartOrCurrent
+    )).map(|x| action_button_fingers.insert(x.id)).next().is_some();
+
+    action_button_fingers
+  };
+
+  //Camera controls
+  if let Some(finger) = touch_state.query_area(
+    dvec2(w.x / 2., 0.),
+    dvec2(w.x / 2., w.y),
+    FingerCheck::Start
+  ).find(|x| !action_button_fingers.contains(x.id)) {
+    inputs.look += (((finger.current_position - finger.prev_position) / (w.x / 4.)) * 300.).as_vec2();
   }
 }
 
@@ -133,14 +275,17 @@ pub fn init_input (
   storages.add_unique(Inputs::default());
   storages.add_unique(PrevInputs::default());
   storages.add_unique(RawKbmInputState::default());
+  storages.add_unique(RawTouchState::default());
 }
 
 pub fn process_inputs() -> Workload {
   (
     process_events,
+    process_touch_events,
     process_gilrs_events,
     input_start,
     update_input_state,
+    update_input_state_touch,
     update_input_state_gamepad,
     input_end,
   ).into_sequential_workload()

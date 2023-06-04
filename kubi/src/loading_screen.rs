@@ -76,7 +76,7 @@ fn override_loading(
   kbm_state: UniqueView<RawKbmInputState>,
   mut state: UniqueViewMut<NextState>
 ) {
-  if kbm_state.keyboard_state.contains(&VirtualKeyCode::F) {
+  if kbm_state.keyboard_state.contains(VirtualKeyCode::F as u32) {
     state.0 = Some(GameState::InGame);
   }
 }

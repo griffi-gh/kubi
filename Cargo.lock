@@ -976,6 +976,7 @@ dependencies = [
  "shipyard",
  "static_assertions",
  "strum",
+ "tinyset",
  "uflow",
  "winapi",
 ]
@@ -1987,6 +1988,15 @@ checksum = "c114d32f0c2ee43d585367cb013dfaba967ab9f62b90d9af0d696e955e70fa6c"
 dependencies = [
  "arrayref",
  "bytemuck",
+]
+
+[[package]]
+name = "tinyset"
+version = "0.4.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2417e47ddd3809ad40222777ac754ee881b3a6401e38cbeeeb3ee1ca5f30aa0"
+dependencies = [
+ "rand",
 ]
 
 [[package]]

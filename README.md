@@ -26,48 +26,63 @@
 <h2>download</h2>
 <a href="https://github.com/griffi-gh/kubi/releases/tag/nightly">Latest nightly release</a>
 
-<h2>building</h2>
+<h2>build for windows/linux</h2>
 
-build/run
+**build/run**
 
 ```bash
 cargo build --bin kubi
 cargo run --bin kubi
 ```
 
-build in release mode, with nightly optimizations
+**build in release mode, with nightly optimizations**
 
 ```bash
 cargo +nightly build --bin kubi --features nightly --release
 ```
 
-build for android
+<h2>build for android</h2>
 
-please note that android support is purely experimental!
-gamepad, keyboard and mouse input is currently borked, and touch controls are not available.
+please note that android support is highly experimental!\
+gamepad, mouse input is currently borked, and proper touch controls are not available.\
 srgb and blending are broken too, which leads to many rendering issues
 
-prerequisites: Android SDK, NDK, platform-tools, latest JDK (all should be in $PATH)
+prerequisites: Android SDK, command line tools, NDK, platform-tools, latest JDK\
+(make sure that your $PATH variable is configured properly)
 
-Setup:
+**Setup:**
 
 ```bash
 cargo install cargo-apk
 cargo target add aarch64-linux-android
 ```
 
-Build:
-`--no-default-features` is required for keyboard input!
+**Build:**
+
+`--no-default-features` is required for keyboard input!\
+(`prefer-raw-events` feature *must* be disabled on android)
+
+Mouse input is not implemented, touch only!
 
 ```bash
 cargo apk build -p kubi --no-default-features
 ```
 
-Run:
+**Run:**
 
 ```bash
-cargo apk run -p kubi --features nightly
+cargo apk run -p kubi --no-default-features
 ```
+
+<h2>android controls</h2>
+
+<img src=".readme/touch_controls.png" alt="touch control scheme" width="300">
+
+- Left side: **Movement**
+- Rigth side: **Camera controls**
+- Bottom right corner:
+  - **B** (e.g. place blocks)
+  - **A** (e.g. break, attack)
 
 <h2>mutiplayer</h2>
 

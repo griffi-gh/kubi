@@ -9,7 +9,7 @@ pub fn exit_on_esc(
   raw_inputs: UniqueView<RawKbmInputState>,
   mut control_flow: UniqueViewMut<SetControlFlow>
 ) {
-  if raw_inputs.keyboard_state.contains(&VirtualKeyCode::Escape) {
+  if raw_inputs.keyboard_state.contains(VirtualKeyCode::Escape as u32) {
     control_flow.0 = Some(ControlFlow::Exit);
   }
 }
