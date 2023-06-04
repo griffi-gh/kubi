@@ -61,16 +61,12 @@ Build:
 
 ```bash
 cargo apk build -p kubi --no-default-features
-# or, in release mode, with nighly optimizations:
-cargo +nightly apk build -p kubi --no-default-features --features nightly --release
 ```
 
 Run:
 
 ```bash
 cargo apk run -p kubi --features nightly
-# or, in release mode, with nighly optimizations:
-cargo +nightly apk run -p kubi --no-default-features --features nightly --release
 ```
 
 <h2>mutiplayer</h2>
