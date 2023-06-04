@@ -35,10 +35,10 @@ cargo build --bin kubi
 cargo run --bin kubi
 ```
 
-build with nightly features
+build in release mode, with nightly optimizations
 
 ```bash
-cargo +nightly build --bin kubi -r --features nightly
+cargo +nightly build --bin kubi --features nightly --release
 ```
 
 build for android
@@ -61,16 +61,16 @@ Build:
 
 ```bash
 cargo apk build -p kubi --no-default-features
-# or, with nighly optimizations:
-cargo +nightly apk build -p kubi --no-default-features --features nightly
+# or, in release mode, with nighly optimizations:
+cargo +nightly apk build -p kubi --no-default-features --features nightly --release
 ```
 
 Run:
 
 ```bash
 cargo apk run -p kubi --features nightly
-# or, with nighly optimizations:
-cargo +nightly apk run -p kubi --no-default-features --features nightly
+# or, in release mode, with nighly optimizations:
+cargo +nightly apk run -p kubi --no-default-features --features nightly --release
 ```
 
 <h2>mutiplayer</h2>
