@@ -94,7 +94,7 @@ cargo run -p kubi -- 127.0.0.1:1234
 
 <h2>server configuration</h2>
 
-```
+```toml
 [server]
 address = "0.0.0.0:12345"     # ip address to bind to
 max_clients = 32              # max amount of connected clients
