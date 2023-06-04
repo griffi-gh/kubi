@@ -54,7 +54,7 @@ pub fn check_message_auth<'a, const C_MSG: u8>(
     log::error!("Client not authenticated");
     return None
   };
-  let Ok(&Client(client_id)) = (&clients).get(entity_id) else {
+  let Ok(&Client(client_id)) = clients.get(entity_id) else {
     log::error!("Entity ID is invalid");
     return None
   };

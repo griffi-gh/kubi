@@ -1,8 +1,7 @@
 use strum::EnumIter;
 use glam::{Vec3, vec3, IVec3, ivec3};
+use std::f32::consts::FRAC_1_SQRT_2;
 use crate::rendering::world::ChunkVertex;
-
-const INV_SQRT_2: f32 = 0.70710678118655; // 1 / 2.sqrt()
 
 #[repr(usize)]
 #[derive(Clone, Copy, Debug, EnumIter)]
@@ -28,7 +27,7 @@ const CUBE_FACE_VERTICES: [[Vec3; 4]; 6] = [
   [vec3(1., 0., 1.), vec3(1., 1., 1.), vec3(0., 0., 1.), vec3(0., 1., 1.)],
   [vec3(0., 0., 1.), vec3(0., 0., 0.), vec3(1., 0., 1.), vec3(1., 0., 0.)],
 ];
-const CUBE_FACE_NORMALS_IVEC3: [IVec3; 6] = [ 
+const CUBE_FACE_NORMALS_IVEC3: [IVec3; 6] = [
   ivec3( 0,  1,  0),
   ivec3( 0,  0, -1),
   ivec3(-1,  0,  0),
@@ -36,7 +35,7 @@ const CUBE_FACE_NORMALS_IVEC3: [IVec3; 6] = [
   ivec3( 0,  0,  1),
   ivec3( 0, -1,  0)
 ];
-const CUBE_FACE_NORMALS: [Vec3; 6] = [ 
+const CUBE_FACE_NORMALS: [Vec3; 6] = [
   vec3(0., 1., 0.),
   vec3(0., 0., -1.),
   vec3(-1.,0., 0.),
@@ -53,25 +52,25 @@ pub enum DiagonalFace {
 }
 const CROSS_FACES: [[Vec3; 4]; 2] = [
   [
-    vec3(0., 0., 0.), 
-    vec3(0., 1., 0.), 
-    vec3(1., 0., 1.), 
+    vec3(0., 0., 0.),
+    vec3(0., 1., 0.),
+    vec3(1., 0., 1.),
     vec3(1., 1., 1.),
   ],
   [
-    vec3(0., 0., 1.), 
-    vec3(0., 1., 1.), 
-    vec3(1., 0., 0.), 
+    vec3(0., 0., 1.),
+    vec3(0., 1., 1.),
+    vec3(1., 0., 0.),
     vec3(1., 1., 0.),
   ]
 ];
 const CROSS_FACE_NORMALS: [Vec3; 2] = [
-  vec3(-INV_SQRT_2, 0., INV_SQRT_2),
-  vec3(INV_SQRT_2, 0., INV_SQRT_2),
+  vec3(-FRAC_1_SQRT_2, 0., FRAC_1_SQRT_2),
+  vec3( FRAC_1_SQRT_2, 0., FRAC_1_SQRT_2),
 ];
 const CROSS_FACE_NORMALS_BACK: [Vec3; 2] = [
-  vec3(INV_SQRT_2, 0., -INV_SQRT_2),
-  vec3(-INV_SQRT_2, 0., -INV_SQRT_2),
+  vec3( FRAC_1_SQRT_2, 0., -FRAC_1_SQRT_2),
+  vec3(-FRAC_1_SQRT_2, 0., -FRAC_1_SQRT_2),
 ];
 const CROSS_FACE_INDICES: [u32; 12] = [
   0, 1, 2, 2, 1, 3, //Front side
@@ -109,7 +108,7 @@ impl MeshBuilder {
       self.vertex_buffer.push(ChunkVertex {
         position: (coord + vert[i]).to_array(),
         normal: norm.to_array(),
-        uv: UV_COORDS[i], 
+        uv: UV_COORDS[i],
         tex_index: texture
       });
     }
@@ -149,7 +148,7 @@ impl MeshBuilder {
     self.index_buffer.extend_from_slice(&CROSS_FACE_INDICES.map(|x| x + self.idx_counter));
 
     //Increment idx counter
-    self.idx_counter += 8; 
+    self.idx_counter += 8;
   }
 
   pub fn add_model(&mut self, position: Vec3, vertices: &[ChunkVertex], indices: Option<&[u32]>) {

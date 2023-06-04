@@ -37,7 +37,8 @@ ndk-glue = "0.7"
 winapi = { version = "0.3" }
 
 [features]
-default = []
+default = ["raw-evt"]
+raw-evt = []
 generate_visualizer_data = ["serde_json", "shipyard/serde1"]
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
 parallel = ["shipyard/parallel"]

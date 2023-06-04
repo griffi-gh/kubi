@@ -24,29 +24,46 @@ pub fn process_glutin_events(world: &mut World, event: &Event<'_, ()>) {
   #[allow(clippy::collapsible_match, clippy::single_match)]
   match event {
     Event::WindowEvent { window_id: _, event } => match event {
+      
       WindowEvent::Resized(size) => {
         world.add_entity((
           EventComponent, 
           WindowResizedEvent(UVec2::new(size.width as _, size.height as _))
         ));
       },
+
+      #[cfg(not(feature = "raw-evt"))]
+      WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
+        world.add_entity((
+          EventComponent,
+          InputDeviceEvent {
+            device_id: *device_id,
+            event: DeviceEvent::Key(*input)
+          }
+        ));
+      }
+
       _ => ()
     },
+
+    #[cfg(feature = "raw-evt")]
     Event::DeviceEvent { device_id, event } => {
       world.add_entity((
-        EventComponent, 
-        InputDeviceEvent { 
-          device_id: *device_id, 
-          event: event.clone() 
+        EventComponent,
+        InputDeviceEvent {
+          device_id: *device_id,
+          event: event.clone()
         }
       ));
     },
+
     Event::LoopDestroyed => {
       world.add_entity((
-        EventComponent, 
+        EventComponent,
         OnBeforeExitEvent
       ));
     },
+    
     _ => (),
   }
 }

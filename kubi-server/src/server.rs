@@ -38,7 +38,6 @@ pub fn bind_server(
         keepalive_interval_ms: 5000,
         ..Default::default()
       },
-      ..Default::default()
     }
   ).expect("Failed to create the server");
   storages.add_unique_non_send_sync(UdpServer(server));

@@ -14,15 +14,15 @@ use crate::{
   world::{
     tasks::{ChunkTaskResponse, ChunkTaskManager},
     queue::BlockUpdateQueue
-  }, 
+  },
 };
 use super::{NetworkEvent, UdpClient};
 
 //TODO multithreaded decompression
-fn decompress_chunk_packet(data: &Box<[u8]>) -> Result<ServerToClientMessage> {
+fn decompress_chunk_packet(data: &[u8]) -> Result<ServerToClientMessage> {
   let mut decompressed = decompress_size_prepended(&data[1..])?;
   decompressed.insert(0, data[0]);
-  Ok(postcard::from_bytes(&decompressed).ok().context("Deserialization failed")?)
+  postcard::from_bytes(&decompressed).ok().context("Deserialization failed")
 }
 
 //TODO get rid of this, this is awfulll
@@ -38,7 +38,7 @@ pub fn inject_network_responses_into_manager_queue(
         chunk, data, queued
       } = packet else { unreachable!() };
       manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
-        position: chunk, 
+        position: chunk,
         chunk_data: data,
         queued
       });

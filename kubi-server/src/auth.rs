@@ -81,7 +81,7 @@ pub fn authenticate_players(
 
     //Find the player ID
     let max_clients = config.server.max_clients as ClientId;
-    let Some(client_id) = (0..max_clients).into_iter().find(|id| {
+    let Some(client_id) = (0..max_clients).find(|id| {
       !client_entity_map.0.contains_key(id) 
     }) else {
       client.borrow_mut().send(

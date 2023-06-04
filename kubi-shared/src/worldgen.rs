@@ -9,7 +9,7 @@ use crate::{
 };
 
 fn mountain_ramp(mut x: f32) -> f32 {
-  x = x * 2.0;
+  x *= 2.0;
   if x < 0.4 {
     0.5 * x
   } else if x < 0.55 {
@@ -94,7 +94,7 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
 
   let mut rng = Xoshiro256StarStar::seed_from_u64(
     seed
-    ^ ((chunk_position.x as u32 as u64) << 0)
+    ^ (chunk_position.x as u32 as u64)
     ^ ((chunk_position.z as u32 as u64) << 32)
   );
   let rng_map_a: [[f32; CHUNK_SIZE]; CHUNK_SIZE] = rng.gen();
@@ -133,20 +133,18 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
           }
         }
         //Generate ravines
-        if height < 0 {
-          if raw_ravine_location_value > 0.4 {
-            let raw_ravine_value = ravine_nose_line.get_noise(noise_x, noise_y);
-            if (-0.0125..0.0125).contains(&(raw_ravine_value.powi(2))) {
-              is_surface = false;
-              height -= (100. * (0.0125 - raw_ravine_value.powi(2)) * (1. / 0.0125)).round() as i32;
-            }
+        if height < 0 && raw_ravine_location_value > 0.4 {
+          let raw_ravine_value = ravine_nose_line.get_noise(noise_x, noise_y);
+          if (-0.0125..0.0125).contains(&(raw_ravine_value.powi(2))) {
+            is_surface = false;
+            height -= (100. * (0.0125 - raw_ravine_value.powi(2)) * (1. / 0.0125)).round() as i32;
           }
         }
         height
       };
       //add to heightmap
       if is_surface {
-        deco_heightmap[x as usize][z as usize] = Some(height);
+        deco_heightmap[x][z] = Some(height);
         //place dirt
         for y in 0..local_height(height, chunk_position) {
           blocks[x][y][z] = Block::Dirt;
@@ -162,29 +160,27 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
           blocks[x][y][z] = Block::Grass;
           within_heightmap = true;
         }
+      } else if let Some(river_fill_height) = river_fill_height {
+        //Place water
+        for y in 0..local_height(river_fill_height, chunk_position) {
+          blocks[x][y][z] = Block::Water;
+          within_heightmap = true;
+        }
+        //Place stone
+        for y in 0..local_height(height, chunk_position) {
+          blocks[x][y][z] = Block::Stone;
+          within_heightmap = true;
+        }
+        //Place dirt
+        if let Some(y) = local_y_position(height, chunk_position) {
+          blocks[x][y][z] = Block::Dirt;
+          within_heightmap = true;
+        }
       } else {
-        if let Some(river_fill_height) = river_fill_height {
-          //Place water
-          for y in 0..local_height(river_fill_height, chunk_position) {
-            blocks[x][y][z] = Block::Water;
-            within_heightmap = true;
-          }
-          //Place stone
-          for y in 0..local_height(height, chunk_position) {
-            blocks[x][y][z] = Block::Stone;
-            within_heightmap = true;
-          }
-          //Place dirt
-          if let Some(y) = local_y_position(height, chunk_position) {
-            blocks[x][y][z] = Block::Dirt;
-            within_heightmap = true;
-          }
-        } else {
-          //Place stone
-          for y in 0..local_height(height, chunk_position) {
-            blocks[x][y][z] = Block::Stone;
-            within_heightmap = true;
-          }
+        //Place stone
+        for y in 0..local_height(height, chunk_position) {
+          blocks[x][y][z] = Block::Stone;
+          within_heightmap = true;
         }
       }
     }

@@ -41,19 +41,36 @@ build with nightly features
 cargo +nightly build --bin kubi -r --features nightly
 ```
 
-build for android  
+build for android
 
-please note that android support is purely experimental!  
-gamepad, keyboard and mouse input is currently borked, and touch controls are not available.  
+please note that android support is purely experimental!
+gamepad, keyboard and mouse input is currently borked, and touch controls are not available.
 srgb and blending are broken too, which leads to many rendering issues
 
 prerequisites: Android SDK, NDK, platform-tools, latest JDK (all should be in $PATH)
 
+Setup:
+
 ```bash
-cargo install cargo-apk  
-cargo target add aarch64-linux-android  
-cargo apk build -p kubi
-cargo apk run -p kubi
+cargo install cargo-apk
+cargo target add aarch64-linux-android
+```
+
+Build:
+`--no-default-features` is required for keyboard input!
+
+```bash
+cargo apk build -p kubi --no-default-features
+# or, with nighly optimizations:
+cargo +nightly apk build -p kubi --no-default-features --features nightly
+```
+
+Run:
+
+```bash
+cargo apk run -p kubi --features nightly
+# or, with nighly optimizations:
+cargo +nightly apk run -p kubi --no-default-features --features nightly
 ```
 
 <h2>mutiplayer</h2>

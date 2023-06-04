@@ -71,7 +71,7 @@ fn process_chunk_requests(
       //TODO Start task here if status is "Nothing"
       if let Some(blocks) = &chunk.blocks {
         send_chunk_compressed(
-          &message.client,
+          message.client,
           &ServerToClientMessage::ChunkResponse {
             chunk: chunk_position,
             data: blocks.clone(),

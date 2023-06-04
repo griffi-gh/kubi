@@ -41,6 +41,11 @@ impl Renderer {
       .with_maximized(true)
       .with_min_inner_size(PhysicalSize::new(640, 480))
       .with_fullscreen({
+        //this has no effect on android, so skip this pointless stuff
+        #[cfg(target_os = "android")] {
+          None
+        }
+        #[cfg(not(target_os = "android"))]
         if let Some(fs_settings) = &settings.fullscreen {
           let monitor = event_loop.primary_monitor().or_else(|| {
             event_loop.available_monitors().next()
@@ -104,7 +109,7 @@ impl Renderer {
 }
 
 pub fn clear_background(
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
+  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
   color: UniqueView<BackgroundColor>,
 ) {
   target.0.clear_color_srgb_and_depth((color.0.x, color.0.y, color.0.z, 1.), 1.);
