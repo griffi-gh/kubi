@@ -10,7 +10,7 @@ macro_rules! include_shader_prefab {
         tessellation_control_shader: None,
         tessellation_evaluation_shader: None,
         transform_feedback_varyings: None,
-        outputs_srgb: false,
+        outputs_srgb: true,
         uses_point_size: false,
       }).expect("Failed to compile gpu program")
     }

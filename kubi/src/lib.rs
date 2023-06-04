@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)] // allowed because systems often need a lot of arguments
 
+use anyhow::Result;
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
@@ -170,11 +171,35 @@ fn attach_console() {
   unsafe { AttachConsole(ATTACH_PARENT_PROCESS); }
 }
 
+#[cfg(target_os = "android")]
+fn do_android_init() -> Result<()> {
+  // let ctx = ndk_context::android_context();
+  // let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }?;
+  // let env = vm.attach_current_thread()?;
+  // let window = env.call_method(
+  //   ctx.context() as jni::sys::jobject,
+  //   "getWindow",
+  //   "(Ljava/lang/Object;)Ljava/lang/Object;",
+  //   &[],
+  // )?;
+  // env.call_method(
+  //   window as jni::sys::jobject,
+  //   "setColorMode",
+  //   "(Ljava/lang/Object;)Ljava/lang/Object;",
+  //   &[],
+  // )?;
+
+  Ok(())
+}
+
 #[no_mangle]
 #[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
 pub fn kubi_main() {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
+
+  //Android-specific jni/ndk stuff
+  #[cfg(target_os = "android")] do_android_init();
 
   //Print version
   println!("{:─^54}", format!("[ ▄▀ Kubi client v. {} ]", env!("CARGO_PKG_VERSION")));
