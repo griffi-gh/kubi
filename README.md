@@ -18,7 +18,7 @@
     <li>frustum culling</li>
     <li>multiplayer support <sup><code>[1]</code></sup></li>
     <li>block placement system</li>
-    <li>partial gamepad input support</li>
+    <li>basic gui<sup><code>[5]</code></sup></li>
     <li>cross platform: windows, linux, osx <sup><code>[2]</code></sup>, android <sup><code>[3]</code></sup></li>
     <li>universal input system: supports keyboard, mouse, gamepad and touch input <sup><code>[4]</code></sup></li>
   </ul>
@@ -26,7 +26,8 @@
     <code>[1]</code> - multiplayer is work-in-progress<br>
     <code>[2]</code> - not tested on macos<br>
     <code>[3]</code> - android support is experimental<br>
-    <code>[4]</code> - mouse/gamepad input is not supported on android
+    <code>[4]</code> - mouse/gamepad input is not supported on android<br>
+  <code>[5]</code> - currently only used on the loading screen 
   </h6>
 </p>
 
