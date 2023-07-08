@@ -34,7 +34,7 @@ pub fn load_texture2darray_prefab<
     };
     //Create a glium RawImage
     RawImage2d::from_raw_rgba_reversed(
-      &image_data,
+      &image_data, 
       dimensions
     )
   }).collect();
