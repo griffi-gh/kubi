@@ -2,6 +2,11 @@
 <p align="center">
   Voxel engine written in Rust
 </p>
+<p align="center">
+  <b>Wgpu edition: highly experimental very early work-in-progress wgpu version of Kubi!</b><br>
+  <i>This crap doesn't even compile yet!</i><br>
+  If you want to play kubi, build the <a href="github.com/griffi-gh/kubi">older Glium version</a> (or try <a href="https://github.com/griffi-gh/kubi/releases/tag/nightly">binary releases</a>) instead.
+</p>
 <div align="center">
   <img src=".readme/game.gif" width="512">
 </div>
