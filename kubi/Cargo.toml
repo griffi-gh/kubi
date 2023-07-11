@@ -11,7 +11,8 @@ crate-type = ["lib", "cdylib"]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
 log = "0.4"
-glium = { git = "https://github.com/glium/glium", rev = "5d50e7" }
+wgpu = "0.16"
+winit = "0.28"
 glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.25", features = ["derive"] }
@@ -25,13 +26,11 @@ gilrs = { version = "0.10", default_features = false, features = ["xinput"] }
 uflow = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
 lz4_flex = { version = "0.11", default-features = false, features = ["std"] }
-static_assertions = "1.1"
 tinyset = "0.4"
 serde_json = { version = "1.0", optional = true } #only used for `generate_visualizer_data`
 
 [target.'cfg(target_os = "android")'.dependencies]
-ndk = "0.7"
-ndk-glue = "0.7"
+android-activity = "0.4"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = "0.3"
@@ -42,7 +41,7 @@ raw-evt = [] #required for mouse input, but breaks keyboard on android
 generate_visualizer_data = ["dep:serde_json", "shipyard/serde1"]
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
 parallel = ["shipyard/parallel"] # causes some serious issues!
-nightly = ["hashbrown/nightly", "glam/core-simd", "static_assertions/nightly", "lz4_flex/nightly", "kubi-shared/nightly"]
+nightly = ["hashbrown/nightly", "glam/core-simd", "lz4_flex/nightly", "kubi-shared/nightly"]
 
 #part of wip android support
 [package.metadata.android]
