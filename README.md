@@ -1,11 +1,31 @@
+<div align="center"><table><tr><th><div align="center">
+
+## ***wgpu branch***
+
+<b>Highly experimental very early work-in-progress wgpu version of Kubi!</b><br>
+
+<hr>
+
+<h3><i>Status: doesn't even compile</i><br></h3>
+If you want to play kubi, build the glium-based <a href="https://github.com/griffi-gh/kubi"><code>master</code></a> branch instead (<a href="https://github.com/griffi-gh/kubi/releases/tag/nightly">binary nightly releases</a>).
+
+<hr>
+
+### *Android is not supported*
+android builds need some significant changes to work with wgpu\
+but if you still want to try it latest git version of cargo-apk may be required:
+```bash
+cargo install --git https://github.com/rust-mobile/cargo-apk cargo-apk
+```
+
+</div></th></tr></table></div>
+
 <h1 align="center">Kubi</h1>
 <p align="center">
   Voxel engine written in Rust
 </p>
 <p align="center">
-  <b>Wgpu edition: highly experimental very early work-in-progress wgpu version of Kubi!</b><br>
-  <i>This crap doesn't even compile yet!</i><br>
-  If you want to play kubi, build the <a href="github.com/griffi-gh/kubi">older Glium version</a> (or try <a href="https://github.com/griffi-gh/kubi/releases/tag/nightly">binary releases</a>) instead.
+  
 </p>
 <div align="center">
   <img src=".readme/game.gif" width="512">
@@ -68,11 +88,6 @@ prerequisites: Android SDK, command line tools, NDK, platform-tools, latest JDK\
 ```bash
 cargo install cargo-apk
 cargo target add aarch64-linux-android
-```
-
-***wgpu branch**: latest git version of cargo-apk may be required!*
-```bash
-cargo install --git https://github.com/rust-mobile/cargo-apk cargo-apk
 ```
 
 **Build:**
