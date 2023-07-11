@@ -70,6 +70,11 @@ cargo install cargo-apk
 cargo target add aarch64-linux-android
 ```
 
+***wgpu branch**: latest git version of cargo-apk may be required!*
+```bash
+cargo install --git https://github.com/rust-mobile/cargo-apk cargo-apk
+```
+
 **Build:**
 
 `--no-default-features` is required for keyboard input!\
