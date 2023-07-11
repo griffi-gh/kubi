@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [lib]
+name = "kubimain"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
@@ -12,7 +13,7 @@ kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
 log = "0.4"
 wgpu = "0.16"
-winit = "0.28"
+winit = { version = "0.28", features = ["android-native-activity"] }
 glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.25", features = ["derive"] }
@@ -30,7 +31,7 @@ tinyset = "0.4"
 serde_json = { version = "1.0", optional = true } #only used for `generate_visualizer_data`
 
 [target.'cfg(target_os = "android")'.dependencies]
-android-activity = "0.4"
+android-activity = { version = "0.4", features = ["native-activity"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = "0.3"
