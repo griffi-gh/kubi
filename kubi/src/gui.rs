@@ -2,7 +2,6 @@ use shipyard::{Component, Unique, Workload, IntoWorkload, AllStoragesView, View,
 use glam::{Vec4, Mat4};
 use crate::{color::color_hex, events::WindowResizedEvent};
 
-pub mod text_widget;
 pub mod progressbar;
 
 use progressbar::render_progressbars;
@@ -41,18 +40,24 @@ fn update_gui_view(
   view.0 = Mat4::orthographic_rh_gl(0.0, w as f32, h as f32, 0.0, -1.0, 1.0);
 }
 
+#[deprecated="will be replaced by an immediate-mode ui soon, currently a no-op"]
+#[allow(deprecated)]
 pub fn init_gui(
   storages: AllStoragesView
 ) {
   storages.add_unique(GuiView::default());
 }
 
+#[deprecated="will be replaced by an immediate-mode ui soon, currently a no-op"]
+#[allow(deprecated)]
 pub fn update_gui() -> Workload {
   (
     update_gui_view
   ).into_sequential_workload()
 }
 
+#[deprecated="will be replaced by an immediate-mode ui soon, currently a no-op"]
+#[allow(deprecated)]
 pub fn render_gui() -> Workload {
   (
     render_progressbars

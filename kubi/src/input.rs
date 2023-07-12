@@ -1,13 +1,13 @@
 use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
 use glam::{Vec2, DVec2, vec2, dvec2};
-use glium::glutin::event::{DeviceEvent, DeviceId, VirtualKeyCode, ElementState, TouchPhase};
+use winit::event::{DeviceEvent, DeviceId, VirtualKeyCode, ElementState, TouchPhase};
 use hashbrown::HashMap;
 use tinyset::{SetU32, SetU64};
 use nohash_hasher::BuildNoHashHasher;
 use shipyard::{AllStoragesView, Unique, View, IntoIter, UniqueViewMut, Workload, IntoWorkload, UniqueView, NonSendSync};
 use crate::{
   events::{InputDeviceEvent, TouchEvent},
-  rendering::WindowSize
+  rendering::Renderer
 };
 
 #[derive(Unique, Clone, Copy, Default, Debug)]
@@ -202,10 +202,10 @@ fn update_input_state_gamepad (
 
 fn update_input_state_touch (
   touch_state: UniqueView<RawTouchState>,
-  win_size: UniqueView<WindowSize>,
+  renderer: UniqueView<Renderer>,
   mut inputs: UniqueViewMut<Inputs>,
 ) {
-  let w = win_size.0.as_dvec2();
+  let w = dvec2(renderer.size.width as _, renderer.size.height as _);
 
   //Movement
   if let Some(finger) = touch_state.query_area(

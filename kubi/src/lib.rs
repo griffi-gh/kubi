@@ -6,11 +6,9 @@ use shipyard::{
   NonSendSync, WorkloadModificator, 
   SystemModificator
 };
-use glium::{
-  glutin::{
-    event_loop::{EventLoop, ControlFlow},
-    event::{Event, WindowEvent}
-  }
+use winit::{
+  event_loop::{EventLoop, ControlFlow},
+  event::{Event, WindowEvent}
 };
 use glam::vec3;
 use std::time::Instant;
@@ -31,6 +29,8 @@ pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 pub(crate) mod state;
+#[deprecated="will be replaced by an immediate-mode ui soon, currently a no-op"]
+#[allow(deprecated)]
 pub(crate) mod gui;
 pub(crate) mod networking;
 pub(crate) mod init;
@@ -45,7 +45,7 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::{ChunkTaskManager},
+  tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -64,8 +64,6 @@ use rendering::{
   RenderTarget, 
   BackgroundColor, 
   clear_background,
-  init_window_size, 
-  update_window_size,
   primitives::init_primitives,
   world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
@@ -94,7 +92,6 @@ fn startup() -> Workload {
   (
     init_fixed_timestamp_storage,
     initial_resize_event,
-    init_window_size,
     load_prefabs,
     init_primitives,
     insert_lock_state,
@@ -110,7 +107,6 @@ fn startup() -> Workload {
 
 fn update() -> Workload {
   (
-    update_window_size,
     update_cursor_lock_state,
     process_inputs,
     (
@@ -170,15 +166,19 @@ fn attach_console() {
   unsafe { AttachConsole(ATTACH_PARENT_PROCESS); }
 }
 
+#[cfg(target_os = "android")]
 #[no_mangle]
-#[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
+pub fn android_main(app: AndroidApp) {
+  kubi_main()
+}
+
 pub fn kubi_main() {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
 
   //Print version
   println!("{:─^54}", format!("[ ▄▀ Kubi client v. {} ]", env!("CARGO_PKG_VERSION")));
-
+  
   //Init env_logger
   kubi_logging::init();
 
@@ -201,7 +201,7 @@ pub fn kubi_main() {
   //Initialize renderer
   {
     let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
-    world.add_unique_non_send_sync(Renderer::init(&event_loop, &settings));
+    world.add_unique_non_send_sync(Renderer::init_blocking(&event_loop, &settings));
   }
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
 

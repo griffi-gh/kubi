@@ -1,5 +1,4 @@
 use shipyard::{Unique, AllStoragesView, NonSendSync, UniqueView};
-use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use crate::rendering::Renderer;
 use super::PositionOnlyVertex2d;
 

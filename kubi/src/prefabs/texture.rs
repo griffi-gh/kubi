@@ -1,7 +1,6 @@
 use strum::IntoEnumIterator;
 use rayon::prelude::*;
 use std::{path::PathBuf, io::BufReader};
-use glium::{texture::{SrgbTexture2dArray, RawImage2d, MipmapsOption}, backend::Facade};
 use crate::filesystem::open_asset;
 use super::AssetPaths;
 

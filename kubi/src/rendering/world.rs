@@ -1,22 +1,5 @@
 use glam::{Vec3, Mat4, Quat, ivec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
-use glium::{
-  implement_vertex, uniform,
-  Surface, DrawParameters, 
-  uniforms::{
-    Sampler, 
-    SamplerBehavior, 
-    MinifySamplerFilter, 
-    MagnifySamplerFilter, 
-    SamplerWrapFunction
-  },
-  draw_parameters::{
-    Depth,
-    DepthTest,
-    PolygonMode,
-    BackfaceCullingMode,
-  }, Blend
-};
 use crate::{
   camera::Camera,
   player::MainPlayer,
@@ -34,15 +17,14 @@ use crate::{
 };
 use super::{RenderTarget, primitives::cube::CubePrimitive};
 
-#[derive(Clone, Copy)]
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct ChunkVertex {
   pub position: [f32; 3],
   pub normal: [f32; 3],
   pub uv: [f32; 2],
   pub tex_index: u8,
 }
-implement_vertex!(ChunkVertex, position, normal, uv, tex_index);
 
 pub fn draw_world(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 

@@ -1,5 +1,4 @@
 use shipyard::{NonSendSync, UniqueView, Unique, AllStoragesView};
-use glium::{texture::{SrgbTexture2dArray, MipmapsOption}, Program};
 use kubi_shared::block::BlockTexture;
 use crate::rendering::Renderer;
 

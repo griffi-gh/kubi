@@ -1,5 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut, Unique, AllStoragesView};
-use glium::glutin::{event::VirtualKeyCode, event_loop::ControlFlow};
+use winit::{event::VirtualKeyCode, event_loop::ControlFlow};
 use crate::input::RawKbmInputState;
 
 #[derive(Unique)]

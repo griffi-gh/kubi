@@ -1,5 +1,4 @@
 use shipyard::{NonSendSync, UniqueViewMut, UniqueView, View, IntoIter, IntoWithId};
-use glium::{DepthTest, Depth, PolygonMode, BackfaceCullingMode, DrawParameters, Surface, uniform};
 use kubi_shared::{entity::Entity, transform::Transform};
 use crate::{
   prefabs::ColoredShaderPrefab,
@@ -42,17 +41,17 @@ pub fn render_entities(
     if entity_id == camera_id { continue }
 
     //render entity
-    target.0.draw(
-      &buffers.0,
-      &buffers.1,
-      &program.0,
-      &uniform! {
-        color: [1.0, 1.0, 1.0, 1.0_f32],
-        model: trans.0.to_cols_array_2d(),
-        view: view,
-        perspective: perspective,
-      },
-      &draw_parameters
-    ).unwrap();
+    // target.0.draw(
+    //   &buffers.0,
+    //   &buffers.1,
+    //   &program.0,
+    //   &uniform! {
+    //     color: [1.0, 1.0, 1.0, 1.0_f32],
+    //     model: trans.0.to_cols_array_2d(),
+    //     view: view,
+    //     perspective: perspective,
+    //   },
+    //   &draw_parameters
+    // ).unwrap();
   }
 }
