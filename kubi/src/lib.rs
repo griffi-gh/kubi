@@ -52,22 +52,22 @@ use prefabs::load_prefabs;
 use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
 use events::{
-  clear_events, 
-  process_glutin_events, 
+  clear_events,
+  process_glutin_events,
   initial_resize_event,
-  player_actions::generate_move_events, 
+  player_actions::generate_move_events,
 };
 use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
-  Renderer, 
-  RenderTarget, 
-  BackgroundColor, 
+  Renderer,
+  RenderTarget,
+  BackgroundColor,
   clear_background,
   primitives::init_primitives,
   world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
-  entities::render_entities, 
+  entities::render_entities,
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -244,7 +244,7 @@ pub fn kubi_main() {
         //Start rendering (maybe use custom views for this?)
         let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-          renderer.display.draw()
+          renderer.render()
         };
         world.add_unique_non_send_sync(RenderTarget(target));
 

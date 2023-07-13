@@ -1,4 +1,5 @@
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
+use wgpu::SurfaceConfiguration;
 use winit::{
   event_loop::EventLoop,
   window::{Window, WindowBuilder, Fullscreen},
@@ -33,11 +34,14 @@ pub struct Renderer {
   pub device: wgpu::Device,
   pub queue: wgpu::Queue,
   pub size: PhysicalSize<u32>,
+  pub config: wgpu::SurfaceConfiguration,
 }
 impl Renderer {
   pub async fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
     
+    // ========== Create a winit window ==========
+
     //Build window
     let window = WindowBuilder::new()
       .with_title("kubi")
@@ -62,20 +66,30 @@ impl Renderer {
         }
       }
     }));
+    
+    let size = window.inner_size();
 
-    //Create wgpu stuff
+    // ========== Create wgpu stuff ==========
+    
+    // instance
+
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
       backends: wgpu::Backends::all(),
       dx12_shader_compiler: if cfg!(all(windows, feature = "dx12-dxc")) {
+        // Better, but requires shipping ms dxil dlls
         wgpu::Dx12Compiler::Dxc { dxil_path: None, dxc_path: None }
       } else {
         wgpu::Dx12Compiler::Fxc
       }
     });
 
+    // surface
+
     let surface = unsafe {
       instance.create_surface(&window)
     }.expect("Failed to create a Surface");
+
+    // adapter
 
     let adapter = instance.request_adapter(
       &wgpu::RequestAdapterOptions {
@@ -84,7 +98,10 @@ impl Renderer {
         force_fallback_adapter: false,
       },
     ).await.expect("Failed to create wgpu adapter");
-  
+    log::info!("Adapter: {:?}", adapter.get_info());
+    
+    // device/queue
+
     let (device, queue) = adapter.request_device(
       &wgpu::DeviceDescriptor {
         features: wgpu::Features::empty(),
@@ -100,9 +117,31 @@ impl Renderer {
       None,
     ).await.unwrap();
     
-    log::info!("Adapter: {:?}", adapter.get_info());
+    // surf. format
 
-    Self { window, instance, surface, adapter, device, queue, size: PhysicalSize::default() }
+    let surface_capabilities = surface.get_capabilities(&adapter);
+    let surface_format = surface_capabilities.formats.iter()
+      .copied()
+      .find(|f| f.is_srgb())
+      .unwrap_or(surface_capabilities.formats[0]);
+
+    // config
+
+    let config = wgpu::SurfaceConfiguration {
+      usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+      format: surface_format,
+      width: size.width,
+      height: size.height,
+      present_mode: match settings.vsync {
+        true  => wgpu::PresentMode::AutoVsync,
+        false => wgpu::PresentMode::AutoNoVsync,
+      },
+      alpha_mode: surface_capabilities.alpha_modes[0],
+      view_formats: vec![],
+    };
+    surface.configure(&device, &config);
+
+    Self { window, instance, surface, adapter, device, queue, size, config };
   }
 
   /// do not call from async functions
@@ -112,7 +151,20 @@ impl Renderer {
 
   /// Start a new frame
   pub fn render() -> RenderTarget {
+    todo!()
+  }
 
+  /// Resize the surface
+  /// ## Panics:
+  /// - ...if any dimension is equal to zero
+  pub fn resize(&self, new_size: PhysicalSize<u32>) {
+    //XXX: just check instead?
+    assert!(new_size.width > 0, "width cannot be zero");
+    assert!(new_size.height > 0, "height cannot be zero");
+    self.size = new_size;
+    self.config.width = new_size.width;
+    self.config.height = new_size.height;
+    self.surface.configure(&self.device, &self.config);
   }
 }
 

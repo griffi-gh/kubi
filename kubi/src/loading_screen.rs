@@ -9,7 +9,7 @@ use crate::{
     GuiComponent, 
     progressbar::ProgressbarComponent
   },
-  rendering::{WindowSize, if_resized}, 
+  rendering::{Renderer, if_resized},
   input::RawKbmInputState, 
 };
 
@@ -19,11 +19,11 @@ struct ProgressbarId(EntityId);
 fn spawn_loading_screen(
   mut storages: AllStoragesViewMut,
 ) {
-  let size = *storages.borrow::<UniqueView<WindowSize>>().unwrap();
+  let size = storages.borrow::<UniqueView<Renderer>>().unwrap().size;
   let entity = storages.add_entity((
     GuiComponent,
     Transform2d(Mat3::from_scale_angle_translation(
-      vec2(size.0.x as f32, 16.), 
+      vec2(size.width as f32, 16.),
       0.,
       vec2(0., 0.)
     )),
@@ -35,12 +35,12 @@ fn spawn_loading_screen(
 }
 
 fn resize_progress_bar(
-  size: UniqueView<WindowSize>,
+  renderer: UniqueView<Renderer>,
   bar: UniqueView<ProgressbarId>,
   mut transforms: ViewMut<Transform2d, track::All>
 ) {
   let mut trans = (&mut transforms).get(bar.0).unwrap();
-  trans.0.x_axis.x = size.0.x as f32;
+  trans.0.x_axis.x = renderer.size.width as f32;
 }
 
 fn update_progress_bar_progress (

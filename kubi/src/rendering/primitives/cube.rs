@@ -1,13 +1,18 @@
 use shipyard::{AllStoragesView, NonSendSync, UniqueView, Unique};
-use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use crate::rendering::Renderer;
 use super::PositionOnlyVertex;
 
 #[derive(Unique)]
-pub struct CubePrimitive(pub VertexBuffer<PositionOnlyVertex>, pub IndexBuffer<u16>);
+pub struct CubePrimitive {
+  pub vert: wgpu::Buffer,
+  pub idx: wgpu::Buffer
+}
 
 #[derive(Unique)]
-pub struct CenteredCubePrimitive(pub VertexBuffer<PositionOnlyVertex>, pub IndexBuffer<u16>);
+pub struct CenteredCubePrimitive {
+  pub vert: wgpu::Buffer,
+  pub idx: wgpu::Buffer
+}
 
 const CENTERED_CUBE_VERTICES: &[PositionOnlyVertex] = &[
   // front
