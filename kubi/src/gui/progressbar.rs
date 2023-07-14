@@ -1,6 +1,6 @@
 use shipyard::{UniqueView, UniqueViewMut, NonSendSync, View, Component, IntoIter, IntoWithId, Get, track};
 use crate::{
-  prefabs::ProgressbarShaderPrefab,
+  assets::ProgressbarShaderPrefab,
   rendering::{
     RenderTarget,
     primitives::rect::RectPrimitive

@@ -18,7 +18,7 @@ pub use kubi_shared::transform;
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
-pub(crate) mod prefabs;
+pub(crate) mod assets;
 pub(crate) mod settings;
 pub(crate) mod camera;
 pub(crate) mod events;
@@ -48,7 +48,7 @@ use world::{
   tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
-use prefabs::load_prefabs;
+use assets::load_prefabs;
 use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
 use events::{

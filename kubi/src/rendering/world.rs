@@ -4,7 +4,7 @@ use crate::{
   camera::Camera,
   player::MainPlayer,
   transform::Transform,
-  prefabs::{
+  assets::{
     ChunkShaderPrefab,
     BlockTexturesPrefab, 
     ColoredShaderPrefab,

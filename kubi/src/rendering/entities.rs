@@ -1,7 +1,7 @@
 use shipyard::{NonSendSync, UniqueViewMut, UniqueView, View, IntoIter, IntoWithId};
 use kubi_shared::{entity::Entity, transform::Transform};
 use crate::{
-  prefabs::ColoredShaderPrefab,
+  assets::ColoredShaderPrefab,
   camera::Camera,
   settings::GameSettings
 };

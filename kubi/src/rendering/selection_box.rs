@@ -10,7 +10,7 @@ use glium::{
 use crate::{
   world::raycast::LookingAtBlock, 
   camera::Camera, 
-  prefabs::ColoredShaderPrefab
+  assets::ColoredShaderPrefab
 };
 use super::{
   RenderTarget, 
