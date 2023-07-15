@@ -8,14 +8,20 @@ pub struct Shaders {
 }
 
 macro_rules! shaders {
-  {$renderer: expr, $dir: literal, $($name: ident -> $path: literal),*} => {
+  {($renderer: expr, $dir: literal), $($name: ident : $path: literal),*} => {
     {
       use super::Renderer;
       let renderer: &Renderer = $renderer;
-      $({
-        let _is_string_literal: &str = $path;
-        renderer.device.create_shader_module(wgpu::include_wgsl!(concat!($dir, "/", $path)));
-      })*
+      $(
+        let $name = {
+          let _is_string_literal: &str = $path;
+          let shader_descriptor = wgpu::include_wgsl!(concat!($dir, "/", $path));
+          renderer.device.create_shader_module(shader_descriptor)
+        };
+      )*
+      Shaders {
+        $($name,)*
+      }
     }
   };
 }
@@ -25,7 +31,7 @@ pub fn compile_shaders(
 ) {
   let renderer = &storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
   shaders! {
-    renderer, "../../shaders",
-    world -> "world.wgsl"
+    (renderer, "../../shaders"),
+    world: "world.wgsl"
   };
 }
