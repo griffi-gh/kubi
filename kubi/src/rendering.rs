@@ -141,7 +141,7 @@ impl Renderer {
     };
     surface.configure(&device, &config);
 
-    Self { window, instance, surface, adapter, device, queue, size, config };
+    Self { window, instance, surface, adapter, device, queue, size, config }
   }
 
   /// do not call from async functions
