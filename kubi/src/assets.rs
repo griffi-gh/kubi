@@ -37,19 +37,7 @@ impl AssetPaths for BlockTexture {
 
 #[derive(Unique)]
 #[repr(transparent)]
-pub struct BlockTexturesPrefab(pub SrgbTexture2dArray);
-
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ChunkShaderPrefab(pub Program);
-
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ColoredShaderPrefab(pub Program);
-
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ProgressbarShaderPrefab(pub Program);
+pub struct BlockTexturesPrefab(pub wgpu::Texture);
 
 pub fn load_prefabs(
   storages: AllStoragesView,
@@ -59,23 +47,4 @@ pub fn load_prefabs(
   storages.add_unique_non_send_sync(BlockTexturesPrefab(
     load_asset_texture_array::<BlockTexture>("blocks".into(), &renderer)
   ));
-
-  log::info!("Compiling shaders...");
-  storages.add_unique_non_send_sync(ChunkShaderPrefab(
-    include_shader_prefab!(
-      "world",
-      "../shaders/world.vert",
-      "../shaders/world.frag",
-      &renderer.display
-    )
-  ));
-  storages.add_unique_non_send_sync(ColoredShaderPrefab(
-    include_shader_prefab!(
-      "colored",
-      "../shaders/colored.vert",
-      "../shaders/colored.frag",
-      &renderer.display
-    )
-  ));
-  renderer.display.release_shader_compiler();
 }

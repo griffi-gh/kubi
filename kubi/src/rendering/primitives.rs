@@ -6,15 +6,15 @@ pub mod rect;
 use cube::init_cube_primitive;
 use rect::init_rect_primitive;
 
-#[repr(C)]
-#[derive(Clone, Copy, Default)]
-pub struct PositionOnlyVertex {
+#[repr(C, packed)]
+#[derive(Clone, Copy, Default, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct PositionVertex {
   pub position: [f32; 3],
 }
 
-#[repr(C)]
-#[derive(Clone, Copy, Default)]
-pub struct PositionOnlyVertex2d {
+#[repr(C, packed)]
+#[derive(Clone, Copy, Default, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct PositionVertex2d {
   pub position: [f32; 2],
 }
 

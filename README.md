@@ -3,6 +3,7 @@
 ## ***wgpu branch***
 
 <b>Highly experimental very early work-in-progress wgpu version of Kubi!</b><br>
+(will also include the new gui system)
 
 <hr>
 

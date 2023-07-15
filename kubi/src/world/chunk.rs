@@ -27,8 +27,8 @@ pub enum CurrentChunkState {
   Loaded,
   CalculatingMesh,
   Rendered,
-  RecalculatingMesh, 
-  Unloading,      
+  RecalculatingMesh,
+  Unloading,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

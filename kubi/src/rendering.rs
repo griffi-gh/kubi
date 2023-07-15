@@ -9,6 +9,7 @@ use glam::{Vec3, UVec2};
 use pollster::FutureExt as _;
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
+pub mod shaders;
 pub mod primitives;
 pub mod world;
 pub mod selection_box;
@@ -17,9 +18,6 @@ pub mod entities;
 #[derive(Unique)]
 #[repr(transparent)]
 pub struct RenderTarget(pub ());
-impl Drop for RenderTarget {
-
-}
 
 #[derive(Unique)]
 #[repr(transparent)]

@@ -13,8 +13,7 @@ use winit::{
 use glam::vec3;
 use std::time::Instant;
 
-pub use kubi_shared::transform;
-
+pub(crate) use kubi_shared::transform;
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -29,9 +28,6 @@ pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 pub(crate) mod state;
-#[deprecated="will be replaced by an immediate-mode ui soon, currently a no-op"]
-#[allow(deprecated)]
-pub(crate) mod gui;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
@@ -42,9 +38,9 @@ pub(crate) mod filesystem;
 
 use world::{
   init_game_world,
-  loading::update_loaded_world_around_player, 
+  loading::update_loaded_world_around_player,
   raycast::update_raycasts,
-  queue::apply_queued_blocks, 
+  queue::apply_queued_blocks,
   tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
@@ -76,7 +72,6 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 use fixed_timestamp::init_fixed_timestamp_storage;
@@ -99,7 +94,6 @@ fn startup() -> Workload {
     initialize_from_args,
     lock_cursor_now,
     init_input,
-    init_gui,
     insert_control_flow_unique,
     init_delta_time,
   ).into_sequential_workload()
@@ -134,7 +128,6 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
-    update_gui,
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
@@ -150,7 +143,6 @@ fn render() -> Workload {
       render_selection_box,
       render_entities,
     ).into_sequential_workload().run_if(is_ingame),
-    render_gui,
   ).into_sequential_workload()
 }
 

@@ -1,15 +1,15 @@
 use shipyard::{Unique, AllStoragesView, NonSendSync, UniqueView};
 use crate::rendering::Renderer;
-use super::PositionOnlyVertex2d;
+use super::PositionVertex2d;
 
 #[derive(Unique)]
-pub struct RectPrimitive(pub VertexBuffer<PositionOnlyVertex2d>, pub IndexBuffer<u16>);
+pub struct RectPrimitive(pub VertexBuffer<PositionVertex2d>, pub IndexBuffer<u16>);
 
-const RECT_VERTEX: &[PositionOnlyVertex2d] = &[
-  PositionOnlyVertex2d { position: [0., 0.] },
-  PositionOnlyVertex2d { position: [1., 0.] },
-  PositionOnlyVertex2d { position: [0., 1.] },
-  PositionOnlyVertex2d { position: [1., 1.] },
+const RECT_VERTEX: &[PositionVertex2d] = &[
+  PositionVertex2d { position: [0., 0.] },
+  PositionVertex2d { position: [1., 0.] },
+  PositionVertex2d { position: [0., 1.] },
+  PositionVertex2d { position: [1., 1.] },
 ];
 const RECT_INDEX: &[u16] = &[0, 1, 2, 1, 3, 2];
 

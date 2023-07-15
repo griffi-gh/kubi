@@ -1,6 +1,6 @@
 use shipyard::{AllStoragesView, NonSendSync, UniqueView, Unique};
 use crate::rendering::Renderer;
-use super::PositionOnlyVertex;
+use super::PositionVertex;
 
 #[derive(Unique)]
 pub struct CubePrimitive {
@@ -14,29 +14,29 @@ pub struct CenteredCubePrimitive {
   pub idx: wgpu::Buffer
 }
 
-const CENTERED_CUBE_VERTICES: &[PositionOnlyVertex] = &[
+const CENTERED_CUBE_VERTICES: &[PositionVertex] = &[
   // front
-  PositionOnlyVertex { position: [-0.5, -0.5, 0.5] },
-  PositionOnlyVertex { position: [ 0.5, -0.5, 0.5] },
-  PositionOnlyVertex { position: [ 0.5,  0.5, 0.5] },
-  PositionOnlyVertex { position: [-0.5,  0.5, 0.5] },
+  PositionVertex { position: [-0.5, -0.5, 0.5] },
+  PositionVertex { position: [ 0.5, -0.5, 0.5] },
+  PositionVertex { position: [ 0.5,  0.5, 0.5] },
+  PositionVertex { position: [-0.5,  0.5, 0.5] },
   // back
-  PositionOnlyVertex { position: [-0.5, -0.5, -0.5] },
-  PositionOnlyVertex { position: [ 0.5, -0.5, -0.5] },
-  PositionOnlyVertex { position: [ 0.5,  0.5, -0.5] },
-  PositionOnlyVertex { position: [-0.5,  0.5, -0.5] },
+  PositionVertex { position: [-0.5, -0.5, -0.5] },
+  PositionVertex { position: [ 0.5, -0.5, -0.5] },
+  PositionVertex { position: [ 0.5,  0.5, -0.5] },
+  PositionVertex { position: [-0.5,  0.5, -0.5] },
 ];
-const CUBE_VERTICES: &[PositionOnlyVertex] = &[
+const CUBE_VERTICES: &[PositionVertex] = &[
   // front
-  PositionOnlyVertex { position: [0.0, 0.0, 1.0] },
-  PositionOnlyVertex { position: [1.0, 0.0, 1.0] },
-  PositionOnlyVertex { position: [1.0, 1.0, 1.0] },
-  PositionOnlyVertex { position: [0.0, 1.0, 1.0] },
+  PositionVertex { position: [0.0, 0.0, 1.0] },
+  PositionVertex { position: [1.0, 0.0, 1.0] },
+  PositionVertex { position: [1.0, 1.0, 1.0] },
+  PositionVertex { position: [0.0, 1.0, 1.0] },
   // back
-  PositionOnlyVertex { position: [0.0, 0.0, 0.0] },
-  PositionOnlyVertex { position: [1.0, 0.0, 0.0] },
-  PositionOnlyVertex { position: [1.0, 1.0, 0.0] },
-  PositionOnlyVertex { position: [0.0, 1.0, 0.0] },
+  PositionVertex { position: [0.0, 0.0, 0.0] },
+  PositionVertex { position: [1.0, 0.0, 0.0] },
+  PositionVertex { position: [1.0, 1.0, 0.0] },
+  PositionVertex { position: [0.0, 1.0, 0.0] },
 ];
 const CUBE_INDICES: &[u16] = &[
   // front
