@@ -18,8 +18,11 @@ pub mod selection_box;
 pub mod entities;
 
 #[derive(Unique)]
-#[repr(transparent)]
-pub struct RenderTarget(pub ());
+pub struct RenderTarget {
+  pub output: wgpu::SurfaceTexture,
+  pub view: wgpu::TextureView,
+  pub encoder: wgpu::CommandEncoder,
+}
 
 #[derive(Unique)]
 #[repr(transparent)]
@@ -116,7 +119,7 @@ impl Renderer {
       },
       None,
     ).await.unwrap();
-    
+
     // surf. format
 
     let surface_capabilities = surface.get_capabilities(&adapter);
@@ -141,7 +144,9 @@ impl Renderer {
     };
     surface.configure(&device, &config);
 
-    Self { window, instance, surface, adapter, device, queue, size, config }
+    Self {
+      window, instance, surface, adapter, device, queue, size, config,
+    }
   }
 
   /// do not call from async functions
@@ -150,14 +155,27 @@ impl Renderer {
   }
 
   /// Start a new frame
-  pub fn render() -> RenderTarget {
-    todo!()
+  pub fn begin(&self) -> RenderTarget {
+    //Surface texture
+    let output = self.surface.get_current_texture().unwrap();
+    //View
+    let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+    //Encoder
+    let encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+      label: Some("RenderEncoder"),
+    });
+    RenderTarget { output, view, encoder }
   }
 
+  pub fn end(&self, target: RenderTarget) {
+    self.queue.submit([target.encoder.finish()]);
+    target.output.present();
+  }
+  
   /// Resize the surface
   /// ## Panics:
   /// - ...if any dimension is equal to zero
-  pub fn resize(&self, new_size: PhysicalSize<u32>) {
+  pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
     //XXX: just check instead?
     assert!(new_size.width > 0, "width cannot be zero");
     assert!(new_size.height > 0, "height cannot be zero");

@@ -47,7 +47,7 @@ pub fn load_asset_texture_array<
 
       //Ensure same size (skip if poisoned)
       if !img_dim.is_poisoned() {
-        let img_dim = img_dim.lock().unwrap();
+        let mut img_dim = img_dim.lock().unwrap();
         if let Some(current_size) = img_dim.replace(dim_nonzero) {
           assert!(dim_nonzero == current_size, "image dimensions do not match");
         }

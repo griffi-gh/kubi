@@ -213,6 +213,10 @@ pub fn kubi_main() {
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
       Event::WindowEvent { event, .. } => match event {
+        WindowEvent::Resized(new_size) => {
+          //this can be in a system but I don't care
+          world.borrow::<NonSendSync<UniqueViewMut<Renderer>>>().unwrap().resize(new_size);
+        }
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
           *control_flow = ControlFlow::Exit;
@@ -234,16 +238,19 @@ pub fn kubi_main() {
         //Start rendering (maybe use custom views for this?)
         let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-          renderer.render()
+          renderer.begin()
         };
-        world.add_unique_non_send_sync(RenderTarget(target));
+        world.add_unique_non_send_sync(target);
 
         //Run render workflow
         world.run_workload(render).unwrap();
 
         //Finish rendering
-        let target = world.remove_unique::<RenderTarget>().unwrap(); 
-        target.0.finish().unwrap();
+        {
+          let target = world.remove_unique::<RenderTarget>().unwrap();
+          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+          renderer.end(target);
+        }
 
         //After frame end
         world.run_workload(after_frame_end).unwrap();

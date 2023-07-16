@@ -81,10 +81,13 @@ pub fn process_glutin_events(world: &mut World, event: &Event<'_, ()>) {
 pub fn initial_resize_event(
   mut storages: AllStoragesViewMut,
 ) {
-  let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+  let size = {
+    let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+    UVec2::new(renderer.size.width, renderer.size.height)
+  };
   storages.add_entity((
     EventComponent,
-    WindowResizedEvent(UVec2::new(renderer.size.width, renderer.size.height))
+    WindowResizedEvent(size)
   ));
 }
 

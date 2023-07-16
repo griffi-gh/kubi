@@ -1,5 +1,6 @@
 [workspace]
 members = ["kubi", "kubi-server", "kubi-shared", "kubi-logging"]
+default-members = ["kubi"]
 resolver = "2"
 
 [profile.release-with-debug]
@@ -15,7 +16,7 @@ opt-level = 1
 [profile.dev.package.uflow]
 opt-level = 3
 
-[profile.dev.package.glium]
+[profile.dev.package.wgpu]
 opt-level = 3
 
 [profile.dev.package.bracket-noise]
