@@ -4,34 +4,37 @@ use super::Renderer;
 
 #[derive(Unique)]
 pub struct Shaders {
-  pub world: wgpu::ShaderModule
+  pub world: wgpu::ShaderModule,
+  pub colored: wgpu::ShaderModule
 }
 
-macro_rules! shaders {
-  {($renderer: expr, $dir: literal), $($name: ident : $path: literal),*} => {
-    {
-      use super::Renderer;
-      let renderer: &Renderer = $renderer;
-      $(
-        let $name = {
-          let _is_string_literal: &str = $path;
-          let shader_descriptor = wgpu::include_wgsl!(concat!($dir, "/", $path));
-          renderer.device.create_shader_module(shader_descriptor)
+macro_rules! upload_shaders {
+  {$container: ident [$renderer: expr, $dir: literal] { $($name: ident : $path: literal $(,)*),*  } } => {{
+    //ensure types
+    let _: &super::Renderer = $renderer;
+    let _: &str = $dir;
+    $( let _: &str = $path; )*
+    $container {
+      $($name: {
+        let source = include_str!(concat!($dir, "/", $path)).into();
+        let descriptor = wgpu::ShaderModuleDescriptor {
+          label: Some(stringify!($name)),
+          source: wgpu::ShaderSource::Wgsl(source),
         };
-      )*
-      Shaders {
-        $($name,)*
-      }
+        $renderer.device.create_shader_module(descriptor)
+      },)*
     }
-  };
+  }};
 }
 
 pub fn compile_shaders(
   storages: AllStoragesView,
 ) {
   let renderer = &storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-  shaders! {
-    (renderer, "../../shaders"),
-    world: "world.wgsl"
+  let shaders = upload_shaders! {
+    Shaders [renderer, "../../shaders"] {
+      world: "world.wgsl",
+      colored: "colored.wgsl"
+    }
   };
 }
