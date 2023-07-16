@@ -158,12 +158,36 @@ impl Renderer {
   pub fn begin(&self) -> RenderTarget {
     //Surface texture
     let output = self.surface.get_current_texture().unwrap();
+
     //View
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+
     //Encoder
-    let encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
       label: Some("RenderEncoder"),
     });
+
+    //Begin render pass
+    {
+      let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("RenderPass"),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+          view: &view,
+          resolve_target: None,
+          ops: wgpu::Operations {
+            load: wgpu::LoadOp::Clear(wgpu::Color {
+              r: 0.1,
+              g: 0.2,
+              b: 0.3,
+              a: 1.0,
+            }),
+            store: true,
+          },
+        })],
+        depth_stencil_attachment: None,
+      });
+    }
+
     RenderTarget { output, view, encoder }
   }
 
