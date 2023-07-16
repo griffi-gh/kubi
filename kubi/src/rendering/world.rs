@@ -4,11 +4,7 @@ use crate::{
   camera::Camera,
   player::MainPlayer,
   transform::Transform,
-  assets::{
-    ChunkShaderPrefab,
-    BlockTexturesPrefab, 
-    ColoredShaderPrefab,
-  },
+  assets::BlockTexturesPrefab,
   world::{
     ChunkStorage, 
     ChunkMeshStorage, 
@@ -26,6 +22,9 @@ pub struct ChunkVertex {
   pub tex_index: u8,
 }
 
+pub fn draw_world() {}
+
+#[cfg(fuck)]
 pub fn draw_world(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   chunks: UniqueView<ChunkStorage>,
@@ -35,71 +34,72 @@ pub fn draw_world(
   camera: View<Camera>,
   settings: UniqueView<GameSettings>
 ) {
-  #[cfg(fuck)] {
-    let camera = camera.iter().next().expect("No cameras in the scene");
-    let draw_parameters = DrawParameters {
-      depth: Depth {
-        test: DepthTest::IfLess,
-        write: true,
-        ..Default::default()
-      },
-      multisampling: settings.msaa.is_some(),
-      polygon_mode: PolygonMode::Fill, //Change to Line for wireframe
-      backface_culling: BackfaceCullingMode::CullClockwise,
+  let camera = camera.iter().next().expect("No cameras in the scene");
+  let draw_parameters = DrawParameters {
+    depth: Depth {
+      test: DepthTest::IfLess,
+      write: true,
       ..Default::default()
-    };
-    let texture_sampler = Sampler(&texture.0, SamplerBehavior {
-      minify_filter: MinifySamplerFilter::LinearMipmapLinear,
-      magnify_filter: MagnifySamplerFilter::Nearest,
-      max_anisotropy: settings.max_anisotropy.unwrap_or_default(),
-      wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
-      ..Default::default()
-    });
-    let view = camera.view_matrix.to_cols_array_2d();
-    let perspective = camera.perspective_matrix.to_cols_array_2d();
+    },
+    multisampling: settings.msaa.is_some(),
+    polygon_mode: PolygonMode::Fill, //Change to Line for wireframe
+    backface_culling: BackfaceCullingMode::CullClockwise,
+    ..Default::default()
+  };
+  let texture_sampler = Sampler(&texture.0, SamplerBehavior {
+    minify_filter: MinifySamplerFilter::LinearMipmapLinear,
+    magnify_filter: MagnifySamplerFilter::Nearest,
+    max_anisotropy: settings.max_anisotropy.unwrap_or_default(),
+    wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
+    ..Default::default()
+  });
+  let view = camera.view_matrix.to_cols_array_2d();
+  let perspective = camera.perspective_matrix.to_cols_array_2d();
 
-    for (&position, chunk) in &chunks.chunks {
-      if let Some(key) = chunk.mesh_index {
-        let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
-        let world_position = position.as_vec3() * CHUNK_SIZE as f32;
-        
-        //Skip mesh if its empty
-        if mesh.index_buffer.len() == 0 {
+  for (&position, chunk) in &chunks.chunks {
+    if let Some(key) = chunk.mesh_index {
+      let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
+      let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+      
+      //Skip mesh if its empty
+      if mesh.index_buffer.len() == 0 {
+        continue
+      }
+
+      //Frustum culling
+      {
+        let minp = world_position;
+        let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
+        if !camera.frustum.is_box_visible(minp, maxp) {
           continue
         }
-
-        //Frustum culling
-        {
-          let minp = world_position;
-          let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
-          if !camera.frustum.is_box_visible(minp, maxp) {
-            continue
-          }
-        }
-
-        //Draw chunk mesh
-        target.0.draw(
-          &mesh.vertex_buffer,
-          &mesh.index_buffer,
-          &program.0,
-          &uniform! {
-            position_offset: world_position.to_array(),
-            view: view,
-            perspective: perspective,
-            tex: texture_sampler,
-          },
-          &draw_parameters
-        ).unwrap();
       }
+
+      //Draw chunk mesh
+      target.0.draw(
+        &mesh.vertex_buffer,
+        &mesh.index_buffer,
+        &program.0,
+        &uniform! {
+          position_offset: world_position.to_array(),
+          view: view,
+          perspective: perspective,
+          tex: texture_sampler,
+        },
+        &draw_parameters
+      ).unwrap();
     }
   }
 }
 
+pub fn draw_current_chunk_border() {}
+
+#[cfg(fuck)]
 pub fn draw_current_chunk_border(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   player: View<MainPlayer>,
   transforms: View<Transform, track::All>,
-  buffers: NonSendSync<UniqueView<CubePrimitive>>,
+  buffers: UniqueView<CubePrimitive>,
   program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
   camera: View<Camera>,
   settings: UniqueView<GameSettings>,

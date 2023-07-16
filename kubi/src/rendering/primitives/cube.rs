@@ -1,16 +1,12 @@
 use shipyard::{AllStoragesView, NonSendSync, UniqueView, Unique};
+use wgpu::util::DeviceExt;
 use crate::rendering::Renderer;
 use super::PositionVertex;
 
 #[derive(Unique)]
 pub struct CubePrimitive {
   pub vert: wgpu::Buffer,
-  pub idx: wgpu::Buffer
-}
-
-#[derive(Unique)]
-pub struct CenteredCubePrimitive {
-  pub vert: wgpu::Buffer,
+  pub vert_centered: wgpu::Buffer,
   pub idx: wgpu::Buffer
 }
 
@@ -61,30 +57,31 @@ const CUBE_INDICES: &[u16] = &[
 
 pub(super) fn init_cube_primitive(
   storages: AllStoragesView,
-  display: NonSendSync<UniqueView<Renderer>>
+  renderer: NonSendSync<UniqueView<Renderer>>
 ) {
-  {
-    let vert = VertexBuffer::new(
-      &display.display,
-      CUBE_VERTICES
-    ).unwrap();
-    let index = IndexBuffer::new(
-      &display.display,
-      PrimitiveType::TrianglesList, 
-      CUBE_INDICES
-    ).unwrap();
-    storages.add_unique_non_send_sync(CubePrimitive(vert, index));
-  }
-  {
-    let vert = VertexBuffer::new(
-      &display.display,
-      CENTERED_CUBE_VERTICES
-    ).unwrap();
-    let index = IndexBuffer::new(
-      &display.display,
-      PrimitiveType::TrianglesList, 
-      CUBE_INDICES
-    ).unwrap();
-    storages.add_unique_non_send_sync(CenteredCubePrimitive(vert, index));
-  }
+  storages.add_unique(
+    CubePrimitive {
+      vert: renderer.device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor {
+          label: Some("CubePrimitiveVertexBuffer"),
+          contents: bytemuck::cast_slice(CUBE_VERTICES),
+          usage: wgpu::BufferUsages::VERTEX,
+        }
+      ),
+      vert_centered: renderer.device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor {
+          label: Some("CubePrimitiveCenteredVertexBuffer"),
+          contents: bytemuck::cast_slice(CUBE_VERTICES),
+          usage: wgpu::BufferUsages::VERTEX,
+        }
+      ),
+      idx: renderer.device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor {
+          label: Some("CubePrimitiveIndexBuffer"),
+          contents: bytemuck::cast_slice(CUBE_VERTICES),
+          usage: wgpu::BufferUsages::INDEX,
+        }
+      )
+    }
+  );
 }

@@ -1,16 +1,8 @@
 use glam::{Mat4, Vec3, Quat};
 use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
-use glium::{
-  Surface, 
-  DrawParameters, 
-  BackfaceCullingMode, 
-  Blend, Depth, DepthTest,
-  uniform, 
-};
 use crate::{
   world::raycast::LookingAtBlock, 
   camera::Camera, 
-  assets::ColoredShaderPrefab
 };
 use super::{
   RenderTarget, 
@@ -19,12 +11,15 @@ use super::{
 
 const SMOL: f32 = 0.0001;
 
+pub fn render_selection_box() { }
+
+#[cfg(fuck)]
 pub fn render_selection_box(
   lookat: View<LookingAtBlock>,
   camera: View<Camera>,
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
   program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
-  buffers: NonSendSync<UniqueView<CubePrimitive>>,
+  buffers: UniqueView<CubePrimitive>,
 ) {
   let camera = camera.iter().next().unwrap();
   let Some(lookat) = lookat.iter().next() else { return };

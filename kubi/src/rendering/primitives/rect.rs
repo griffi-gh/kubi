@@ -1,9 +1,13 @@
 use shipyard::{Unique, AllStoragesView, NonSendSync, UniqueView};
+use wgpu::util::DeviceExt;
 use crate::rendering::Renderer;
 use super::PositionVertex2d;
 
 #[derive(Unique)]
-pub struct RectPrimitive(pub VertexBuffer<PositionVertex2d>, pub IndexBuffer<u16>);
+pub struct RectPrimitive {
+  pub vert: wgpu::Buffer,
+  pub index: wgpu::Buffer,
+}
 
 const RECT_VERTEX: &[PositionVertex2d] = &[
   PositionVertex2d { position: [0., 0.] },
@@ -15,16 +19,21 @@ const RECT_INDEX: &[u16] = &[0, 1, 2, 1, 3, 2];
 
 pub(super) fn init_rect_primitive(
   storages: AllStoragesView,
-  display: NonSendSync<UniqueView<Renderer>>
+  renderer: NonSendSync<UniqueView<Renderer>>
 ) {
-  let vert = VertexBuffer::new(
-    &display.display,
-    RECT_VERTEX
-  ).unwrap();
-  let index = IndexBuffer::new(
-    &display.display,
-    PrimitiveType::TrianglesList, 
-    RECT_INDEX
-  ).unwrap();
-  storages.add_unique_non_send_sync(RectPrimitive(vert, index));
+  let vert = renderer.device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+      label: Some("RectPrimitiveVertexBuffer"),
+      contents: bytemuck::cast_slice(RECT_VERTEX),
+      usage: wgpu::BufferUsages::VERTEX,
+    }
+  );
+  let index = renderer.device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+      label: Some("RectPrimitiveIndexBuffer"),
+      contents: bytemuck::cast_slice(RECT_INDEX),
+      usage: wgpu::BufferUsages::INDEX,
+    }
+  );
+  storages.add_unique(RectPrimitive { vert, index });
 }

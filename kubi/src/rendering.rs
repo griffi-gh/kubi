@@ -1,15 +1,17 @@
-use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
-use wgpu::SurfaceConfiguration;
+use shipyard::{Unique, View, Workload, SystemModificator, IntoWorkload};
 use winit::{
   event_loop::EventLoop,
   window::{Window, WindowBuilder, Fullscreen},
   dpi::PhysicalSize,
 };
-use glam::{Vec3, UVec2};
+use glam::Vec3;
 use pollster::FutureExt as _;
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
+use self::{pipelines::init_pipelines, primitives::init_primitives, shaders::compile_shaders};
+
 pub mod shaders;
+pub mod pipelines;
 pub mod primitives;
 pub mod world;
 pub mod selection_box;
@@ -166,11 +168,12 @@ impl Renderer {
   }
 }
 
-pub fn clear_background(
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
-  color: UniqueView<BackgroundColor>,
-) {
-
+pub fn renderer_finish_init() -> Workload {
+  (
+    compile_shaders,
+    init_pipelines.after_all(compile_shaders),
+    init_primitives,
+  ).into_workload()
 }
 
 #[deprecated]

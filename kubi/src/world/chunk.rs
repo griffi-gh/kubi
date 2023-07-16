@@ -1,7 +1,4 @@
 use glam::IVec3;
-use glium::{VertexBuffer, IndexBuffer};
-use crate::rendering::world::ChunkVertex;
-
 pub use kubi_shared::chunk::{CHUNK_SIZE, BlockData};
 
 pub struct ChunkData {
@@ -15,8 +12,8 @@ impl ChunkData {
 }
 
 pub struct ChunkMesh {
-  pub vertex_buffer: VertexBuffer<ChunkVertex>,
-  pub index_buffer: IndexBuffer<u32>,
+  pub vertex_buffer: wgpu::Buffer,
+  pub index_buffer: wgpu::Buffer,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

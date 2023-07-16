@@ -59,11 +59,10 @@ use rendering::{
   Renderer,
   RenderTarget,
   BackgroundColor,
-  clear_background,
-  primitives::init_primitives,
   world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
   entities::render_entities,
+  renderer_finish_init,
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -85,10 +84,10 @@ fn pre_startup() -> Workload {
 
 fn startup() -> Workload {
   (
+    renderer_finish_init,
     init_fixed_timestamp_storage,
     initial_resize_event,
     load_prefabs,
-    init_primitives,
     insert_lock_state,
     init_state,
     initialize_from_args,
@@ -136,7 +135,6 @@ fn update() -> Workload {
 
 fn render() -> Workload {
   (
-    clear_background,
     (
       draw_world,
       draw_current_chunk_border,

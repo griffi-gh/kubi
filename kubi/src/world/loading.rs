@@ -2,18 +2,19 @@ use glam::{IVec3, ivec3};
 use kubi_shared::networking::messages::ClientToServerMessage;
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
+use wgpu::util::DeviceExt;
 use crate::{
   player::MainPlayer,
   transform::Transform,
   settings::GameSettings,
-  rendering::Renderer, 
-  state::GameState, 
+  rendering::Renderer,
+  state::GameState,
   networking::UdpClient,
 };
 use super::{
   ChunkStorage, ChunkMeshStorage,
   chunk::{Chunk, DesiredChunkState, CHUNK_SIZE, ChunkMesh, CurrentChunkState, ChunkData},
-  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask}, 
+  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
   queue::BlockUpdateQueue
 };
 
@@ -233,8 +234,20 @@ fn process_completed_tasks(
         }
 
         //apply the mesh
-        let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
-        let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
+        let vertex_buffer = renderer.device.create_buffer_init(
+          &wgpu::util::BufferInitDescriptor {
+            label: Some("ChunkVertexBuffer"),
+            contents: bytemuck::cast_slice(&vertices),
+            usage: wgpu::BufferUsages::VERTEX,
+          }
+        );
+        let index_buffer = renderer.device.create_buffer_init(
+          &wgpu::util::BufferInitDescriptor {
+            label: Some("ChunkIndexBuffer"),
+            contents: bytemuck::cast_slice(&indexes),
+            usage: wgpu::BufferUsages::INDEX,
+          }
+        );
         let mesh = ChunkMesh {
           vertex_buffer,
           index_buffer,
