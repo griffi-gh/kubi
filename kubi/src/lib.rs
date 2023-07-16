@@ -240,7 +240,7 @@ pub fn kubi_main() {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
           renderer.begin()
         };
-        world.add_unique_non_send_sync(target);
+        world.add_unique(target);
 
         //Run render workflow
         world.run_workload(render).unwrap();
@@ -248,7 +248,7 @@ pub fn kubi_main() {
         //Finish rendering
         {
           let target = world.remove_unique::<RenderTarget>().unwrap();
-          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+          let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
           renderer.end(target);
         }
 

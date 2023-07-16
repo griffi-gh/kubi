@@ -1,17 +1,18 @@
 use glam::{Vec3, Mat4, Quat, ivec3};
-use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
+use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track, Unique};
+use wgpu::util::DeviceExt;
 use crate::{
   camera::Camera,
   player::MainPlayer,
   transform::Transform,
-  assets::BlockTexturesPrefab,
+  assets::BlockTexturesAsset,
   world::{
     ChunkStorage, 
     ChunkMeshStorage, 
     chunk::CHUNK_SIZE,
   }, settings::GameSettings,
 };
-use super::{RenderTarget, primitives::cube::CubePrimitive};
+use super::{RenderTarget, shaders::Shaders, Renderer};
 
 #[repr(C, packed)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -22,15 +23,45 @@ pub struct ChunkVertex {
   pub tex_index: u8,
 }
 
-pub fn draw_world() {}
+#[repr(C, packed)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct WorldUniform {
+  position_offset: [f32; 3],
+  view: [[f32; 4]; 4],
+  perspective: [[f32; 4]; 4],
+}
+
+pub fn draw_world(
+  renderer: UniqueView<Renderer>,
+  mut target: UniqueViewMut<RenderTarget>,
+  chunks: UniqueView<ChunkStorage>,
+  meshes: UniqueView<ChunkMeshStorage>,
+  shaders: UniqueView<Shaders>,
+  texture: UniqueView<BlockTexturesAsset>,
+  camera: View<Camera>,
+  settings: UniqueView<GameSettings>
+) {
+  let camera = camera.iter().next().expect("No cameras in the scene");
+  for (&position, chunk) in &chunks.chunks {
+    if let Some(key) = chunk.mesh_index {
+      let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
+      let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+      
+      //TODO culling
+
+      //Draw chunk mesh
+      
+    }
+  }
+}
 
 #[cfg(fuck)]
 pub fn draw_world(
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
+  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
   program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
-  texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
+  texture: NonSendSync<UniqueView<BlockTexturesAsset>>,
   camera: View<Camera>,
   settings: UniqueView<GameSettings>
 ) {

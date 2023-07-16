@@ -102,7 +102,7 @@ impl ChunkMeshStorage {
 pub fn init_game_world(
   storages: AllStoragesView,
 ) {
-  storages.add_unique_non_send_sync(ChunkMeshStorage::new());
+  storages.add_unique(ChunkMeshStorage::new());
   storages.add_unique(ChunkStorage::new());
   storages.add_unique(ChunkTaskManager::new());
   storages.add_unique(BlockUpdateQueue::new());

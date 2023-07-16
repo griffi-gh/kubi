@@ -37,14 +37,14 @@ impl AssetPaths for BlockTexture {
 
 #[derive(Unique)]
 #[repr(transparent)]
-pub struct BlockTexturesPrefab(pub wgpu::Texture);
+pub struct BlockTexturesAsset(pub wgpu::Texture);
 
 pub fn load_prefabs(
   storages: AllStoragesView,
   renderer: NonSendSync<UniqueView<Renderer>>
 ) {
   log::info!("Loading textures...");
-  storages.add_unique_non_send_sync(BlockTexturesPrefab(
+  storages.add_unique_non_send_sync(BlockTexturesAsset(
     load_asset_texture_array::<BlockTexture>("blocks".into(), &renderer)
   ));
 }
