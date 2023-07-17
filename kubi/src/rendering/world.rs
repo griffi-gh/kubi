@@ -27,8 +27,7 @@ pub struct ChunkVertex {
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct WorldUniform {
   position_offset: [f32; 3],
-  view: [[f32; 4]; 4],
-  perspective: [[f32; 4]; 4],
+  view_proj: [[f32; 4]; 4],
 }
 
 pub fn draw_world(

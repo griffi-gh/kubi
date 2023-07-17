@@ -4,7 +4,7 @@ use winit::{
   window::{Window, WindowBuilder, Fullscreen},
   dpi::PhysicalSize,
 };
-use glam::Vec3;
+use glam::{Vec3, Mat4};
 use pollster::FutureExt as _;
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -16,6 +16,14 @@ pub mod primitives;
 pub mod world;
 pub mod selection_box;
 pub mod entities;
+
+pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
+  1.0, 0.0, 0.0, 0.0,
+  0.0, 1.0, 0.0, 0.0,
+  0.0, 0.0, 0.5, 0.0,
+  0.0, 0.0, 0.5, 1.0,
+]);
+
 
 #[derive(Unique)]
 pub struct RenderTarget {
