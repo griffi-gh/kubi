@@ -3,7 +3,7 @@
 use shipyard::{
   World, Workload, IntoWorkload, 
   UniqueView, UniqueViewMut, 
-  NonSendSync, WorkloadModificator, 
+  WorkloadModificator,
   SystemModificator
 };
 use winit::{
@@ -12,8 +12,9 @@ use winit::{
 };
 use glam::vec3;
 use std::time::Instant;
-
 pub(crate) use kubi_shared::transform;
+
+pub(crate) mod util;
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -57,7 +58,7 @@ use input::{init_input, process_inputs};
 use fly_controller::update_controllers;
 use rendering::{
   Renderer,
-  RenderTarget,
+  RenderData,
   BackgroundColor,
   init_rendering_internals,
   world::{draw_world, draw_current_chunk_border},
@@ -128,24 +129,47 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
+    update_camera_uniform,
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
   ).into_sequential_workload()
 }
 
-//TODO move this to the renderer module
-fn render() -> Workload {
-  (
-    (
-      update_camera_uniform,
-      draw_world,
-      draw_current_chunk_border,
-      render_selection_box,
-      render_entities,
-    ).into_sequential_workload().run_if(is_ingame),
-  ).into_sequential_workload()
+//XXX: move to rendering?
+fn render(world: &mut World, data: &mut RenderData) {
+  //RenderPass0 - draw world
+  {
+    let mut render_pass = data.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+      label: Some("RenderPass0"),
+      color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+        view: &data.view,
+        resolve_target: None,
+        ops: wgpu::Operations {
+          load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+          store: true,
+        },
+      })],
+      depth_stencil_attachment: None,
+    });
+
+    if world.run(is_ingame) {
+      world.run_with_data(draw_world, &mut render_pass);
+    }
+  }
 }
+
+// fn render() -> Workload {
+//   (
+//     (
+//       ,
+//       draw_world,
+//       draw_current_chunk_border,
+//       render_selection_box,
+//       render_entities,
+//     ).into_sequential_workload().run_if(is_ingame),
+//   ).into_sequential_workload()
+// }
 
 fn after_frame_end() -> Workload {
   (
@@ -182,7 +206,6 @@ pub fn kubi_main() {
   world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
-  world.add_workload(render);
   world.add_workload(after_frame_end);
   
   //Run pre-startup procedure
@@ -238,22 +261,18 @@ pub fn kubi_main() {
         //Run update workflows
         world.run_workload(update).unwrap();
         
-        //Start rendering (maybe use custom views for this?)
-        let target = {
-          let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
-          renderer.begin()
-        };
-        world.add_unique(target);
-
-        //Run render workflow
-        world.run_workload(render).unwrap();
-
-        //Finish rendering
+        //Start rendering
         {
-          let target = world.remove_unique::<RenderTarget>().unwrap();
-          let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
-          renderer.end(target);
-        }
+          let mut target = {
+            let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
+            renderer.begin()
+          };
+          render(&mut world, &mut target);
+          {
+            let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
+            renderer.end(target);
+          }
+        };
 
         //After frame end
         world.run_workload(after_frame_end).unwrap();

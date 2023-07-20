@@ -251,6 +251,7 @@ fn process_completed_tasks(
         let mesh = ChunkMesh {
           vertex_buffer,
           index_buffer,
+          idx_count: indexes.len() as u32
         };
         if let Some(index) = chunk.mesh_index {
           meshes.update(index, mesh).expect("Mesh update failed");

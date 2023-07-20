@@ -5,7 +5,7 @@ use crate::{
   camera::Camera, 
 };
 use super::{
-  RenderTarget, 
+  RenderData, 
   primitives::cube::CubePrimitive,
 };
 

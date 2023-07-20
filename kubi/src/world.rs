@@ -18,6 +18,8 @@ use chunk::{Chunk, ChunkMesh, CHUNK_SIZE};
 use tasks::ChunkTaskManager;
 use queue::BlockUpdateQueue;
 
+///XXX: This is no longer required (`wgpu::Buffer` is `Send` + `Sync` unlike glium `IndexBuffer`/`VertexBuffer`)
+///but I'd rather keep it as it will make switching to indirect drawing easier.
 #[derive(Default, Unique)]
 pub struct ChunkStorage {
   pub chunks: HashMap<IVec3, Chunk>

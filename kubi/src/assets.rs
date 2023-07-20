@@ -3,7 +3,6 @@ use kubi_shared::block::BlockTexture;
 use crate::rendering::Renderer;
 
 mod texture;
-mod shaders;
 
 use texture::load_asset_texture_array;
 

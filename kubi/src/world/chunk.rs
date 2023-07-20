@@ -14,6 +14,7 @@ impl ChunkData {
 pub struct ChunkMesh {
   pub vertex_buffer: wgpu::Buffer,
   pub index_buffer: wgpu::Buffer,
+  pub idx_count: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

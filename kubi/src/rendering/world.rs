@@ -1,6 +1,6 @@
 use glam::{Vec3, Mat4, Quat, ivec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track, Unique, AllStoragesView};
-use wgpu::util::DeviceExt;
+use wgpu::{util::DeviceExt, RenderPass};
 use crate::{
   camera::Camera,
   player::MainPlayer,
@@ -10,18 +10,25 @@ use crate::{
     ChunkStorage, 
     ChunkMeshStorage, 
     chunk::CHUNK_SIZE,
-  }, settings::GameSettings,
+  }, settings::GameSettings, util::yolo,
 };
-use super::{Renderer, RenderTarget, shaders::Shaders, camera_uniform::CameraUniformBuffer};
+use super::{Renderer, RenderData, shaders::Shaders, camera_uniform::CameraUniformBuffer, vertex_attributes};
 
 #[repr(C, packed)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ChunkVertex {
   pub position: [f32; 3],
   pub normal: [f32; 3],
-  pub uv: [f32; 2],
+  pub tex_coords: [f32; 2],
   pub tex_index: u32,
 }
+vertex_attributes!(
+  ChunkVertex,
+  position: Float32x3,
+  normal: Float32x3,
+  tex_coords: Float32x2,
+  tex_index: Uint32
+);
 
 #[repr(C, packed)]
 #[derive(Clone, Copy, Default, bytemuck::Pod, bytemuck::Zeroable)]
@@ -43,42 +50,6 @@ pub fn init_gpu_data(
   let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
   let shaders: UniqueView<'_, Shaders> = storages.borrow::<UniqueView<Shaders>>().unwrap();
   let camera_uniform = storages.borrow::<UniqueView<CameraUniformBuffer>>().unwrap();
-
-  let pipeline = renderer.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-    label: Some("WorldRenderPipeline"),
-    layout: Some(&renderer.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-      label: Some("WorldRenderPipelineLayout"),
-      bind_group_layouts: &[],
-      push_constant_ranges: &[],
-    })),
-    vertex: wgpu::VertexState {
-      module: &shaders.world,
-      entry_point: "vs_main",
-      buffers: &[],
-    },
-    fragment: Some(wgpu::FragmentState {
-      module: &shaders.world,
-      entry_point: "fs_main",
-      targets: &[Some(wgpu::ColorTargetState {
-        format: renderer.config.format,
-        blend: Some(wgpu::BlendState::REPLACE),
-        write_mask: wgpu::ColorWrites::ALL,
-      })],
-    }),
-    primitive: wgpu::PrimitiveState {
-      topology: wgpu::PrimitiveTopology::TriangleList,
-      strip_index_format: None,
-      front_face: wgpu::FrontFace::Ccw,
-      cull_mode: Some(wgpu::Face::Back),
-      polygon_mode: wgpu::PolygonMode::Fill,
-      unclipped_depth: false,
-      conservative: false,
-    },
-    //TODO enable depth buffer
-    depth_stencil: None,
-    multisample: wgpu::MultisampleState::default(),
-    multiview: None,
-  });
 
   let uniform_buffer = renderer.device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
@@ -113,6 +84,7 @@ pub fn init_gpu_data(
     ],
     label: Some("WorldBindGroupLayout"),
   });
+
   let bind_group = renderer.device.create_bind_group(&wgpu::BindGroupDescriptor {
     layout: &bind_group_layout,
     entries: &[
@@ -128,12 +100,56 @@ pub fn init_gpu_data(
     label: Some("WorldBindGroup"),
   });
 
+  let pipeline_layout = renderer.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+    label: Some("WorldRenderPipelineLayout"),
+    bind_group_layouts: &[&bind_group_layout],
+    push_constant_ranges: &[],
+  });
+  
+  let pipeline = renderer.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    label: Some("WorldRenderPipeline"),
+    layout: Some(&pipeline_layout),
+    vertex: wgpu::VertexState {
+      module: &shaders.world,
+      entry_point: "vs_main",
+      buffers: &[
+        wgpu::VertexBufferLayout {
+          array_stride: std::mem::size_of::<ChunkVertex>() as wgpu::BufferAddress,
+          step_mode: wgpu::VertexStepMode::Vertex,
+          attributes: &ChunkVertex::VERTEX_ATTRIBUTES,
+        }
+      ],
+    },
+    fragment: Some(wgpu::FragmentState {
+      module: &shaders.world,
+      entry_point: "fs_main",
+      targets: &[Some(wgpu::ColorTargetState {
+        format: renderer.config.format,
+        blend: Some(wgpu::BlendState::REPLACE),
+        write_mask: wgpu::ColorWrites::ALL,
+      })],
+    }),
+    primitive: wgpu::PrimitiveState {
+      topology: wgpu::PrimitiveTopology::TriangleList,
+      strip_index_format: None,
+      front_face: wgpu::FrontFace::Ccw,
+      cull_mode: Some(wgpu::Face::Back),
+      polygon_mode: wgpu::PolygonMode::Fill,
+      unclipped_depth: false,
+      conservative: false,
+    },
+    //TODO enable depth buffer
+    depth_stencil: None,
+    multisample: wgpu::MultisampleState::default(),
+    multiview: None,
+  });
+
   storages.add_unique(GpuData { pipeline, uniform_buffer, bind_group });
 }
 
 pub fn draw_world(
+  render_pass: &mut RenderPass,
   renderer: UniqueView<Renderer>,
-  mut target: UniqueViewMut<RenderTarget>,
   gpu_data: UniqueView<GpuData>,
   chunks: UniqueView<ChunkStorage>,
   meshes: UniqueView<ChunkMeshStorage>,
@@ -147,10 +163,19 @@ pub fn draw_world(
       let world_position = position.as_vec3() * CHUNK_SIZE as f32;
       
       //TODO culling like in the glium version
+      //TODO indirect
 
       //Draw chunk mesh
-     
-      //TODO: i need renderpass here!
+      for (&position, chunk) in &chunks.chunks {
+        // //! //TODO THIS IS PROBABLY UB
+        // AND I DONT FUCKING CARE
+        let mesh = unsafe { yolo(meshes.get(key).expect("Mesh index pointing to nothing")) };
+        let bind_group = unsafe { yolo(&gpu_data.bind_group) };
+        render_pass.set_bind_group(0, bind_group, &[]);
+        render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        render_pass.draw_indexed(0..mesh.idx_count, 0, 0..1);
+      }
     }
   }
 }

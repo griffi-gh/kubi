@@ -45,9 +45,8 @@ pub fn load_asset_texture_array<
         NonZeroU32::new(dimensions.1).expect("image dimensions must be non-zero")
       );
 
-      //Ensure same size (skip if poisoned)
-      if !img_dim.is_poisoned() {
-        let mut img_dim = img_dim.lock().unwrap();
+      //Ensure same size
+      if let Ok(mut img_dim) = img_dim.lock() {
         if let Some(current_size) = img_dim.replace(dim_nonzero) {
           assert!(dim_nonzero == current_size, "image dimensions do not match");
         }
@@ -57,7 +56,8 @@ pub fn load_asset_texture_array<
     }).collect();
     
     //Lock for the final time and retrieve the dimensions
-    let img_dim = img_dim.lock().unwrap().expect("No images were loaded").clone();
+    let img_dim = img_dim.lock().unwrap()
+      .expect("no images were loaded, cannot create an empty texture array");
     let img_dim_vec = UVec2::new(img_dim.0.get(), img_dim.1.get());
 
     (raw_images, img_dim_vec)

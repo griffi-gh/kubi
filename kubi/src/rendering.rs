@@ -1,4 +1,4 @@
-use shipyard::{Unique, Workload, IntoWorkload, WorkloadModificator};
+use shipyard::{Unique, Workload, IntoWorkload, WorkloadModificator, AllStoragesView};
 use winit::{
   event_loop::EventLoop,
   window::{Window, WindowBuilder, Fullscreen},
@@ -25,8 +25,7 @@ pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
   0.0, 0.0, 0.5, 1.0,
 ]);
 
-#[derive(Unique)]
-pub struct RenderTarget {
+pub struct RenderData {
   pub output: wgpu::SurfaceTexture,
   pub view: wgpu::TextureView,
   pub encoder: wgpu::CommandEncoder,
@@ -163,7 +162,7 @@ impl Renderer {
   }
 
   /// Start a new frame
-  pub fn begin(&self) -> RenderTarget {
+  pub fn begin(&self) -> RenderData {
     //Surface texture
     let output = self.surface.get_current_texture().unwrap();
 
@@ -171,35 +170,14 @@ impl Renderer {
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
     //Encoder
-    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    let encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
       label: Some("RenderEncoder"),
     });
 
-    //Begin render pass
-    {
-      let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        label: Some("RenderPass"),
-        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-          view: &view,
-          resolve_target: None,
-          ops: wgpu::Operations {
-            load: wgpu::LoadOp::Clear(wgpu::Color {
-              r: 0.1,
-              g: 0.2,
-              b: 0.3,
-              a: 1.0,
-            }),
-            store: true,
-          },
-        })],
-        depth_stencil_attachment: None,
-      });
-    }
-
-    RenderTarget { output, view, encoder }
+    RenderData { output, view, encoder }
   }
 
-  pub fn end(&self, target: RenderTarget) {
+  pub fn end(&self, target: RenderData) {
     self.queue.submit([target.encoder.finish()]);
     target.output.present();
   }
@@ -229,3 +207,35 @@ pub fn init_rendering_internals() -> Workload {
     ).into_workload().after_all(compile_shaders),
   ).into_workload()
 }
+
+macro_rules! vertex_attributes {
+  (
+    $T: ident,
+    $(
+      $name:ident: $vertex_format:ident
+    ),*
+  ) => {
+    impl $T {
+      pub const VERTEX_ATTRIBUTES: [::wgpu::VertexAttribute; [$(stringify!($name)),*].len()] = {
+        let mut offset = 0;
+        let mut shader_location = 0;
+        [
+          $(
+            {
+              let attribute = wgpu::VertexAttribute {
+                format: ::wgpu::VertexFormat::$vertex_format,
+                offset, shader_location,
+              };
+              #[allow(unused_assignments)] {
+                shader_location += 1;
+                offset += ::wgpu::VertexFormat::$vertex_format.size();
+              }
+              attribute
+            },
+          )*
+        ]
+      };
+    }
+  };
+}
+pub(crate) use vertex_attributes;

@@ -108,7 +108,7 @@ impl MeshBuilder {
       self.vertex_buffer.push(ChunkVertex {
         position: (coord + vert[i]).to_array(),
         normal: norm.to_array(),
-        uv: UV_COORDS[i],
+        tex_coords: UV_COORDS[i],
         tex_index: texture
       });
     }
@@ -131,7 +131,7 @@ impl MeshBuilder {
       self.vertex_buffer.push(ChunkVertex {
         position: (coord.as_vec3() + vertices[i]).to_array(),
         normal: normal_front,
-        uv: UV_COORDS[i],
+        tex_coords: UV_COORDS[i],
         tex_index: front_texture
       })
     }
@@ -139,7 +139,7 @@ impl MeshBuilder {
       self.vertex_buffer.push(ChunkVertex {
         position: (coord.as_vec3() + vertices[i]).to_array(),
         normal: normal_back,
-        uv: UV_COORDS[i],
+        tex_coords: UV_COORDS[i],
         tex_index: back_texture
       })
     }
