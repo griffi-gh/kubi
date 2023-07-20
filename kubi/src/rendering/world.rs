@@ -170,8 +170,9 @@ pub fn draw_world(
         // //! //TODO THIS IS PROBABLY UB
         // AND I DONT FUCKING CARE
         let mesh = unsafe { yolo(meshes.get(key).expect("Mesh index pointing to nothing")) };
-        let bind_group = unsafe { yolo(&gpu_data.bind_group) };
-        render_pass.set_bind_group(0, bind_group, &[]);
+        let gpu_data = unsafe { yolo(gpu_data.as_ref()) };
+        render_pass.set_pipeline(&gpu_data.pipeline);
+        render_pass.set_bind_group(0, &gpu_data.bind_group, &[]);
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         render_pass.draw_indexed(0..mesh.idx_count, 0, 0..1);
