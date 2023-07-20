@@ -82,7 +82,7 @@ pub fn initial_resize_event(
   mut storages: AllStoragesViewMut,
 ) {
   let size = {
-    let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+    let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
     UVec2::new(renderer.size.width, renderer.size.height)
   };
   storages.add_entity((

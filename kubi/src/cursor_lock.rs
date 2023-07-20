@@ -7,7 +7,7 @@ pub struct CursorLock(pub bool);
 
 pub fn update_cursor_lock_state(
   lock: UniqueView<CursorLock>,
-  renderer: NonSendSync<UniqueView<Renderer>>
+  renderer: UniqueView<Renderer>
 ) {
   #[cfg(not(target_os = "android"))]
   if lock.is_inserted_or_modified() {

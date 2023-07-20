@@ -31,7 +31,7 @@ macro_rules! build_shaders {
 pub fn compile_shaders(
   storages: AllStoragesView,
 ) {
-  let renderer = &storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+  let renderer = &storages.borrow::<UniqueView<Renderer>>().unwrap();
   storages.add_unique(build_shaders! {
     Shaders [renderer, "../../shaders"] {
       world: "world.wgsl",

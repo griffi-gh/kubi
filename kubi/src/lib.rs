@@ -59,10 +59,11 @@ use rendering::{
   Renderer,
   RenderTarget,
   BackgroundColor,
+  init_rendering_internals,
   world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
   entities::render_entities,
-  renderer_finish_init,
+  camera_uniform::update_camera_uniform,
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -84,7 +85,7 @@ fn pre_startup() -> Workload {
 
 fn startup() -> Workload {
   (
-    renderer_finish_init,
+    init_rendering_internals,
     init_fixed_timestamp_storage,
     initial_resize_event,
     load_prefabs,
@@ -133,9 +134,11 @@ fn update() -> Workload {
   ).into_sequential_workload()
 }
 
+//TODO move this to the renderer module
 fn render() -> Workload {
   (
     (
+      update_camera_uniform,
       draw_world,
       draw_current_chunk_border,
       render_selection_box,
@@ -191,7 +194,7 @@ pub fn kubi_main() {
   //Initialize renderer
   {
     let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
-    world.add_unique_non_send_sync(Renderer::init_blocking(&event_loop, &settings));
+    world.add_unique(Renderer::init_blocking(&event_loop, &settings));
   }
   world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
 
@@ -215,7 +218,7 @@ pub fn kubi_main() {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::Resized(new_size) => {
           //this can be in a system but I don't care
-          world.borrow::<NonSendSync<UniqueViewMut<Renderer>>>().unwrap().resize(new_size);
+          world.borrow::<UniqueViewMut<Renderer>>().unwrap().resize(new_size);
         }
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
@@ -237,7 +240,7 @@ pub fn kubi_main() {
         
         //Start rendering (maybe use custom views for this?)
         let target = {
-          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+          let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
           renderer.begin()
         };
         world.add_unique(target);

@@ -96,7 +96,7 @@ impl MeshBuilder {
     Self::default()
   }
 
-  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u8) {
+  pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u32) {
     let coord = coord.as_vec3();
     let face_index = face as usize;
     
@@ -120,7 +120,7 @@ impl MeshBuilder {
     self.idx_counter += 4;
   }
 
-  pub fn add_diagonal_face(&mut self, coord: IVec3, face_type: DiagonalFace, front_texture: u8, back_texture: u8) {
+  pub fn add_diagonal_face(&mut self, coord: IVec3, face_type: DiagonalFace, front_texture: u32, back_texture: u32) {
     //Push vertices
     let face_type = face_type as usize;
     let vertices = CROSS_FACES[face_type];

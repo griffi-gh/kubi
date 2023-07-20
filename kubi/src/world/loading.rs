@@ -91,7 +91,7 @@ pub fn update_chunks_if_player_moved(
 
 fn unload_downgrade_chunks(
   mut vm_world: UniqueViewMut<ChunkStorage>,
-  mut vm_meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>
+  mut vm_meshes: UniqueViewMut<ChunkMeshStorage>
 ) {
   if !vm_world.is_modified() {
     return
@@ -184,8 +184,8 @@ fn start_required_tasks(
 fn process_completed_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut world: UniqueViewMut<ChunkStorage>,
-  mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
-  renderer: NonSendSync<UniqueView<Renderer>>,
+  mut meshes: UniqueViewMut<ChunkMeshStorage>,
+  renderer: UniqueView<Renderer>,
   state: UniqueView<GameState>,
   mut queue: UniqueViewMut<BlockUpdateQueue>,
 ) {

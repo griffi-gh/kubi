@@ -65,22 +65,22 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
                   CubeFace::Back   => textures.back,
                   CubeFace::Bottom => textures.bottom,
                 };
-                builder.add_face(face, coord, face_texture as u8);
+                builder.add_face(face, coord, face_texture as u32);
               }
             }
           },
           RenderType::CrossShape(textures) => {
             builder.add_diagonal_face(
-              coord, 
-              DiagonalFace::LeftZ, 
-              textures.0.front as u8, 
-              textures.0.back as u8
+              coord,
+              DiagonalFace::LeftZ,
+              textures.0.front as u32,
+              textures.0.back as u32
             );
             builder.add_diagonal_face(
-              coord, 
+              coord,
               DiagonalFace::RigthZ, 
-              textures.1.front as u8, 
-              textures.1.back as u8
+              textures.1.front as u32,
+              textures.1.back as u32
             );
           },
         }

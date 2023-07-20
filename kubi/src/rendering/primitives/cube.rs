@@ -57,7 +57,7 @@ const CUBE_INDICES: &[u16] = &[
 
 pub(super) fn init_cube_primitive(
   storages: AllStoragesView,
-  renderer: NonSendSync<UniqueView<Renderer>>
+  renderer: UniqueView<Renderer>
 ) {
   storages.add_unique(
     CubePrimitive {

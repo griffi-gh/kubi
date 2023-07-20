@@ -19,7 +19,7 @@ const RECT_INDEX: &[u16] = &[0, 1, 2, 1, 3, 2];
 
 pub(super) fn init_rect_primitive(
   storages: AllStoragesView,
-  renderer: NonSendSync<UniqueView<Renderer>>
+  renderer: UniqueView<Renderer>
 ) {
   let vert = renderer.device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {

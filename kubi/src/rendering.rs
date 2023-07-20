@@ -1,4 +1,4 @@
-use shipyard::{Unique, View, Workload, SystemModificator, IntoWorkload};
+use shipyard::{Unique, Workload, IntoWorkload, WorkloadModificator};
 use winit::{
   event_loop::EventLoop,
   window::{Window, WindowBuilder, Fullscreen},
@@ -6,24 +6,24 @@ use winit::{
 };
 use glam::{Vec3, Mat4};
 use pollster::FutureExt as _;
-use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
+use crate::settings::{GameSettings, FullscreenMode};
 
-use self::{pipelines::init_pipelines, primitives::init_primitives, shaders::compile_shaders};
+use self::{primitives::init_primitives, shaders::compile_shaders, camera_uniform::init_camera_uniform};
 
 pub mod shaders;
-pub mod pipelines;
 pub mod primitives;
-pub mod world;
 pub mod selection_box;
 pub mod entities;
+pub mod world;
+pub mod camera_uniform;
 
+//TODO remove this if possible
 pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::from_cols_array(&[
   1.0, 0.0, 0.0, 0.0,
   0.0, 1.0, 0.0, 0.0,
   0.0, 0.0, 0.5, 0.0,
   0.0, 0.0, 0.5, 1.0,
 ]);
-
 
 #[derive(Unique)]
 pub struct RenderTarget {
@@ -218,17 +218,14 @@ impl Renderer {
   }
 }
 
-pub fn renderer_finish_init() -> Workload {
+/// THIS DOES NOT INIT [`Renderer`]!
+pub fn init_rendering_internals() -> Workload {
   (
-    compile_shaders,
-    init_pipelines.after_all(compile_shaders),
+    init_camera_uniform,
     init_primitives,
+    compile_shaders,
+    (
+      world::init_gpu_data,
+    ).into_workload().after_all(compile_shaders),
   ).into_workload()
-}
-
-#[deprecated]
-pub fn if_resized (
-  resize: View<WindowResizedEvent>,
-) -> bool {
-  resize.len() > 0
 }

@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use strum::EnumIter;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, EnumIter)]
-#[repr(u8)]
+#[repr(u32)]
 pub enum BlockTexture {
   Stone,
   Dirt,

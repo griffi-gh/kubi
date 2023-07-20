@@ -1,4 +1,4 @@
-use shipyard::{NonSendSync, UniqueView, Unique, AllStoragesView};
+use shipyard::{UniqueView, Unique, AllStoragesView};
 use kubi_shared::block::BlockTexture;
 use crate::rendering::Renderer;
 
@@ -6,7 +6,6 @@ mod texture;
 mod shaders;
 
 use texture::load_asset_texture_array;
-use shaders::include_shader_prefab;
 
 pub trait AssetPaths {
   fn file_name(self) -> &'static str;
@@ -41,10 +40,10 @@ pub struct BlockTexturesAsset(pub wgpu::Texture);
 
 pub fn load_prefabs(
   storages: AllStoragesView,
-  renderer: NonSendSync<UniqueView<Renderer>>
+  renderer: UniqueView<Renderer>
 ) {
   log::info!("Loading textures...");
-  storages.add_unique_non_send_sync(BlockTexturesAsset(
+  storages.add_unique(BlockTexturesAsset(
     load_asset_texture_array::<BlockTexture>("blocks".into(), &renderer)
   ));
 }

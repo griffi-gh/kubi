@@ -8,6 +8,8 @@ mod frustum;
 use matrices::update_matrices;
 use frustum::{Frustum, update_frustum};
 
+//TODO: handle cases where we have multiple cameras
+
 #[derive(Component)]
 pub struct Camera {
   pub view_matrix: Mat4,
