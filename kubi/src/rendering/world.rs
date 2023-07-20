@@ -29,8 +29,9 @@ struct WorldUniform {
   position: [f32; 3], //XXX: should use i32?
 }
 
+///private type
 #[derive(Unique)]
-struct GpuData {
+pub struct GpuData {
   pipeline: wgpu::RenderPipeline,
   uniform_buffer: wgpu::Buffer,
   bind_group: wgpu::BindGroup,
