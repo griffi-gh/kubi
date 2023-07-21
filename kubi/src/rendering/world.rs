@@ -1,6 +1,6 @@
 use glam::{Vec3, Mat4, Quat, ivec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track, Unique, AllStoragesView};
-use wgpu::{util::DeviceExt, RenderPass};
+use wgpu::util::DeviceExt;
 use crate::{
   camera::Camera,
   player::MainPlayer,
@@ -147,8 +147,8 @@ pub fn init_gpu_data(
   storages.add_unique(GpuData { pipeline, uniform_buffer, bind_group });
 }
 
-pub fn draw_world(
-  render_pass: &mut RenderPass,
+pub fn draw_world (
+  render_pass: &mut wgpu::RenderPass,
   renderer: UniqueView<Renderer>,
   gpu_data: UniqueView<GpuData>,
   chunks: UniqueView<ChunkStorage>,
@@ -167,10 +167,8 @@ pub fn draw_world(
 
       //Draw chunk mesh
       for (&position, chunk) in &chunks.chunks {
-        // //! //TODO THIS IS PROBABLY UB
-        // AND I DONT FUCKING CARE
-        let mesh = unsafe { yolo(meshes.get(key).expect("Mesh index pointing to nothing")) };
-        let gpu_data = unsafe { yolo(gpu_data.as_ref()) };
+        let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
+        let gpu_data = gpu_data.as_ref();
         render_pass.set_pipeline(&gpu_data.pipeline);
         render_pass.set_bind_group(0, &gpu_data.bind_group, &[]);
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
