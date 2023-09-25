@@ -83,7 +83,7 @@ impl Renderer {
       });
 
     let cb = ContextBuilder::new()
-      .with_srgb(false)
+      //.with_srgb(false)
       .with_depth_buffer(24)
       .with_multisampling(settings.msaa.unwrap_or_default())
       .with_vsync(settings.vsync)
