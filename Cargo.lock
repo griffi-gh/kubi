@@ -999,6 +999,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kubi-pool"
+version = "0.0.0"
+
+[[package]]
 name = "kubi-server"
 version = "0.0.0"
 dependencies = [
