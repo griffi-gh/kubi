@@ -10,13 +10,13 @@ kubi-logging = { path = "../kubi-logging" }
 log = "0.4"
 shipyard = { git = "https://github.com/leudz/shipyard", rev = "0934b426eb9a8", default-features = false, features = ["std", "proc", "thread_local"] }
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
-toml = "0.7"
+toml = "0.8"
 glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"] }
 hashbrown = "0.14"
 nohash-hasher = "0.2"
 anyhow = "1.0"
 rayon = "1.7"
-flume = "0.10"
+flume = "0.11"
 rand = "0.8"
 uflow = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
