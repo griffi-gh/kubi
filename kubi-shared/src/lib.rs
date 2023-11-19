@@ -6,3 +6,4 @@ pub mod transform;
 pub mod entity;
 pub mod player;
 pub mod queue;
+pub mod data;
