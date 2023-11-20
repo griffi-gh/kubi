@@ -60,20 +60,21 @@ prerequisites: Android SDK, command line tools, NDK, platform-tools, latest JDK\
 
 **Setup:**
 
+latest unpublished (git) version of cargo-apk is required
+
 ```bash
-cargo install cargo-apk
-cargo target add aarch64-linux-android
+cargo install --git https://github.com/rust-mobile/cargo-apk cargo-apk
+rustup target add aarch64-linux-android
 ```
 
 **Build:**
 
 `--no-default-features` is required for keyboard input!\
-(`prefer-raw-events` feature *must* be disabled on android)
-
+(`prefer-raw-events` feature *must* be disabled on android)\
 Mouse input is not implemented, touch only!
 
 ```bash
-cargo apk build -p kubi --no-default-features
+cargo apk build -p kubi --lib --no-default-features
 ```
 
 **Run:**
