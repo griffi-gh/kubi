@@ -55,8 +55,8 @@ please note that android support is highly experimental!\
 gamepad, mouse input is currently borked, and proper touch controls are not available.\
 srgb and blending are broken too, which leads to many rendering issues
 
-prerequisites: Android SDK, command line tools, NDK, platform-tools, latest JDK\
-(make sure that your $PATH variable is configured properly)
+prerequisites: Android SDK, NDK, command line tools, platform-tools, latest JDK\
+(make sure that your `PATH`, `ANDROID_HOME` and `ANDROID_NDK_ROOT` variables are configured properly)
 
 **Setup:**
 
@@ -77,10 +77,10 @@ Mouse input is not implemented, touch only!
 cargo apk build -p kubi --lib --no-default-features
 ```
 
-**Run:**
+**Run on device (using adb):**
 
 ```bash
-cargo apk run -p kubi --no-default-features
+cargo apk run -p kubi --lib --no-default-features
 ```
 
 <h2>touch controls</h2>
