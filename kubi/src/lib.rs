@@ -1,16 +1,14 @@
 #![allow(clippy::too_many_arguments)] // allowed because systems often need a lot of arguments
 
 use shipyard::{
-  World, Workload, IntoWorkload, 
-  UniqueView, UniqueViewMut, 
-  NonSendSync, WorkloadModificator, 
+  World, Workload, IntoWorkload,
+  UniqueView, UniqueViewMut,
+  NonSendSync, WorkloadModificator,
   SystemModificator
 };
-use glium::{
-  glutin::{
-    event_loop::{EventLoop, ControlFlow},
-    event::{Event, WindowEvent}
-  }
+use glium::glutin::{
+  event_loop::{EventLoop, ControlFlow},
+  event::{Event, WindowEvent}
 };
 use glam::vec3;
 use std::time::Instant;

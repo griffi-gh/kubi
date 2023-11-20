@@ -13,3 +13,5 @@ target/
 _src
 
 _visualizer.json
+
+*.kubi

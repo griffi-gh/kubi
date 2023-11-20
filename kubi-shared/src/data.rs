@@ -2,13 +2,20 @@ use std::{
   fs::File,
   mem::size_of,
   io::{Read, Seek, SeekFrom, Write},
-  borrow::Cow
+  borrow::Cow,
+  sync::{Arc, RwLock}
 };
+use num_enum::TryFromPrimitive;
 use serde::{Serialize, Deserialize};
-use glam::IVec2;
+use glam::IVec3;
 use hashbrown::HashMap;
 use anyhow::Result;
-use crate::{block::Block, chunk::{CHUNK_SIZE, BlockDataRef}};
+use shipyard::Unique;
+use static_assertions::const_assert_eq;
+use crate::{
+  block::Block,
+  chunk::{CHUNK_SIZE, BlockDataRef, BlockData}
+};
 
 const SECTOR_SIZE: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * size_of::<Block>();
 const RESERVED_SIZE: usize = 1048576; //~1mb (16 sectors assuming 32x32x32 world of 1byte blocks)
@@ -20,13 +27,13 @@ const HEADER_MAGIC_STR: [u8; 4] = *b"KUBI";
 const HEADER_MAGIC_IDENTITY: u32 = 1;
 
 // #[repr(transparent)]
-// struct IVec2Hash(IVec2);
+// struct IVec3Hash(IVec3);
 #[derive(Serialize, Deserialize)]
-struct WorldSaveDataHeader {
+pub struct WorldSaveDataHeader {
   pub name: Cow<'static, str>,
   pub seed: u64,
   sector_count: u32,
-  chunk_map: HashMap<IVec2, u32>,
+  chunk_map: HashMap<IVec3, u32>,
 }
 
 impl Default for WorldSaveDataHeader {
@@ -40,10 +47,13 @@ impl Default for WorldSaveDataHeader {
   }
 }
 
-struct WorldSaveFile {
+#[derive(Unique)]
+pub struct WorldSaveFile {
   pub file: File,
   pub header: WorldSaveDataHeader,
 }
+
+pub type SharedSaveFile = Arc<RwLock<WorldSaveFile>>;
 
 impl WorldSaveFile {
   pub fn new(file: File) -> Self {
@@ -82,13 +92,23 @@ impl WorldSaveFile {
     Ok(())
   }
 
+  pub fn initialize(&mut self) -> Result<()> {
+    self.write_header()?;
+    Ok(())
+  }
+
+  pub fn load_data(&mut self) -> Result<()> {
+    self.read_header()?;
+    Ok(())
+  }
+
   fn allocate_sector(&mut self) -> u32 {
     let value = self.header.sector_count + 1;
     self.header.sector_count += 1;
     value
   }
 
-  pub fn save_chunk(&mut self, position: IVec2, data: &BlockDataRef) -> Result<()> {
+  pub fn save_chunk(&mut self, position: IVec3, data: &BlockDataRef) -> Result<()> {
     let mut header_modified = false;
     let sector = self.header.chunk_map.get(&position).copied().unwrap_or_else(|| {
       header_modified = true;
@@ -96,7 +116,8 @@ impl WorldSaveFile {
     });
 
     let offset = sector as u64 * SECTOR_SIZE as u64;
-    //SAFETY: *nuzzles* t-t-twust me pwease OwO
+
+    const_assert_eq!(size_of::<Block>(), 1);
     let data: &[u8; SECTOR_SIZE] = unsafe { std::mem::transmute(data) };
 
     self.file.seek(SeekFrom::Start(offset))?;
@@ -107,5 +128,42 @@ impl WorldSaveFile {
     }
     self.file.sync_data()?;
     Ok(())
+  }
+
+  ///TODO partial chunk commit (No need to write whole 32kb for a single block change!)
+  pub fn chunk_set_block() {
+    todo!()
+  }
+
+  pub fn chunk_exists(&self, position: IVec3) -> bool {
+    self.header.chunk_map.contains_key(&position)
+  }
+
+  pub fn load_chunk(&mut self, position: IVec3) -> Result<Option<BlockData>> {
+    let Some(&sector) = self.header.chunk_map.get(&position) else {
+      return Ok(None);
+    };
+
+    let mut buffer = Box::new([0u8; CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * size_of::<Block>()]);
+    let offset = sector as u64 * SECTOR_SIZE as u64;
+
+    self.file.seek(SeekFrom::Start(offset))?;
+    self.file.read_exact(&mut buffer[..])?;
+
+    //should be safe under these conditions:
+    //Block is a single byte
+    //All block data bytes are in valid range
+    const_assert_eq!(size_of::<Block>(), 1);
+    for &byte in &buffer[..] {
+      let block = Block::try_from_primitive(byte);
+      match block {
+        //Sanity check, not actually required: (should NEVER happen)
+        Ok(block) => debug_assert_eq!(byte, block as u8),
+        Err(_) => anyhow::bail!("invalid block data"),
+      }
+    }
+    let data: BlockData = unsafe { std::mem::transmute(buffer) };
+
+    Ok(Some(data))
   }
 }

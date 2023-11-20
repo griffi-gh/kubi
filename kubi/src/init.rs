@@ -1,9 +1,26 @@
 use shipyard::{AllStoragesView, UniqueViewMut};
-use std::{env, net::SocketAddr};
+use std::{env, net::SocketAddr, fs::OpenOptions, path::{Path, PathBuf}, str::FromStr, sync::{Arc, RwLock}};
+use anyhow::Result;
 use crate::{
   networking::{GameType, ServerAddress},
   state::{GameState, NextState}
 };
+use kubi_shared::data::{WorldSaveFile, SharedSaveFile};
+
+fn open_local_save_file(path: &Path) -> Result<WorldSaveFile> {
+  let mut save_file = WorldSaveFile::new({
+    OpenOptions::new()
+      .read(true)
+      .write(true)
+      .open("world.kbi")?
+  });
+  if save_file.file.metadata().unwrap().len() == 0 {
+    save_file.initialize()?;
+  } else {
+    save_file.load_data()?;
+  }
+  Ok(save_file)
+}
 
 pub fn initialize_from_args(
   all_storages: AllStoragesView,

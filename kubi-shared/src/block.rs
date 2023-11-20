@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use strum::EnumIter;
+use num_enum::TryFromPrimitive;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, EnumIter)]
 #[repr(u8)]
@@ -22,7 +23,7 @@ pub enum BlockTexture {
   WaterSolid,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, EnumIter)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, EnumIter, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Block {
   Air,
