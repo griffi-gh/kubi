@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [lib]
+name = "kubilib"
 crate-type = ["lib", "cdylib"]
 
 [dependencies]

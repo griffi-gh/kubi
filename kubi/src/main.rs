@@ -4,5 +4,5 @@
 )]
 
 fn main() {
-  kubi::kubi_main();
+  kubilib::kubi_main();
 }

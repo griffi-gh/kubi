@@ -6,7 +6,7 @@ use kubi_shared::{
   player::PlayerHolding,
 };
 use crate::{
-  player::MainPlayer, 
+  player::MainPlayer,
   world::{raycast::{LookingAtBlock, RAYCAST_STEP}, queue::BlockUpdateQueue}, 
   input::{Inputs, PrevInputs, RawKbmInputState}, 
   events::{EventComponent, player_actions::PlayerActionEvent},

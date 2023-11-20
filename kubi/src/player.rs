@@ -2,7 +2,8 @@ use glam::Mat4;
 use shipyard::{Component, AllStoragesViewMut, UniqueViewMut};
 use kubi_shared::{
   entity::{Entity, Health}, 
-  player::{PLAYER_HEALTH, PlayerHolding}, 
+  player::{Player, PLAYER_HEALTH, PlayerHolding},
+  block::Block,
   networking::{
     client::{Username, Client, ClientIdMap},
     messages::ClientInitData
@@ -14,7 +15,6 @@ use crate::{
   fly_controller::FlyController, 
   world::raycast::LookingAtBlock, 
 };
-pub use kubi_shared::player::Player;
 
 #[derive(Component)]
 pub struct MainPlayer;
@@ -32,7 +32,7 @@ pub fn spawn_player (
     Camera::default(),
     FlyController,
     LookingAtBlock::default(),
-    PlayerHolding::default(),
+    PlayerHolding(Some(Block::Cobblestone)),
     Username("LocalPlayer".into())
   ));
 }
