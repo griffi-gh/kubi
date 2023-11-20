@@ -13,7 +13,7 @@ struct Task<T> {
 fn task_loop<T, R>() {
     let tasks = VecDeque::<Task<T>>::new();
     loop {
-        //todo
+
     };
 }
 
@@ -22,7 +22,7 @@ impl<T: 'static, R: 'static> KubiPool<T, R> {
         Self {
             callback,
             threads: (0..threads).map(|_| {
-                std::thread::spawn(task_loop::<T, R>)
+                std::thread::spawn(move || task_loop::<T, R>())
             }).collect(),
         }
     }
