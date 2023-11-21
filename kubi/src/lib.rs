@@ -194,7 +194,7 @@ pub fn kubi_main() {
   world.run_workload(pre_startup).unwrap();
   
   //Create event loop
-  let event_loop = EventLoop::new();
+  let event_loop = EventLoop::new().unwrap();
 
   //Initialize renderer
   {
@@ -215,19 +215,21 @@ pub fn kubi_main() {
 
   //Run the event loop
   let mut last_update = Instant::now();
-  event_loop.run(move |event, _, control_flow| {
-    *control_flow = ControlFlow::Poll;
+  event_loop.run(move |event, _| {
+    //TODO MIGRATION
+    //*control_flow = ControlFlow::Poll;
     process_glutin_events(&mut world, &event);
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
-          *control_flow = ControlFlow::Exit;
+          //TODO MIGRATION
+          // *control_flow = ControlFlow::Exit;
         },
         _ => (),
       },
-      Event::MainEventsCleared => {
+      Event::AboutToWait => {
         //Update delta time (maybe move this into a system?)
         {
           let mut dt_view = world.borrow::<UniqueViewMut<DeltaTime>>().unwrap();
@@ -235,10 +237,10 @@ pub fn kubi_main() {
           dt_view.0 = now - last_update;
           last_update = now;
         }
-        
+
         //Run update workflows
         world.run_workload(update).unwrap();
-        
+
         //Start rendering (maybe use custom views for this?)
         let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
@@ -258,7 +260,8 @@ pub fn kubi_main() {
 
         //Process control flow changes
         if let Some(flow) = world.borrow::<UniqueView<SetControlFlow>>().unwrap().0 {
-          *control_flow = flow;
+          //TODO MIGRATION
+          //*control_flow = flow;
         }
       },
       _ => (),

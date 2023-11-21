@@ -1,7 +1,7 @@
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
 use winit::{
   event_loop::EventLoop,
-  window::{WindowBuilder, Fullscreen},
+  window::{WindowBuilder, Fullscreen, Window},
   dpi::PhysicalSize
 };
 use glium::{Display, Surface, Version, Api};
@@ -28,58 +28,61 @@ pub struct WindowSize(pub UVec2);
 
 #[derive(Unique)]
 pub struct Renderer {
-  pub display: Display<WindowSurface>
+  pub window: Window,
+  pub display: Display<WindowSurface>,
 }
 
 impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
 
-    let wb = WindowBuilder::new()
-      .with_title("kubi")
-      .with_maximized(true)
-      .with_min_inner_size(PhysicalSize::new(640, 480))
-      .with_fullscreen({
-        //this has no effect on android, so skip this pointless stuff
-        #[cfg(target_os = "android")] {
-          None
-        }
-        #[cfg(not(target_os = "android"))]
-        if let Some(fs_settings) = &settings.fullscreen {
-          let monitor = event_loop.primary_monitor().or_else(|| {
-            event_loop.available_monitors().next()
-          });
-          if let Some(monitor) = monitor {
-            log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
-            match fs_settings.mode {
-              FullscreenMode::Borderless => {
-                log::info!("starting in borderless fullscreen mode");
-                Some(Fullscreen::Borderless(Some(monitor)))
-              },
-              FullscreenMode::Exclusive => {
-                log::warn!("exclusive fullscreen mode is experimental");
-                log::info!("starting in exclusive fullscreen mode");
-                //TODO: grabbing the first video mode is probably not the best idea...
-                monitor.video_modes().next()
-                  .map(|vmode| {
-                    log::info!("video mode: {}", vmode.to_string());
-                    Some(Fullscreen::Exclusive(vmode))
-                  })
-                  .unwrap_or_else(|| {
-                    log::warn!("no valid video modes found, falling back to windowed mode instead");
-                    None
-                  })
-              }
-            }
-          } else {
-            log::warn!("no monitors found, falling back to windowed mode");
-            None
-          }
-        } else {
-          log::info!("starting in windowed mode");
-          None
-        }
-      });
+    let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new().build(&event_loop);
+
+    // let wb = WindowBuilder::new()
+    //   .with_title("kubi")
+    //   .with_maximized(true)
+    //   .with_min_inner_size(PhysicalSize::new(640, 480))
+    //   .with_fullscreen({
+    //     //this has no effect on android, so skip this pointless stuff
+    //     #[cfg(target_os = "android")] {
+    //       None
+    //     }
+    //     #[cfg(not(target_os = "android"))]
+    //     if let Some(fs_settings) = &settings.fullscreen {
+    //       let monitor = event_loop.primary_monitor().or_else(|| {
+    //         event_loop.available_monitors().next()
+    //       });
+    //       if let Some(monitor) = monitor {
+    //         log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
+    //         match fs_settings.mode {
+    //           FullscreenMode::Borderless => {
+    //             log::info!("starting in borderless fullscreen mode");
+    //             Some(Fullscreen::Borderless(Some(monitor)))
+    //           },
+    //           FullscreenMode::Exclusive => {
+    //             log::warn!("exclusive fullscreen mode is experimental");
+    //             log::info!("starting in exclusive fullscreen mode");
+    //             //TODO: grabbing the first video mode is probably not the best idea...
+    //             monitor.video_modes().next()
+    //               .map(|vmode| {
+    //                 log::info!("video mode: {}", vmode.to_string());
+    //                 Some(Fullscreen::Exclusive(vmode))
+    //               })
+    //               .unwrap_or_else(|| {
+    //                 log::warn!("no valid video modes found, falling back to windowed mode instead");
+    //                 None
+    //               })
+    //           }
+    //         }
+    //       } else {
+    //         log::warn!("no monitors found, falling back to windowed mode");
+    //         None
+    //       }
+    //     } else {
+    //       log::info!("starting in windowed mode");
+    //       None
+    //     }
+    //   });
 
     // let cb = ContextBuilder::new()
     //   //.with_srgb(false)
@@ -89,8 +92,8 @@ impl Renderer {
     //   .with_gl_profile(GlProfile::Core)
     //   .with_gl(GlRequest::Latest);
 
-    let display = Display::new(wb, cb)
-      .expect("Failed to create a glium Display");
+    // let display = Display::new(wb, cb)
+    //   .expect("Failed to create a glium Display");
 
     log::info!("Vendor: {}", display.get_opengl_vendor_string());
     log::info!("Renderer: {}", display.get_opengl_renderer_string());
@@ -103,7 +106,7 @@ impl Renderer {
     
     assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
 
-    Self { display }
+    Self { window, display }
   }
 }
 

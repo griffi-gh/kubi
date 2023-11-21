@@ -158,21 +158,17 @@ pub fn disconnect_on_exit(
   control_flow: UniqueView<SetControlFlow>,
   mut client: UniqueViewMut<UdpClient>,
 ) {
-  if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
-    if client.0.is_active() {
-      client.0.flush();
-      client.0.disconnect();
-      while client.0.is_active() { client.0.step().for_each(|_|()); }
-      log::info!("Client disconnected");
-    } else {
-      log::info!("Client inactive")
-    }
-    // if let Err(error) = client.0. {
-    //   log::error!("failed to disconnect: {}", error);
-    // } else {
-    //   log::info!("Client disconnected");
-    // }
-  }
+  //TODO MIGRATION
+  // if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
+  //   if client.0.is_active() {
+  //     client.0.flush();
+  //     client.0.disconnect();
+  //     while client.0.is_active() { client.0.step().for_each(|_|()); }
+  //     log::info!("Client disconnected");
+  //   } else {
+  //     log::info!("Client inactive")
+  //   }
+  // }
 }
 
 // conditions

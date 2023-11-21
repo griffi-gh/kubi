@@ -13,13 +13,14 @@ pub fn update_cursor_lock_state(
     return
   }
   if lock.is_inserted_or_modified() {
-    let gl_window = display.display.gl_window();
-    let window = gl_window.window();
-    window.set_cursor_grab(match lock.0 {
-      true  => CursorGrabMode::Confined,
-      false => CursorGrabMode::None,
-    }).expect("Failed to change cursor grab state");
-    window.set_cursor_visible(!lock.0);
+    //TODO MIGRATION
+    // let gl_window = display.display.gl_window();
+    // let window = gl_window.window();
+    // window.set_cursor_grab(match lock.0 {
+    //   true  => CursorGrabMode::Confined,
+    //   false => CursorGrabMode::None,
+    // }).expect("Failed to change cursor grab state");
+    // window.set_cursor_visible(!lock.0);
   }
 }
 

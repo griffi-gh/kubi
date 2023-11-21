@@ -1,7 +1,7 @@
 use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
 use glam::{Vec2, DVec2, vec2, dvec2};
 use winit::{
-  keyboard::Key,
+  keyboard::{KeyCode, PhysicalKey},
   event::{DeviceEvent, DeviceId, ElementState, TouchPhase}
 };
 use hashbrown::HashMap;
@@ -97,21 +97,21 @@ fn process_events(
 ) {
   input_state.mouse_delta = DVec2::ZERO;
   for event in device_events.iter() {
-    match event.event {
+    match &event.event {
       DeviceEvent::MouseMotion { delta } => {
-        input_state.mouse_delta = DVec2::from(delta);
+        input_state.mouse_delta = DVec2::from(*delta);
       },
       DeviceEvent::Key(input) => {
-        if let Some(keycode) = input.virtual_keycode {
+        if let PhysicalKey::Code(code) = input.physical_key {
           match input.state {
-            ElementState::Pressed  => input_state.keyboard_state.insert(keycode as u32),
-            ElementState::Released => input_state.keyboard_state.remove(keycode as u32),
+            ElementState::Pressed  => input_state.keyboard_state.insert(code as u32),
+            ElementState::Released => input_state.keyboard_state.remove(code as u32),
           };
         }
       },
       DeviceEvent::Button { button, state } => {
-        if button < 32 {
-          input_state.button_state[button as usize] = matches!(state, ElementState::Pressed);
+        if *button < 32 {
+          input_state.button_state[*button as usize] = matches!(*state, ElementState::Pressed);
         }
       },
       _ => ()
@@ -176,10 +176,10 @@ fn update_input_state (
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   inputs.movement += Vec2::new(
-    raw_inputs.keyboard_state.contains(Key::D as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(Key::A as u32) as u32 as f32,
-    raw_inputs.keyboard_state.contains(Key::W  as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(Key::S as u32) as u32 as f32
+    raw_inputs.keyboard_state.contains(KeyCode::KeyD as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(KeyCode::KeyA as u32) as u32 as f32,
+    raw_inputs.keyboard_state.contains(KeyCode::KeyW as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(KeyCode::KeyS as u32) as u32 as f32
   );
   inputs.look += raw_inputs.mouse_delta.as_vec2();
   inputs.action_a |= raw_inputs.button_state[1];
