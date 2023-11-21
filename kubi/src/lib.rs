@@ -215,17 +215,16 @@ pub fn kubi_main() {
 
   //Run the event loop
   let mut last_update = Instant::now();
-  event_loop.run(move |event, _| {
-    //TODO MIGRATION
-    //*control_flow = ControlFlow::Poll;
+  event_loop.run(move |event, target| {
+    target.set_control_flow(ControlFlow::Poll);
+
     process_glutin_events(&mut world, &event);
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
-          //TODO MIGRATION
-          // *control_flow = ControlFlow::Exit;
+          target.exit();
         },
         _ => (),
       },
@@ -266,5 +265,5 @@ pub fn kubi_main() {
       },
       _ => (),
     };
-  });
+  }).unwrap();
 }
