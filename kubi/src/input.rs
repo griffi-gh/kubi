@@ -182,8 +182,8 @@ fn update_input_state (
     raw_inputs.keyboard_state.contains(KeyCode::KeyS as u32) as u32 as f32
   );
   inputs.look += raw_inputs.mouse_delta.as_vec2();
-  inputs.action_a |= raw_inputs.button_state[1];
-  inputs.action_b |= raw_inputs.button_state[3];
+  inputs.action_a |= raw_inputs.button_state[0];
+  inputs.action_b |= raw_inputs.button_state[1];
 }
 
 fn update_input_state_gamepad (
