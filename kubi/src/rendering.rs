@@ -7,7 +7,12 @@ use winit::{
   dpi::PhysicalSize
 };
 use glium::{Display, Surface, Version, Api};
-use glutin::{surface::WindowSurface, display::{GetGlDisplay, GlDisplay}, context::NotCurrentGlContext};
+use glutin::{
+  prelude::*,
+  context::ContextAttributesBuilder,
+  surface::{WindowSurface, SurfaceAttributesBuilder},
+  display::GetGlDisplay,
+};
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -88,7 +93,7 @@ impl Renderer {
     let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(wb));
     let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
     let (window, gl_config) = display_builder
-      .build(&event_loop, config_template_builder, |mut configs| {
+      .build(event_loop, config_template_builder, |mut configs| {
         configs.next().unwrap()
       })
       .unwrap();
@@ -96,7 +101,7 @@ impl Renderer {
 
     // Now we get the window size to use as the initial size of the Surface
     let (width, height): (u32, u32) = window.inner_size().into();
-    let attrs = glutin::surface::SurfaceAttributesBuilder::<glutin::surface::WindowSurface>::new().build(
+    let attrs = SurfaceAttributesBuilder::<WindowSurface>::new().build(
       window.raw_window_handle(),
       NonZeroU32::new(width).unwrap(),
       NonZeroU32::new(height).unwrap(),
@@ -104,7 +109,7 @@ impl Renderer {
 
     // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
     let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
-    let context_attributes = glutin::context::ContextAttributesBuilder::new().build(Some(window.raw_window_handle()));
+    let context_attributes = ContextAttributesBuilder::new().build(Some(window.raw_window_handle()));
     let current_context = unsafe {
       gl_config.display().create_context(&gl_config, &context_attributes).expect("failed to create context")
     }.make_current(&surface).unwrap();
