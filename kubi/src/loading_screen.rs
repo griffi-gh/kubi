@@ -5,7 +5,7 @@ use crate::{
   world::ChunkStorage, 
   state::{GameState, NextState, is_changing_state}, 
   transform::Transform2d,
-  gui::{
+  legacy_gui::{
     GuiComponent, 
     progressbar::ProgressbarComponent
   },

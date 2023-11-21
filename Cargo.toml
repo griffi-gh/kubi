@@ -1,5 +1,5 @@
 [workspace]
-members = ["kubi", "kubi-server", "kubi-shared", "kubi-logging", "kubi-pool"]
+members = ["kubi", "kubi-server", "kubi-shared", "kubi-logging", "kubi-pool", "kubi-ui"]
 default-members = ["kubi"]
 resolver = "2"
 

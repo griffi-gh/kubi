@@ -1,0 +1,16 @@
+[package]
+name = "kubi-ui"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+hashbrown = "0.14"
+nohash-hasher = "0.2"
+glam = { version = "0.24", features = ["approx"] }
+glium = { git = "https://github.com/glium/glium", rev = "5d50e7", optional = true }
+
+[features]
+default = ["backend_glium", "builtin_elements"]
+backend_glium = ["dep:glium"]
+builtin_elements = []

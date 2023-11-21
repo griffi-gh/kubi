@@ -79,6 +79,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c7d0618f0e0b7e8ff11427422b64564d5fb0be1940354bfe2e0529b18a9d9b8"
 
 [[package]]
+name = "approx"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -724,6 +733,7 @@ version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42218cb640844e3872cc3c153dc975229e080a6c4733b34709ef445610550226"
 dependencies = [
+ "approx",
  "serde",
 ]
 
@@ -972,6 +982,7 @@ dependencies = [
  "image",
  "kubi-logging",
  "kubi-shared",
+ "kubi-ui",
  "log",
  "lz4_flex",
  "ndk",
@@ -1041,6 +1052,16 @@ dependencies = [
  "shipyard",
  "static_assertions",
  "strum",
+]
+
+[[package]]
+name = "kubi-ui"
+version = "0.0.0"
+dependencies = [
+ "glam",
+ "glium",
+ "hashbrown 0.14.0",
+ "nohash-hasher",
 ]
 
 [[package]]
