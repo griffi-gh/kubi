@@ -1,6 +1,6 @@
 use glam::UVec2;
 use shipyard::{World, Component, AllStoragesViewMut, SparseSet, NonSendSync, UniqueView};
-use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch};
+use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch, RawKeyEvent, TouchPhase};
 use crate::rendering::Renderer;
 
 pub mod player_actions;
@@ -36,17 +36,25 @@ pub fn process_glutin_events(world: &mut World, event: &Event<()>) {
       },
 
       #[cfg(not(feature = "raw-evt"))]
-      WindowEvent::KeyboardInput { device_id, input, is_synthetic } => {
+      WindowEvent::KeyboardInput { device_id, event, .. } => {
         world.add_entity((
           EventComponent,
           InputDeviceEvent {
             device_id: *device_id,
-            event: DeviceEvent::Key(*input)
+            event: DeviceEvent::Key(RawKeyEvent {
+              physical_key: event.physical_key,
+              state: event.state,
+            })
           }
         ));
       }
 
       WindowEvent::Touch(touch) => {
+        // if matches!(touch.phase, TouchPhase::Started | TouchPhase::Cancelled | TouchPhase::Ended) {
+        //   println!("TOUCH ==================== {:#?}", touch);
+        // } else {
+        //   println!("TOUCH MOVED {:?} {}", touch.phase, touch.id);
+        // }
         world.add_entity((
           EventComponent,
           TouchEvent(*touch)
@@ -73,7 +81,7 @@ pub fn process_glutin_events(world: &mut World, event: &Event<()>) {
         OnBeforeExitEvent
       ));
     },
-    
+
     _ => (),
   }
 }

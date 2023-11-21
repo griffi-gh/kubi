@@ -172,6 +172,8 @@ fn attach_console() {
 #[no_mangle]
 #[cfg(target_os = "android")]
 pub fn android_main(app: android_activity::AndroidApp) {
+  use android_activity::WindowManagerFlags;
+  app.set_window_flags(WindowManagerFlags::FULLSCREEN, WindowManagerFlags::empty());
   kubi_main(app)
 }
 
@@ -202,6 +204,13 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
   world.add_workload(render);
   world.add_workload(after_frame_end);
 
+  //Save _visualizer.json
+  #[cfg(feature = "generate_visualizer_data")]
+  std::fs::write(
+    "_visualizer.json",
+    serde_json::to_string(&world.workloads_info()).unwrap(),
+  ).unwrap();
+
   //Run pre-startup procedure
   world.run_workload(pre_startup).unwrap();
 
@@ -217,31 +226,41 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
     }
   };
 
-  //Initialize renderer
-  {
-    let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
-    world.add_unique_non_send_sync(Renderer::init(&event_loop, &settings));
-  }
-  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
-
-  //Save _visualizer.json
-  #[cfg(feature = "generate_visualizer_data")]
-  std::fs::write(
-    "_visualizer.json",
-    serde_json::to_string(&world.workloads_info()).unwrap(),
-  ).unwrap();
-
-  //Run startup systems
-  world.run_workload(startup).unwrap();
-
   //Run the event loop
   let mut last_update = Instant::now();
+  let mut ready = false;
   event_loop.run(move |event, window_target| {
+    //Wait for the window to become active (required for android)
+    if !ready {
+      if Event::Resumed != event {
+        window_target.set_control_flow(ControlFlow::Wait);
+        return
+      }
+
+      //Initialize renderer
+      {
+        let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
+        world.add_unique_non_send_sync(Renderer::init(window_target, &settings));
+      }
+      world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+
+      //Run startup systems
+      world.run_workload(startup).unwrap();
+
+      ready = true;
+    }
+
     window_target.set_control_flow(ControlFlow::Poll);
 
     process_glutin_events(&mut world, &event);
+
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
+      #[cfg(target_os = "android")]
+      Event::Suspended => {
+        window_target.exit();
+      }
+
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
@@ -249,6 +268,7 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
         },
         _ => (),
       },
+
       Event::AboutToWait => {
         //Update delta time (maybe move this into a system?)
         {

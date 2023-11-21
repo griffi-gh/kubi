@@ -68,6 +68,14 @@ target_sdk_version = 30
 required = true
 glEsVersion = 0x00030000
 
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.touchscreen.multitouch"
+required = true
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.touchscreen.multitouch.distinct"
+required = true
+
 [package.metadata.android.application.activity]
 config_changes = "orientation|keyboardHidden|screenLayout|screenSize"
 exported = true

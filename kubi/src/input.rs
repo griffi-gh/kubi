@@ -130,6 +130,7 @@ fn process_touch_events(
     let position = dvec2(event.0.location.x, event.0.location.y);
     match event.0.phase {
       TouchPhase::Started => {
+        //println!("touch started: finger {}", event.0.id);
         touch_state.fingers.insert(event.0.id, Finger {
           id: event.0.id,
           device_id: event.0.device_id,
@@ -146,6 +147,7 @@ fn process_touch_events(
         }
       },
       TouchPhase::Ended | TouchPhase::Cancelled => {
+        //println!("touch ended: finger {}", event.0.id);
         touch_state.fingers.remove(&event.0.id);
       },
     }
