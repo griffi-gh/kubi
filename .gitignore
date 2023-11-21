@@ -15,3 +15,5 @@ _src
 _visualizer.json
 
 *.kubi
+/*_log*.txt
+/*.log
