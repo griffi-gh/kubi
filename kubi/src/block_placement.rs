@@ -1,26 +1,32 @@
 use shipyard::{UniqueViewMut, UniqueView, View, IntoIter, ViewMut, EntitiesViewMut, Workload, IntoWorkload};
-use glium::glutin::event::VirtualKeyCode;
+use winit::keyboard::KeyCode;
 use kubi_shared::{
   block::Block,
-  queue::QueuedBlock, 
+  queue::QueuedBlock,
   player::PlayerHolding,
 };
 use crate::{
   player::MainPlayer,
-  world::{raycast::{LookingAtBlock, RAYCAST_STEP}, queue::BlockUpdateQueue}, 
-  input::{Inputs, PrevInputs, RawKbmInputState}, 
-  events::{EventComponent, player_actions::PlayerActionEvent},
+  world::{
+    raycast::{LookingAtBlock, RAYCAST_STEP},
+    queue::BlockUpdateQueue
+  },
+  input::{Inputs, PrevInputs, RawKbmInputState},
+  events::{
+    EventComponent,
+    player_actions::PlayerActionEvent
+  },
 };
 
-const BLOCK_KEY_MAP: &[(VirtualKeyCode, Block)] = &[
-  (VirtualKeyCode::Key1, Block::Cobblestone),
-  (VirtualKeyCode::Key2, Block::Planks),
-  (VirtualKeyCode::Key3, Block::Dirt),
-  (VirtualKeyCode::Key4, Block::Grass),
-  (VirtualKeyCode::Key5, Block::Sand),
-  (VirtualKeyCode::Key6, Block::Stone),
-  (VirtualKeyCode::Key7, Block::Torch),
-  (VirtualKeyCode::Key8, Block::Leaf),
+const BLOCK_KEY_MAP: &[(KeyCode, Block)] = &[
+  (KeyCode::Digit1, Block::Cobblestone),
+  (KeyCode::Digit2, Block::Planks),
+  (KeyCode::Digit3, Block::Dirt),
+  (KeyCode::Digit4, Block::Grass),
+  (KeyCode::Digit5, Block::Sand),
+  (KeyCode::Digit6, Block::Stone),
+  (KeyCode::Digit7, Block::Torch),
+  (KeyCode::Digit8, Block::Leaf),
 ];
 
 fn pick_block_with_number_keys(

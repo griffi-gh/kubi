@@ -1,6 +1,9 @@
 use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
 use glam::{Vec2, DVec2, vec2, dvec2};
-use glium::glutin::event::{DeviceEvent, DeviceId, VirtualKeyCode, ElementState, TouchPhase};
+use winit::{
+  keyboard::{KeyCode, PhysicalKey},
+  event::{DeviceEvent, DeviceId, ElementState, TouchPhase}
+};
 use hashbrown::HashMap;
 use tinyset::{SetU32, SetU64};
 use nohash_hasher::BuildNoHashHasher;
@@ -94,21 +97,21 @@ fn process_events(
 ) {
   input_state.mouse_delta = DVec2::ZERO;
   for event in device_events.iter() {
-    match event.event {
+    match &event.event {
       DeviceEvent::MouseMotion { delta } => {
-        input_state.mouse_delta = DVec2::from(delta);
+        input_state.mouse_delta = DVec2::from(*delta);
       },
       DeviceEvent::Key(input) => {
-        if let Some(keycode) = input.virtual_keycode {
+        if let PhysicalKey::Code(code) = input.physical_key {
           match input.state {
-            ElementState::Pressed  => input_state.keyboard_state.insert(keycode as u32),
-            ElementState::Released => input_state.keyboard_state.remove(keycode as u32),
+            ElementState::Pressed  => input_state.keyboard_state.insert(code as u32),
+            ElementState::Released => input_state.keyboard_state.remove(code as u32),
           };
         }
       },
       DeviceEvent::Button { button, state } => {
-        if button < 32 {
-          input_state.button_state[button as usize] = matches!(state, ElementState::Pressed);
+        if *button < 32 {
+          input_state.button_state[*button as usize] = matches!(*state, ElementState::Pressed);
         }
       },
       _ => ()
@@ -127,6 +130,7 @@ fn process_touch_events(
     let position = dvec2(event.0.location.x, event.0.location.y);
     match event.0.phase {
       TouchPhase::Started => {
+        //println!("touch started: finger {}", event.0.id);
         touch_state.fingers.insert(event.0.id, Finger {
           id: event.0.id,
           device_id: event.0.device_id,
@@ -143,6 +147,7 @@ fn process_touch_events(
         }
       },
       TouchPhase::Ended | TouchPhase::Cancelled => {
+        //println!("touch ended: finger {}", event.0.id);
         touch_state.fingers.remove(&event.0.id);
       },
     }
@@ -173,14 +178,14 @@ fn update_input_state (
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   inputs.movement += Vec2::new(
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::D as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::A as u32) as u32 as f32,
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::W  as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::S as u32) as u32 as f32
+    raw_inputs.keyboard_state.contains(KeyCode::KeyD as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(KeyCode::KeyA as u32) as u32 as f32,
+    raw_inputs.keyboard_state.contains(KeyCode::KeyW as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(KeyCode::KeyS as u32) as u32 as f32
   );
   inputs.look += raw_inputs.mouse_delta.as_vec2();
-  inputs.action_a |= raw_inputs.button_state[1];
-  inputs.action_b |= raw_inputs.button_state[3];
+  inputs.action_a |= raw_inputs.button_state[0];
+  inputs.action_b |= raw_inputs.button_state[1];
 }
 
 fn update_input_state_gamepad (

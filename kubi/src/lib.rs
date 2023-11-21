@@ -6,7 +6,7 @@ use shipyard::{
   NonSendSync, WorkloadModificator,
   SystemModificator
 };
-use glium::glutin::{
+use winit::{
   event_loop::{EventLoop, ControlFlow},
   event::{Event, WindowEvent}
 };
@@ -72,7 +72,7 @@ use rendering::{
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
-use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
+use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
@@ -80,6 +80,7 @@ use legacy_gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 use fixed_timestamp::init_fixed_timestamp_storage;
+use filesystem::AssetManager;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -169,8 +170,15 @@ fn attach_console() {
 }
 
 #[no_mangle]
-#[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
-pub fn kubi_main() {
+#[cfg(target_os = "android")]
+pub fn android_main(app: android_activity::AndroidApp) {
+  use android_activity::WindowManagerFlags;
+  app.set_window_flags(WindowManagerFlags::FULLSCREEN, WindowManagerFlags::empty());
+  kubi_main(app)
+}
+
+#[no_mangle]
+pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp) {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
 
@@ -182,26 +190,19 @@ pub fn kubi_main() {
 
   //Create a shipyard world
   let mut world = World::new();
-  
+
+  //Init assman
+  world.add_unique(AssetManager {
+    #[cfg(target_os = "android")]
+    app: app.clone()
+  });
+
   //Register workloads
   world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
   world.add_workload(render);
   world.add_workload(after_frame_end);
-  
-  //Run pre-startup procedure
-  world.run_workload(pre_startup).unwrap();
-  
-  //Create event loop
-  let event_loop = EventLoop::new();
-
-  //Initialize renderer
-  {
-    let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
-    world.add_unique_non_send_sync(Renderer::init(&event_loop, &settings));
-  }
-  world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
 
   //Save _visualizer.json
   #[cfg(feature = "generate_visualizer_data")]
@@ -210,24 +211,65 @@ pub fn kubi_main() {
     serde_json::to_string(&world.workloads_info()).unwrap(),
   ).unwrap();
 
-  //Run startup systems
-  world.run_workload(startup).unwrap();
+  //Run pre-startup procedure
+  world.run_workload(pre_startup).unwrap();
+
+  //Create event loop
+  let event_loop ={
+    #[cfg(not(target_os = "android"))] { EventLoop::new().unwrap() }
+    #[cfg(target_os = "android")] {
+      use winit::{
+        platform::android::EventLoopBuilderExtAndroid,
+        event_loop::EventLoopBuilder
+      };
+      EventLoopBuilder::new().with_android_app(app).build().unwrap()
+    }
+  };
 
   //Run the event loop
   let mut last_update = Instant::now();
-  event_loop.run(move |event, _, control_flow| {
-    *control_flow = ControlFlow::Poll;
+  let mut ready = false;
+  event_loop.run(move |event, window_target| {
+    //Wait for the window to become active (required for android)
+    if !ready {
+      if Event::Resumed != event {
+        window_target.set_control_flow(ControlFlow::Wait);
+        return
+      }
+
+      //Initialize renderer
+      {
+        let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
+        world.add_unique_non_send_sync(Renderer::init(window_target, &settings));
+      }
+      world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+
+      //Run startup systems
+      world.run_workload(startup).unwrap();
+
+      ready = true;
+    }
+
+    window_target.set_control_flow(ControlFlow::Poll);
+
     process_glutin_events(&mut world, &event);
+
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
+      #[cfg(target_os = "android")]
+      Event::Suspended => {
+        window_target.exit();
+      }
+
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
-          *control_flow = ControlFlow::Exit;
+          window_target.exit();
         },
         _ => (),
       },
-      Event::MainEventsCleared => {
+
+      Event::AboutToWait => {
         //Update delta time (maybe move this into a system?)
         {
           let mut dt_view = world.borrow::<UniqueViewMut<DeltaTime>>().unwrap();
@@ -235,10 +277,10 @@ pub fn kubi_main() {
           dt_view.0 = now - last_update;
           last_update = now;
         }
-        
+
         //Run update workflows
         world.run_workload(update).unwrap();
-        
+
         //Start rendering (maybe use custom views for this?)
         let target = {
           let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
@@ -257,11 +299,11 @@ pub fn kubi_main() {
         world.run_workload(after_frame_end).unwrap();
 
         //Process control flow changes
-        if let Some(flow) = world.borrow::<UniqueView<SetControlFlow>>().unwrap().0 {
-          *control_flow = flow;
+        if world.borrow::<UniqueView<RequestExit>>().unwrap().0 {
+          window_target.exit();
         }
       },
       _ => (),
     };
-  });
+  }).unwrap();
 }

@@ -27,9 +27,13 @@ impl Default for GameSettings {
       fullscreen: None,
       msaa: Some(4),
       max_anisotropy: Some(16),
-      render_distance: 6,
+      render_distance: match true {
+        cfg!(debug_assertions) => 5,
+        cfg!(target_os = "android") => 6,
+        #[allow(unreachable_patterns)] _ => 8,
+      },
       mouse_sensitivity: 1.,
-      debug_draw_current_chunk_border: cfg!(not(target_os = "android")) && cfg!(debug_assertions),
+      debug_draw_current_chunk_border: false, //cfg!(not(target_os = "android")) && cfg!(debug_assertions),
     }
   }
 }

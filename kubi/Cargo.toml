@@ -13,14 +13,18 @@ kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
 kubi-ui = { path = "../kubi-ui" }
 log = "0.4"
-glium = { git = "https://github.com/glium/glium", rev = "5d50e7" }
+glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
+glutin = "0.31"
+winit = { version = "0.29", features = ["android-native-activity"] }
+glutin-winit = "0.4"
+raw-window-handle = "0.5"
 glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.25", features = ["derive"] }
 hashbrown = "0.14"
 nohash-hasher = "0.2"
 rayon = "1.7"
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "0934b426eb9a8", default-features = false, features = ["std", "proc", "thread_local"] }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "8ef90ea6c4d1eb6c9cb0988f0d2f873f75044d49", default-features = false, features = ["std", "proc", "thread_local"] }
 anyhow = "1.0"
 flume = "0.11"
 gilrs = { version = "0.10", default_features = false, features = ["xinput"] }
@@ -32,8 +36,8 @@ tinyset = "0.4"
 serde_json = { version = "1.0", optional = true } #only used for `generate_visualizer_data`
 
 [target.'cfg(target_os = "android")'.dependencies]
-ndk = "0.7"
-ndk-glue = "0.7"
+android-activity = "0.5"
+ndk = "0.8"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = "0.3"
@@ -63,6 +67,14 @@ target_sdk_version = 30
 [[package.metadata.android.uses_feature]]
 required = true
 glEsVersion = 0x00030000
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.touchscreen.multitouch"
+required = true
+
+[[package.metadata.android.uses_feature]]
+name = "android.hardware.touchscreen.multitouch.distinct"
+required = true
 
 [package.metadata.android.application.activity]
 config_changes = "orientation|keyboardHidden|screenLayout|screenSize"

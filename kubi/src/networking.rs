@@ -1,5 +1,5 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
-use glium::glutin::event_loop::ControlFlow;
+use winit::event_loop::ControlFlow;
 use std::net::SocketAddr;
 use uflow::{
   client::{Client, Config as ClientConfig, Event as ClientEvent}, 
@@ -12,7 +12,7 @@ use kubi_shared::networking::{
 };
 use crate::{
   events::EventComponent, 
-  control_flow::SetControlFlow, 
+  control_flow::RequestExit,
   world::tasks::ChunkTaskManager, 
   state::is_ingame_or_loading, 
   fixed_timestamp::FixedTimestamp
@@ -155,10 +155,11 @@ pub fn update_networking_late() -> Workload {
 }
 
 pub fn disconnect_on_exit(
-  control_flow: UniqueView<SetControlFlow>,
+  exit: UniqueView<RequestExit>,
   mut client: UniqueViewMut<UdpClient>,
 ) {
-  if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
+  //TODO check if this works
+  if exit.0 {
     if client.0.is_active() {
       client.0.flush();
       client.0.disconnect();
@@ -167,11 +168,6 @@ pub fn disconnect_on_exit(
     } else {
       log::info!("Client inactive")
     }
-    // if let Err(error) = client.0. {
-    //   log::error!("failed to disconnect: {}", error);
-    // } else {
-    //   log::info!("Client disconnected");
-    // }
   }
 }
 

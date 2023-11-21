@@ -1,12 +1,17 @@
+use std::num::NonZeroU32;
+use raw_window_handle::HasRawWindowHandle;
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
-use glium::{
-  Display, Surface, 
-  Version, Api,
-  glutin::{
-    event_loop::EventLoop, 
-    window::{WindowBuilder, Fullscreen}, 
-    ContextBuilder, GlProfile, GlRequest, dpi::PhysicalSize
-  }, 
+use winit::{
+  event_loop::EventLoopWindowTarget,
+  window::{WindowBuilder, Fullscreen, Window},
+  dpi::PhysicalSize
+};
+use glium::{Display, Surface, Version, Api};
+use glutin::{
+  prelude::*,
+  context::ContextAttributesBuilder,
+  surface::{WindowSurface, SurfaceAttributesBuilder},
+  display::GetGlDisplay,
 };
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
@@ -30,12 +35,14 @@ pub struct WindowSize(pub UVec2);
 
 #[derive(Unique)]
 pub struct Renderer {
-  pub display: Display
+  pub window: Window,
+  pub display: Display<WindowSurface>,
 }
+
 impl Renderer {
-  pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
+  pub fn init(event_loop: &EventLoopWindowTarget<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
-    
+
     let wb = WindowBuilder::new()
       .with_title("kubi")
       .with_maximized(true)
@@ -82,16 +89,43 @@ impl Renderer {
         }
       });
 
-    let cb = ContextBuilder::new()
-      //.with_srgb(false)
-      .with_depth_buffer(24)
-      .with_multisampling(settings.msaa.unwrap_or_default())
-      .with_vsync(settings.vsync)
-      .with_gl_profile(GlProfile::Core)
-      .with_gl(GlRequest::Latest);
+    // First we start by opening a new Window
+    let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(wb));
+    let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
+    let (window, gl_config) = display_builder
+      .build(event_loop, config_template_builder, |mut configs| {
+        configs.next().unwrap()
+      })
+      .unwrap();
+    let window = window.unwrap();
 
-    let display = Display::new(wb, cb, event_loop)
-      .expect("Failed to create a glium Display");
+    // Now we get the window size to use as the initial size of the Surface
+    let (width, height): (u32, u32) = window.inner_size().into();
+    let attrs = SurfaceAttributesBuilder::<WindowSurface>::new().build(
+      window.raw_window_handle(),
+      NonZeroU32::new(width).unwrap(),
+      NonZeroU32::new(height).unwrap(),
+    );
+
+    // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
+    let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
+    let context_attributes = ContextAttributesBuilder::new().build(Some(window.raw_window_handle()));
+    let current_context = unsafe {
+      gl_config.display().create_context(&gl_config, &context_attributes).expect("failed to create context")
+    }.make_current(&surface).unwrap();
+    let display = Display::from_context_surface(current_context, surface).unwrap();
+
+    //TODO MIGRATION
+    // let cb = ContextBuilder::new()
+    //   //.with_srgb(false)
+    //   .with_depth_buffer(24)
+    //   .with_multisampling(settings.msaa.unwrap_or_default())
+    //   .with_vsync(settings.vsync)
+    //   .with_gl_profile(GlProfile::Core)
+    //   .with_gl(GlRequest::Latest);
+
+    // let display = Display::new(wb, cb)
+    //   .expect("Failed to create a glium Display");
 
     log::info!("Vendor: {}", display.get_opengl_vendor_string());
     log::info!("Renderer: {}", display.get_opengl_renderer_string());
@@ -101,10 +135,10 @@ impl Renderer {
     if display.is_context_loss_possible() { log::warn!("OpenGL context loss possible") }
     if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
     if display.is_debug() { log::info!("OpenGL context is in debug mode") }
-    
+
     assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
 
-    Self { display }
+    Self { window, display }
   }
 }
 
