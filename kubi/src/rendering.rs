@@ -1,11 +1,13 @@
+use std::num::NonZeroU32;
+use raw_window_handle::HasRawWindowHandle;
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
 use winit::{
-  event_loop::EventLoop,
+  event_loop::EventLoopWindowTarget,
   window::{WindowBuilder, Fullscreen, Window},
   dpi::PhysicalSize
 };
-use glium::{Display, Surface, Version, Api, backend::glutin::SimpleWindowBuilder};
-use glutin::surface::WindowSurface;
+use glium::{Display, Surface, Version, Api};
+use glutin::{surface::WindowSurface, display::{GetGlDisplay, GlDisplay}, context::NotCurrentGlContext};
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -33,7 +35,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-  pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
+  pub fn init(event_loop: &EventLoopWindowTarget<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
 
     let wb = WindowBuilder::new()
@@ -82,9 +84,31 @@ impl Renderer {
         }
       });
 
-    let (window, display) = SimpleWindowBuilder::new()
-      .set_window_builder(wb)
-      .build(event_loop);
+    // First we start by opening a new Window
+    let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(wb));
+    let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
+    let (window, gl_config) = display_builder
+      .build(&event_loop, config_template_builder, |mut configs| {
+        configs.next().unwrap()
+      })
+      .unwrap();
+    let window = window.unwrap();
+
+    // Now we get the window size to use as the initial size of the Surface
+    let (width, height): (u32, u32) = window.inner_size().into();
+    let attrs = glutin::surface::SurfaceAttributesBuilder::<glutin::surface::WindowSurface>::new().build(
+      window.raw_window_handle(),
+      NonZeroU32::new(width).unwrap(),
+      NonZeroU32::new(height).unwrap(),
+    );
+
+    // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
+    let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
+    let context_attributes = glutin::context::ContextAttributesBuilder::new().build(Some(window.raw_window_handle()));
+    let current_context = unsafe {
+      gl_config.display().create_context(&gl_config, &context_attributes).expect("failed to create context")
+    }.make_current(&surface).unwrap();
+    let display = Display::from_context_surface(current_context, surface).unwrap();
 
     //TODO MIGRATION
     // let cb = ContextBuilder::new()
@@ -106,7 +130,7 @@ impl Renderer {
     if display.is_context_loss_possible() { log::warn!("OpenGL context loss possible") }
     if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
     if display.is_debug() { log::info!("OpenGL context is in debug mode") }
-    
+
     assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
 
     Self { window, display }

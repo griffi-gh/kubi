@@ -16,6 +16,8 @@ log = "0.4"
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 glutin = "0.31"
 winit = { version = "0.29", features = ["android-native-activity"] }
+glutin-winit = "0.4"
+raw-window-handle = "0.5"
 glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.25", features = ["derive"] }
