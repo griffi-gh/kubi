@@ -191,7 +191,8 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
 
   //Init assman
   world.add_unique(AssetManager {
-    #[cfg(target_os = "android")] app
+    #[cfg(target_os = "android")]
+    app: app.clone()
   });
 
   //Register workloads
@@ -205,7 +206,16 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
   world.run_workload(pre_startup).unwrap();
 
   //Create event loop
-  let event_loop = EventLoop::new().unwrap();
+  let event_loop ={
+    #[cfg(not(target_os = "android"))] { EventLoop::new().unwrap() }
+    #[cfg(target_os = "android")] {
+      use winit::{
+        platform::android::EventLoopBuilderExtAndroid,
+        event_loop::EventLoopBuilder
+      };
+      EventLoopBuilder::new().with_android_app(app).build().unwrap()
+    }
+  };
 
   //Initialize renderer
   {
@@ -269,7 +279,7 @@ pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp
         world.run_workload(after_frame_end).unwrap();
 
         //Process control flow changes
-        if world.borrow::<UniqueView<RequestExit>>().unwrap().0 == true {
+        if world.borrow::<UniqueView<RequestExit>>().unwrap().0 {
           window_target.exit();
         }
       },
