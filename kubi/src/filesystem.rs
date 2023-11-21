@@ -8,7 +8,7 @@ impl<T: Read + Seek> ReadOnly for T {}
 #[derive(Unique)]
 pub struct AssetManager {
   #[cfg(target_os = "android")]
-  app: android_activity::AndroidApp,
+  pub(crate) app: android_activity::AndroidApp,
 }
 
 impl AssetManager {
