@@ -2,12 +2,13 @@ use std::any::Any;
 use crate::{
   LayoutInfo,
   draw::UiDrawCall,
-  measure::{IsMeasurable, Response},
+  measure::Response,
   state::StateRepo
 };
 
+#[cfg(feature = "builtin_elements")] pub mod container;
+#[cfg(feature = "builtin_elements")] pub mod spacer;
 #[cfg(feature = "builtin_elements")] pub mod progress_bar;
-#[cfg(feature = "builtin_elements")] pub mod layout_box;
 
 pub trait UiElement {
   fn name(&self) -> &'static str { "UiElement" }
@@ -15,7 +16,6 @@ pub trait UiElement {
   fn is_stateful(&self) -> bool { self.state_id().is_some() }
   fn is_stateless(&self) -> bool { self.state_id().is_none() }
   fn init_state(&self) -> Option<Box<dyn Any>> { None }
-  fn is_measurable(&self) -> IsMeasurable { IsMeasurable::No }
-  fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Option<Response> { None }
-  fn process(&self, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>) -> Response;
+  fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response;
+  fn draw(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>);
 }

@@ -1,8 +1,8 @@
-use glam::{vec2, Vec2, Vec4};
+use glam::{vec2, Vec4};
 use crate::{
   UiSize, LayoutInfo,
   draw::UiDrawCall,
-  measure::{Response, IsMeasurable},
+  measure::Response,
   state::StateRepo
 };
 use super::UiElement;
@@ -19,13 +19,11 @@ const BAR_HEIGHT: f32 = 20.0;
 impl UiElement for ProgressBar {
   fn name(&self) -> &'static str { "Progress bar" }
 
-  fn is_measurable(&self) -> IsMeasurable { IsMeasurable::Yes }
-
-  fn measure(&self, _: &StateRepo, layout: &LayoutInfo) -> Option<Response> {
-    Some(Response {
-      size: Vec2::new(
+  fn measure(&self, _: &StateRepo, layout: &LayoutInfo) -> Response {
+    Response {
+      desired_size: vec2(
         match self.size.0 {
-          UiSize::Auto => layout.max_size.x,
+          UiSize::Auto => layout.max_size.x.max(300.),
           UiSize::Percentage(p) => layout.max_size.x * p,
           UiSize::Pixels(p) => p,
         },
@@ -35,24 +33,20 @@ impl UiElement for ProgressBar {
           UiSize::Pixels(p) => p,
         }
       )
-    })
+    }
   }
 
-  fn process(&self, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>) -> Response {
-    let measure = self.measure(&state, layout).unwrap();
-
+  fn draw(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>) {
     draw.push(UiDrawCall::Rectangle {
       position: layout.position,
-      size: measure.size,
+      size: measure.desired_size,
       color: self.color_background
     });
 
     draw.push(UiDrawCall::Rectangle {
       position: layout.position,
-      size: measure.size * vec2(self.value, 1.0),
+      size: measure.desired_size * vec2(self.value, 1.0),
       color: self.color_foreground
     });
-
-    measure
   }
 }

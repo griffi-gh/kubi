@@ -9,5 +9,5 @@ pub enum IsMeasurable {
 }
 
 pub struct Response {
-  pub size: Vec2
+  pub desired_size: Vec2
 }

@@ -32,13 +32,15 @@ impl Default for KubiUi {
   }
 }
 
+#[derive(Default)]
 pub enum UiSize {
+  #[default]
   Auto,
   Percentage(f32),
   Pixels(f32),
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum UiDirection {
   #[default]
   Vertical,
@@ -46,6 +48,7 @@ pub enum UiDirection {
 }
 
 struct LayoutInfo {
+  ///Not availabe during measuring step
   position: Vec2,
   max_size: Vec2,
   direction: UiDirection,
