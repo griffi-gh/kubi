@@ -4,7 +4,7 @@ use winit::{
   window::{WindowBuilder, Fullscreen, Window},
   dpi::PhysicalSize
 };
-use glium::{Display, Surface, Version, Api};
+use glium::{Display, Surface, Version, Api, backend::glutin::SimpleWindowBuilder};
 use glutin::surface::WindowSurface;
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
@@ -36,54 +36,57 @@ impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
 
-    let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new().build(event_loop);
+    let wb = WindowBuilder::new()
+      .with_title("kubi")
+      .with_maximized(true)
+      .with_min_inner_size(PhysicalSize::new(640, 480))
+      .with_fullscreen({
+        //this has no effect on android, so skip this pointless stuff
+        #[cfg(target_os = "android")] {
+          None
+        }
+        #[cfg(not(target_os = "android"))]
+        if let Some(fs_settings) = &settings.fullscreen {
+          let monitor = event_loop.primary_monitor().or_else(|| {
+            event_loop.available_monitors().next()
+          });
+          if let Some(monitor) = monitor {
+            log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
+            match fs_settings.mode {
+              FullscreenMode::Borderless => {
+                log::info!("starting in borderless fullscreen mode");
+                Some(Fullscreen::Borderless(Some(monitor)))
+              },
+              FullscreenMode::Exclusive => {
+                log::warn!("exclusive fullscreen mode is experimental");
+                log::info!("starting in exclusive fullscreen mode");
+                //TODO: grabbing the first video mode is probably not the best idea...
+                monitor.video_modes().next()
+                  .map(|vmode| {
+                    log::info!("video mode: {}", vmode.to_string());
+                    Some(Fullscreen::Exclusive(vmode))
+                  })
+                  .unwrap_or_else(|| {
+                    log::warn!("no valid video modes found, falling back to windowed mode instead");
+                    None
+                  })
+              }
+            }
+          } else {
+            log::warn!("no monitors found, falling back to windowed mode");
+            None
+          }
+        } else {
+          log::info!("starting in windowed mode");
+          None
+        }
+      });
 
-    // let wb = WindowBuilder::new()
-    //   .with_title("kubi")
-    //   .with_maximized(true)
-    //   .with_min_inner_size(PhysicalSize::new(640, 480))
-    //   .with_fullscreen({
-    //     //this has no effect on android, so skip this pointless stuff
-    //     #[cfg(target_os = "android")] {
-    //       None
-    //     }
-    //     #[cfg(not(target_os = "android"))]
-    //     if let Some(fs_settings) = &settings.fullscreen {
-    //       let monitor = event_loop.primary_monitor().or_else(|| {
-    //         event_loop.available_monitors().next()
-    //       });
-    //       if let Some(monitor) = monitor {
-    //         log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
-    //         match fs_settings.mode {
-    //           FullscreenMode::Borderless => {
-    //             log::info!("starting in borderless fullscreen mode");
-    //             Some(Fullscreen::Borderless(Some(monitor)))
-    //           },
-    //           FullscreenMode::Exclusive => {
-    //             log::warn!("exclusive fullscreen mode is experimental");
-    //             log::info!("starting in exclusive fullscreen mode");
-    //             //TODO: grabbing the first video mode is probably not the best idea...
-    //             monitor.video_modes().next()
-    //               .map(|vmode| {
-    //                 log::info!("video mode: {}", vmode.to_string());
-    //                 Some(Fullscreen::Exclusive(vmode))
-    //               })
-    //               .unwrap_or_else(|| {
-    //                 log::warn!("no valid video modes found, falling back to windowed mode instead");
-    //                 None
-    //               })
-    //           }
-    //         }
-    //       } else {
-    //         log::warn!("no monitors found, falling back to windowed mode");
-    //         None
-    //       }
-    //     } else {
-    //       log::info!("starting in windowed mode");
-    //       None
-    //     }
-    //   });
+    let (window, display) = SimpleWindowBuilder::new()
+      .set_window_builder(wb)
+      .build(event_loop);
 
+    //TODO MIGRATION
     // let cb = ContextBuilder::new()
     //   //.with_srgb(false)
     //   .with_depth_buffer(24)
