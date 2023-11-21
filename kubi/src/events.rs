@@ -67,13 +67,12 @@ pub fn process_glutin_events(world: &mut World, event: &Event<()>) {
       ));
     },
 
-    //TODO MIGRATION
-    // Event::LoopDestroyed => {
-    //   world.add_entity((
-    //     EventComponent,
-    //     OnBeforeExitEvent
-    //   ));
-    // },
+    Event::LoopExiting => {
+      world.add_entity((
+        EventComponent,
+        OnBeforeExitEvent
+      ));
+    },
     
     _ => (),
   }
