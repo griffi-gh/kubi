@@ -30,6 +30,7 @@ pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 pub(crate) mod state;
 pub(crate) mod gui;
+pub(crate) mod gui_v2;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
