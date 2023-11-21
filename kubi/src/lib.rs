@@ -80,6 +80,7 @@ use legacy_gui::{render_gui, init_gui, update_gui};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 use fixed_timestamp::init_fixed_timestamp_storage;
+use filesystem::AssetManager;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -169,8 +170,13 @@ fn attach_console() {
 }
 
 #[no_mangle]
-#[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
-pub fn kubi_main() {
+#[cfg(target_os = "android")]
+pub fn android_main(app: android_activity::AndroidApp) {
+  kubi_main(app)
+}
+
+#[no_mangle]
+pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp) {
   //Attach console on release builds on windows
   #[cfg(all(windows, not(debug_assertions)))] attach_console();
 
@@ -182,17 +188,22 @@ pub fn kubi_main() {
 
   //Create a shipyard world
   let mut world = World::new();
-  
+
+  //Init assman
+  world.add_unique(AssetManager {
+    #[cfg(target_os = "android")] app
+  });
+
   //Register workloads
   world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
   world.add_workload(render);
   world.add_workload(after_frame_end);
-  
+
   //Run pre-startup procedure
   world.run_workload(pre_startup).unwrap();
-  
+
   //Create event loop
   let event_loop = EventLoop::new().unwrap();
 
