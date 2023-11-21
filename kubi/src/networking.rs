@@ -12,7 +12,7 @@ use kubi_shared::networking::{
 };
 use crate::{
   events::EventComponent, 
-  control_flow::SetControlFlow, 
+  control_flow::RequestExit,
   world::tasks::ChunkTaskManager, 
   state::is_ingame_or_loading, 
   fixed_timestamp::FixedTimestamp
@@ -155,20 +155,20 @@ pub fn update_networking_late() -> Workload {
 }
 
 pub fn disconnect_on_exit(
-  control_flow: UniqueView<SetControlFlow>,
+  exit: UniqueView<RequestExit>,
   mut client: UniqueViewMut<UdpClient>,
 ) {
-  //TODO MIGRATION
-  // if let Some(ControlFlow::ExitWithCode(_)) = control_flow.0 {
-  //   if client.0.is_active() {
-  //     client.0.flush();
-  //     client.0.disconnect();
-  //     while client.0.is_active() { client.0.step().for_each(|_|()); }
-  //     log::info!("Client disconnected");
-  //   } else {
-  //     log::info!("Client inactive")
-  //   }
-  // }
+  //TODO check if this works
+  if exit.0 {
+    if client.0.is_active() {
+      client.0.flush();
+      client.0.disconnect();
+      while client.0.is_active() { client.0.step().for_each(|_|()); }
+      log::info!("Client disconnected");
+    } else {
+      log::info!("Client inactive")
+    }
+  }
 }
 
 // conditions

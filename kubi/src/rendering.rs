@@ -36,7 +36,7 @@ impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
 
-    let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new().build(&event_loop);
+    let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new().build(event_loop);
 
     // let wb = WindowBuilder::new()
     //   .with_title("kubi")

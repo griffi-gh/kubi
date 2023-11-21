@@ -72,7 +72,7 @@ use rendering::{
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
-use control_flow::{exit_on_esc, insert_control_flow_unique, SetControlFlow};
+use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
@@ -215,8 +215,8 @@ pub fn kubi_main() {
 
   //Run the event loop
   let mut last_update = Instant::now();
-  event_loop.run(move |event, target| {
-    target.set_control_flow(ControlFlow::Poll);
+  event_loop.run(move |event, window_target| {
+    window_target.set_control_flow(ControlFlow::Poll);
 
     process_glutin_events(&mut world, &event);
     #[allow(clippy::collapsible_match, clippy::single_match)]
@@ -224,7 +224,7 @@ pub fn kubi_main() {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::CloseRequested => {
           log::info!("exit requested");
-          target.exit();
+          window_target.exit();
         },
         _ => (),
       },
@@ -258,9 +258,8 @@ pub fn kubi_main() {
         world.run_workload(after_frame_end).unwrap();
 
         //Process control flow changes
-        if let Some(flow) = world.borrow::<UniqueView<SetControlFlow>>().unwrap().0 {
-          //TODO MIGRATION
-          //*control_flow = flow;
+        if world.borrow::<UniqueView<RequestExit>>().unwrap().0 == true {
+          window_target.exit();
         }
       },
       _ => (),
