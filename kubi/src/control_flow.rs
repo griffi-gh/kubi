@@ -1,5 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut, Unique, AllStoragesView};
-use glium::glutin::{event::VirtualKeyCode, event_loop::ControlFlow};
+use winit::{keyboard::KeyCode, event_loop::ControlFlow};
 use crate::input::RawKbmInputState;
 
 #[derive(Unique)]
@@ -9,8 +9,9 @@ pub fn exit_on_esc(
   raw_inputs: UniqueView<RawKbmInputState>,
   mut control_flow: UniqueViewMut<SetControlFlow>
 ) {
-  if raw_inputs.keyboard_state.contains(VirtualKeyCode::Escape as u32) {
-    control_flow.0 = Some(ControlFlow::Exit);
+  if raw_inputs.keyboard_state.contains(KeyCode::Escape as u32) {
+    //TODO MIGRATION: fix exit on esc
+    //control_flow.0 = Some(ControlFlow::Exit);
   }
 }
 

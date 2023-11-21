@@ -1,5 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut, Workload, IntoWorkload, EntityId, Unique, AllStoragesViewMut, ViewMut, Get, SystemModificator, track};
-use glium::glutin::event::VirtualKeyCode;
+use winit::keyboard::Key;
 use glam::{Mat3, vec2};
 use crate::{
   world::ChunkStorage, 
@@ -76,7 +76,7 @@ fn override_loading(
   kbm_state: UniqueView<RawKbmInputState>,
   mut state: UniqueViewMut<NextState>
 ) {
-  if kbm_state.keyboard_state.contains(VirtualKeyCode::F as u32) {
+  if kbm_state.keyboard_state.contains(Key::F as u32) {
     state.0 = Some(GameState::InGame);
   }
 }

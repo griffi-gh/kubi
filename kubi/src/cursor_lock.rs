@@ -1,6 +1,7 @@
+use glium::backend::Facade;
 use shipyard::{AllStoragesView, Unique, NonSendSync, UniqueView, UniqueViewMut};
 use crate::rendering::Renderer;
-use glium::glutin::window::CursorGrabMode;
+use winit::window::CursorGrabMode;
 
 #[derive(Unique)]
 pub struct CursorLock(pub bool);
@@ -13,7 +14,7 @@ pub fn update_cursor_lock_state(
     return
   }
   if lock.is_inserted_or_modified() {
-    let gl_window = display.display.gl_window();
+    let gl_window = display.display.;
     let window = gl_window.window();
     window.set_cursor_grab(match lock.0 {
       true  => CursorGrabMode::Confined,

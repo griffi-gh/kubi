@@ -6,7 +6,7 @@ use shipyard::{
   NonSendSync, WorkloadModificator,
   SystemModificator
 };
-use glium::glutin::{
+use winit::{
   event_loop::{EventLoop, ControlFlow},
   event::{Event, WindowEvent}
 };

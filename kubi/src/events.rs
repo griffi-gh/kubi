@@ -1,6 +1,6 @@
 use glam::UVec2;
 use shipyard::{World, Component, AllStoragesViewMut, SparseSet, NonSendSync, UniqueView};
-use glium::glutin::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch};
+use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch};
 use crate::rendering::Renderer;
 
 pub mod player_actions;
@@ -24,7 +24,7 @@ pub struct TouchEvent(pub Touch);
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct WindowResizedEvent(pub UVec2);
 
-pub fn process_glutin_events(world: &mut World, event: &Event<'_, ()>) {
+pub fn process_glutin_events(world: &mut World, event: &Event<()>) {
   #[allow(clippy::collapsible_match, clippy::single_match)]
   match event {
     Event::WindowEvent { window_id: _, event } => match event {

@@ -1,13 +1,11 @@
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
-use glium::{
-  Display, Surface, 
-  Version, Api,
-  glutin::{
-    event_loop::EventLoop, 
-    window::{WindowBuilder, Fullscreen}, 
-    ContextBuilder, GlProfile, GlRequest, dpi::PhysicalSize
-  }, 
+use winit::{
+  event_loop::EventLoop,
+  window::{WindowBuilder, Fullscreen},
+  dpi::PhysicalSize
 };
+use glium::{Display, Surface, Version, Api};
+use glutin::surface::WindowSurface;
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -30,12 +28,13 @@ pub struct WindowSize(pub UVec2);
 
 #[derive(Unique)]
 pub struct Renderer {
-  pub display: Display
+  pub display: Display<WindowSurface>
 }
+
 impl Renderer {
   pub fn init(event_loop: &EventLoop<()>, settings: &GameSettings) -> Self {
     log::info!("initializing display");
-    
+
     let wb = WindowBuilder::new()
       .with_title("kubi")
       .with_maximized(true)
@@ -82,15 +81,15 @@ impl Renderer {
         }
       });
 
-    let cb = ContextBuilder::new()
-      //.with_srgb(false)
-      .with_depth_buffer(24)
-      .with_multisampling(settings.msaa.unwrap_or_default())
-      .with_vsync(settings.vsync)
-      .with_gl_profile(GlProfile::Core)
-      .with_gl(GlRequest::Latest);
+    // let cb = ContextBuilder::new()
+    //   //.with_srgb(false)
+    //   .with_depth_buffer(24)
+    //   .with_multisampling(settings.msaa.unwrap_or_default())
+    //   .with_vsync(settings.vsync)
+    //   .with_gl_profile(GlProfile::Core)
+    //   .with_gl(GlRequest::Latest);
 
-    let display = Display::new(wb, cb, event_loop)
+    let display = Display::new(wb, cb)
       .expect("Failed to create a glium Display");
 
     log::info!("Vendor: {}", display.get_opengl_vendor_string());

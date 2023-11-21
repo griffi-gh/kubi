@@ -1,6 +1,9 @@
 use gilrs::{Gilrs, GamepadId, Button, Event, Axis};
 use glam::{Vec2, DVec2, vec2, dvec2};
-use glium::glutin::event::{DeviceEvent, DeviceId, VirtualKeyCode, ElementState, TouchPhase};
+use winit::{
+  keyboard::Key,
+  event::{DeviceEvent, DeviceId, ElementState, TouchPhase}
+};
 use hashbrown::HashMap;
 use tinyset::{SetU32, SetU64};
 use nohash_hasher::BuildNoHashHasher;
@@ -173,10 +176,10 @@ fn update_input_state (
   mut inputs: UniqueViewMut<Inputs>,
 ) {
   inputs.movement += Vec2::new(
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::D as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::A as u32) as u32 as f32,
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::W  as u32) as u32 as f32 -
-    raw_inputs.keyboard_state.contains(VirtualKeyCode::S as u32) as u32 as f32
+    raw_inputs.keyboard_state.contains(Key::D as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(Key::A as u32) as u32 as f32,
+    raw_inputs.keyboard_state.contains(Key::W  as u32) as u32 as f32 -
+    raw_inputs.keyboard_state.contains(Key::S as u32) as u32 as f32
   );
   inputs.look += raw_inputs.mouse_delta.as_vec2();
   inputs.action_a |= raw_inputs.button_state[1];
