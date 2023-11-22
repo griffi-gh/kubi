@@ -1,5 +1,4 @@
-use glam::vec2;
-use kubi_ui::{KubiUi, backend::glium::GliumUiRenderer, element::{progress_bar::ProgressBar, UiElement}, UiSize};
+use kubi_ui::{KubiUi, backend::glium::GliumUiRenderer};
 use shipyard::{AllStoragesView, Unique, UniqueView, NonSendSync, UniqueViewMut};
 use crate::rendering::{Renderer, RenderTarget, WindowSize};
 
@@ -23,10 +22,6 @@ pub fn kubi_ui_begin(
   mut ui: NonSendSync<UniqueViewMut<UiState>>
 ) {
   ui.ui.begin();
-  ui.ui.add(ProgressBar {
-    size: (UiSize::Pixels(300.), UiSize::Auto),
-    ..Default::default()
-  }, vec2(999., 999.));
 }
 
 pub fn kubi_ui_end(
