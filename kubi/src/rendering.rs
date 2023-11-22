@@ -9,7 +9,7 @@ use winit::{
 use glium::{Display, Surface, Version, Api};
 use glutin::{
   prelude::*,
-  context::ContextAttributesBuilder,
+  context::{ContextAttributesBuilder, GlProfile},
   surface::{WindowSurface, SurfaceAttributesBuilder},
   display::GetGlDisplay,
   config::ConfigTemplateBuilder
@@ -91,19 +91,21 @@ impl Renderer {
         }
       });
 
-    // First we start by opening a new Window
-    let display_builder = DisplayBuilder::new().with_window_builder(Some(wb));
+    let display_builder = DisplayBuilder::new()
+      .with_window_builder(Some(wb));
+
     let config_template_builder = ConfigTemplateBuilder::new()
       .prefer_hardware_accelerated(Some(true))
       .with_depth_size(24)
-      .with_multisampling(settings.msaa.unwrap_or_default())
-      .with_transparency(false);
+      .with_multisampling(settings.msaa.unwrap_or_default());
+
     let (window, gl_config) = display_builder
       .build(event_loop, config_template_builder, |mut configs| {
         configs.next().unwrap()
       })
       .unwrap();
-    let window = window.unwrap();
+
+    let window = window.expect("no window");
 
     // Now we get the window size to use as the initial size of the Surface
     let (width, height): (u32, u32) = window.inner_size().into();
@@ -114,11 +116,22 @@ impl Renderer {
     );
 
     // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
-    let surface = unsafe { gl_config.display().create_window_surface(&gl_config, &attrs).unwrap() };
-    let context_attributes = ContextAttributesBuilder::new().build(Some(window.raw_window_handle()));
+    let surface = unsafe {
+      gl_config.display().create_window_surface(&gl_config, &attrs).unwrap()
+    };
+
+    let context_attributes = ContextAttributesBuilder::new()
+      .with_debug(cfg!(debug_assertions))
+      .with_context_api(glutin::context::ContextApi::Gles(None))
+      .with_profile(GlProfile::Core)
+      .build(Some(window.raw_window_handle()));
+
     let current_context = unsafe {
-      gl_config.display().create_context(&gl_config, &context_attributes).expect("failed to create context")
+      gl_config.display()
+        .create_context(&gl_config, &context_attributes)
+        .expect("failed to create context")
     }.make_current(&surface).unwrap();
+
     let display = Display::from_context_surface(current_context, surface).unwrap();
 
     //TODO MIGRATION
