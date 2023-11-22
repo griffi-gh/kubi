@@ -51,6 +51,8 @@ cargo +nightly build --bin kubi --features nightly --release
 
 <h2>build for android</h2>
 
+warn: multitouch got broken after switching to `android-activity`, I'm still looking for a fix.  
+
 please note that android support is highly experimental!\
 gamepad, mouse input is currently borked, and proper touch controls are not available.\
 srgb and blending are broken too, which leads to many rendering issues
