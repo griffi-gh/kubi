@@ -16,6 +16,7 @@ pub fn init() {
       level_style.set_color(match record.level() {
         Level::Error => Color::Red,
         Level::Warn => Color::Yellow,
+        Level::Debug | Level::Trace => Color::Cyan,
         _ => Color::Blue
       }).set_bold(true);
 
