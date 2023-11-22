@@ -30,11 +30,11 @@ impl From<UiVertex> for Vertex {
 implement_vertex!(Vertex, position, color);
 
 pub struct GliumUiRenderer {
-  pub program: glium::Program,
-  pub vertex_buffer: glium::VertexBuffer<Vertex>,
-  pub index_buffer: glium::IndexBuffer<u32>,
-  pub vertex_count: usize,
-  pub index_count: usize,
+  program: glium::Program,
+  vertex_buffer: glium::VertexBuffer<Vertex>,
+  index_buffer: glium::IndexBuffer<u32>,
+  vertex_count: usize,
+  index_count: usize,
 }
 
 impl GliumUiRenderer {
@@ -73,18 +73,26 @@ impl GliumUiRenderer {
 
   fn write_buffer_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
     log::debug!("uploading {} vertices and {} indices", vtx.len(), idx.len());
-    self.ensure_buffer_size(vtx.len(), idx.len());
-    self.vertex_buffer.invalidate();
-    self.vertex_buffer.slice_mut(0..vtx.len()).unwrap().write(vtx);
+
     self.vertex_count = vtx.len();
-    self.index_buffer.invalidate();
-    self.index_buffer.slice_mut(0..idx.len()).unwrap().write(idx);
     self.index_count = idx.len();
+
+    self.vertex_buffer.invalidate();
+    self.index_buffer.invalidate();
+
+    if self.vertex_count == 0 || self.index_count == 0 {
+      return
+    }
+
+    self.ensure_buffer_size(vtx.len(), idx.len());
+    self.vertex_buffer.slice_mut(0..vtx.len()).unwrap().write(vtx);
+    self.index_buffer.slice_mut(0..idx.len()).unwrap().write(idx);
   }
 
   pub fn update(&mut self, plan: &UiDrawPlan) {
-    let data_vtx = &plan.vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>();
-    let data_idx = &plan.indices;
+    assert!(plan.calls.len() == 1, "multiple draw calls not supported yet");
+    let data_vtx = &plan.calls[0].vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>();
+    let data_idx = &plan.calls[0].indices;
     self.write_buffer_data(data_vtx, data_idx);
   }
 

@@ -34,20 +34,25 @@ pub struct UiVertex {
 }
 
 #[derive(Default)]
-pub struct UiDrawPlan {
+pub struct UiDrawCall {
   pub vertices: Vec<UiVertex>,
   pub indices: Vec<u32>,
 }
 
+#[derive(Default)]
+pub struct UiDrawPlan {
+  pub calls: Vec<UiDrawCall>
+}
+
 impl UiDrawPlan {
   pub fn build(calls: &UiDrawCommands) -> Self {
-    let mut plan = Self::default();
-    for call in &calls.commands {
-      match call {
+    let mut call = UiDrawCall::default();
+    for command in &calls.commands {
+      match command {
         UiDrawCommand::Rectangle { position, size, color } => {
-          let idx = plan.vertices.len() as u32;
-          plan.indices.extend([idx, idx + 1, idx + 2, idx, idx + 2, idx + 3]);
-          plan.vertices.extend([
+          let idx = call.vertices.len() as u32;
+          call.indices.extend([idx, idx + 1, idx + 2, idx, idx + 2, idx + 3]);
+          call.vertices.extend([
             UiVertex {
               position: *position,
               color: *color,
@@ -68,6 +73,8 @@ impl UiDrawPlan {
         }
       }
     }
-    plan
+    Self {
+      calls: vec![call]
+    }
   }
 }
