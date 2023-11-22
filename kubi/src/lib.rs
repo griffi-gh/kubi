@@ -30,6 +30,7 @@ pub(crate) mod cursor_lock;
 pub(crate) mod control_flow;
 pub(crate) mod state;
 pub(crate) mod legacy_gui;
+pub(crate) mod guiv2_integration;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
@@ -43,7 +44,7 @@ use world::{
   loading::update_loaded_world_around_player, 
   raycast::update_raycasts,
   queue::apply_queued_blocks, 
-  tasks::{ChunkTaskManager},
+  tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -76,7 +77,8 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use legacy_gui::{render_gui, init_gui, update_gui};
+use legacy_gui::{legacy_ui_render, legacy_ui_init, legacy_ui_update};
+use guiv2_integration::{kubi_ui_init, kubi_ui_begin, kubi_ui_end, kubi_ui_draw};
 use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 use fixed_timestamp::init_fixed_timestamp_storage;
@@ -94,6 +96,7 @@ fn startup() -> Workload {
     init_fixed_timestamp_storage,
     initial_resize_event,
     init_window_size,
+    kubi_ui_init,
     load_prefabs,
     init_primitives,
     insert_lock_state,
@@ -101,7 +104,7 @@ fn startup() -> Workload {
     initialize_from_args,
     lock_cursor_now,
     init_input,
-    init_gui,
+    legacy_ui_init,
     insert_control_flow_unique,
     init_delta_time,
   ).into_sequential_workload()
@@ -112,6 +115,7 @@ fn update() -> Workload {
     update_window_size,
     update_cursor_lock_state,
     process_inputs,
+    kubi_ui_begin,
     (
       init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
       (
@@ -137,7 +141,8 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
-    update_gui,
+    legacy_ui_update,
+    kubi_ui_end,
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
@@ -153,7 +158,7 @@ fn render() -> Workload {
       render_selection_box,
       render_entities,
     ).into_sequential_workload().run_if(is_ingame),
-    render_gui,
+    legacy_ui_render,
   ).into_sequential_workload()
 }
 

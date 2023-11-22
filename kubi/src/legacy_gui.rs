@@ -9,29 +9,29 @@ use progressbar::render_progressbars;
 
 //TODO compute gui scale on window resize
 #[derive(Unique, Clone, Copy, Debug, Default)]
-pub struct GuiView(pub Mat4);
+pub struct LegacyGuiView(pub Mat4);
 
 #[derive(Component, Clone, Copy, Debug, Default)]
-pub struct GuiComponent;
+pub struct LegacyGuiComponent;
 
 #[derive(Component, Clone, Copy, Debug)]
-pub struct PrimaryColor(pub Vec4);
-impl Default for PrimaryColor {
+pub struct LegacyPrimaryColor(pub Vec4);
+impl Default for LegacyPrimaryColor {
   fn default() -> Self {
     Self(color_hex(0x156cddff))
   }
 }
 
 #[derive(Component, Clone, Copy, Debug)]
-pub struct SecondaryColor(pub Vec4);
-impl Default for SecondaryColor {
+pub struct LegacySecondaryColor(pub Vec4);
+impl Default for LegacySecondaryColor {
   fn default() -> Self {
     Self(color_hex(0xc9d5e4ff))
   }
 }
 
-fn update_gui_view(
-  mut view: UniqueViewMut<GuiView>,
+fn update_legacy_gui_view(
+  mut view: UniqueViewMut<LegacyGuiView>,
   resize: View<WindowResizedEvent>,
 ) {
   let Some(&size) = resize.iter().next() else {
@@ -41,19 +41,19 @@ fn update_gui_view(
   view.0 = Mat4::orthographic_rh_gl(0.0, w as f32, h as f32, 0.0, -1.0, 1.0);
 }
 
-pub fn init_gui(
+pub fn legacy_ui_init(
   storages: AllStoragesView
 ) {
-  storages.add_unique(GuiView::default());
+  storages.add_unique(LegacyGuiView::default());
 }
 
-pub fn update_gui() -> Workload {
+pub fn legacy_ui_update() -> Workload {
   (
-    update_gui_view
+    update_legacy_gui_view
   ).into_sequential_workload()
 }
 
-pub fn render_gui() -> Workload {
+pub fn legacy_ui_render() -> Workload {
   (
     render_progressbars
   ).into_sequential_workload()

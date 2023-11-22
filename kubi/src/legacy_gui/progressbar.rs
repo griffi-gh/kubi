@@ -8,7 +8,7 @@ use crate::{
   }, 
   transform::Transform2d,
 };
-use super::{GuiComponent, PrimaryColor, SecondaryColor, GuiView};
+use super::{LegacyGuiComponent, LegacyPrimaryColor, LegacySecondaryColor, LegacyGuiView};
 
 #[derive(Component, Debug, Clone, Copy, Default)]
 pub struct ProgressbarComponent {
@@ -19,12 +19,12 @@ pub fn render_progressbars(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
   rect: NonSendSync<UniqueView<RectPrimitive>>,
   program: NonSendSync<UniqueView<ProgressbarShaderPrefab>>,
-  view: UniqueView<GuiView>,
-  components: View<GuiComponent>,
+  view: UniqueView<LegacyGuiView>,
+  components: View<LegacyGuiComponent>,
   transforms: View<Transform2d, track::All>,
   progressbars: View<ProgressbarComponent>,
-  primary: View<PrimaryColor>,
-  secondary: View<SecondaryColor>,
+  primary: View<LegacyPrimaryColor>,
+  secondary: View<LegacySecondaryColor>,
 ) {
   for (eid, (_, transform, progress)) in (&components, &transforms, &progressbars).iter().with_id() {
     let primary_color = primary.get(eid).copied().unwrap_or_default();

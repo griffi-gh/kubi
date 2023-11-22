@@ -6,7 +6,7 @@ use crate::{
   state::{GameState, NextState, is_changing_state}, 
   transform::Transform2d,
   legacy_gui::{
-    GuiComponent,
+    LegacyGuiComponent,
     progressbar::ProgressbarComponent
   },
   rendering::{WindowSize, if_resized}, 
@@ -21,7 +21,7 @@ fn spawn_loading_screen(
 ) {
   let size = *storages.borrow::<UniqueView<WindowSize>>().unwrap();
   let entity = storages.add_entity((
-    GuiComponent,
+    LegacyGuiComponent,
     Transform2d(Mat3::from_scale_angle_translation(
       vec2(size.0.x as f32, 16.), 
       0.,
