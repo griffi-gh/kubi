@@ -12,7 +12,9 @@ use glutin::{
   context::ContextAttributesBuilder,
   surface::{WindowSurface, SurfaceAttributesBuilder},
   display::GetGlDisplay,
+  config::ConfigTemplateBuilder
 };
+use glutin_winit::DisplayBuilder;
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -90,8 +92,12 @@ impl Renderer {
       });
 
     // First we start by opening a new Window
-    let display_builder = glutin_winit::DisplayBuilder::new().with_window_builder(Some(wb));
-    let config_template_builder = glutin::config::ConfigTemplateBuilder::new();
+    let display_builder = DisplayBuilder::new().with_window_builder(Some(wb));
+    let config_template_builder = ConfigTemplateBuilder::new()
+      .prefer_hardware_accelerated(Some(true))
+      .with_depth_size(24)
+      .with_multisampling(settings.msaa.unwrap_or_default())
+      .with_transparency(false);
     let (window, gl_config) = display_builder
       .build(event_loop, config_template_builder, |mut configs| {
         configs.next().unwrap()

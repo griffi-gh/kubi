@@ -13,7 +13,7 @@ pub struct FullscreenSettings {
 pub struct GameSettings {
   pub vsync: bool,
   pub fullscreen: Option<FullscreenSettings>,
-  pub msaa: Option<u16>,
+  pub msaa: Option<u8>,
   pub max_anisotropy: Option<u16>,
   /// there's a 1 chunk border of loaded but invisible around this
   pub render_distance: u8,
