@@ -1,5 +1,5 @@
 use glam::vec2;
-use crate::{state::StateRepo, LayoutInfo, measure::Response, draw::UiDrawCall, UiDirection};
+use crate::{state::StateRepo, LayoutInfo, measure::Response, draw::UiDrawCommand, UiDirection};
 use super::UiElement;
 
 pub struct Spacer(f32);
@@ -14,5 +14,5 @@ impl UiElement for Spacer {
     }
   }
 
-  fn draw(&self, _measure: &Response, _state: &mut StateRepo, _layout: &LayoutInfo, _draw: &mut Vec<UiDrawCall>) {}
+  fn process(&self, _measure: &Response, _state: &mut StateRepo, _layout: &LayoutInfo, _draw: &mut Vec<UiDrawCommand>) {}
 }

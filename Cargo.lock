@@ -1033,6 +1033,7 @@ dependencies = [
  "glam",
  "glium",
  "hashbrown",
+ "log",
  "nohash-hasher",
 ]
 

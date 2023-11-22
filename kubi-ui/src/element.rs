@@ -1,7 +1,7 @@
 use std::any::Any;
 use crate::{
   LayoutInfo,
-  draw::UiDrawCall,
+  draw::UiDrawCommand,
   measure::Response,
   state::StateRepo
 };
@@ -17,5 +17,5 @@ pub trait UiElement {
   fn is_stateless(&self) -> bool { self.state_id().is_none() }
   fn init_state(&self) -> Option<Box<dyn Any>> { None }
   fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response;
-  fn draw(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>);
+  fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>);
 }

@@ -1,7 +1,7 @@
 use glam::{vec2, Vec4};
 use crate::{
   UiSize, LayoutInfo,
-  draw::UiDrawCall,
+  draw::UiDrawCommand,
   measure::Response,
   state::StateRepo
 };
@@ -36,14 +36,14 @@ impl UiElement for ProgressBar {
     }
   }
 
-  fn draw(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>) {
-    draw.push(UiDrawCall::Rectangle {
+  fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
+    draw.push(UiDrawCommand::Rectangle {
       position: layout.position,
       size: measure.desired_size,
       color: self.color_background
     });
 
-    draw.push(UiDrawCall::Rectangle {
+    draw.push(UiDrawCommand::Rectangle {
       position: layout.position,
       size: measure.desired_size * vec2(self.value, 1.0),
       color: self.color_foreground

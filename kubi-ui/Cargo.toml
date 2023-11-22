@@ -9,6 +9,7 @@ hashbrown = "0.14"
 nohash-hasher = "0.2"
 glam = { version = "0.24", features = ["approx"] }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
+log = "0.4"
 
 [features]
 default = ["backend_glium", "builtin_elements"]

@@ -1,5 +1,5 @@
 use glam::{Vec2, Vec4};
-use crate::{UiDirection, LayoutInfo, draw::UiDrawCall, measure::{IsMeasurable, Response}, state::StateRepo, UiSize};
+use crate::{UiDirection, LayoutInfo, draw::UiDrawCommand, measure::{IsMeasurable, Response}, state::StateRepo, UiSize};
 use super::UiElement;
 
 #[derive(Default, Clone, Copy, Debug)]
@@ -73,9 +73,9 @@ impl UiElement for Container {
     Response { desired_size: size }
   }
 
-  fn draw(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCall>) {
+  fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
     if let Some(color) = self.background {
-      draw.push(UiDrawCall::Rectangle {
+      draw.push(UiDrawCommand::Rectangle {
         position: layout.position,
         size: measure.desired_size,
         color
