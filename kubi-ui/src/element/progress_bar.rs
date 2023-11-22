@@ -1,4 +1,4 @@
-use glam::{vec2, Vec4};
+use glam::{vec2, Vec4, vec4};
 use crate::{
   UiSize, LayoutInfo,
   draw::UiDrawCommand,
@@ -7,11 +7,22 @@ use crate::{
 };
 use super::UiElement;
 
-struct ProgressBar {
-  size: (UiSize, UiSize),
-  value: f32,
-  color_foreground: Vec4,
-  color_background: Vec4,
+pub struct ProgressBar {
+  pub size: (UiSize, UiSize),
+  pub value: f32,
+  pub color_foreground: Vec4,
+  pub color_background: Vec4,
+}
+
+impl Default for ProgressBar {
+  fn default() -> Self {
+    Self {
+      size: (UiSize::Auto, UiSize::Auto),
+      value: 0.,
+      color_foreground: vec4(0.0, 0.0, 1.0, 1.0),
+      color_background: vec4(0.0, 0.0, 0.0, 1.0),
+    }
+  }
 }
 
 const BAR_HEIGHT: f32 = 20.0;
