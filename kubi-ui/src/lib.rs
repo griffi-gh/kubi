@@ -87,9 +87,9 @@ pub enum UiDirection {
   Horizontal,
 }
 
-struct LayoutInfo {
+pub struct LayoutInfo {
   ///Not availabe during measuring step
-  position: Vec2,
-  max_size: Vec2,
-  direction: UiDirection,
+  pub position: Vec2,
+  pub max_size: Vec2,
+  pub direction: UiDirection,
 }

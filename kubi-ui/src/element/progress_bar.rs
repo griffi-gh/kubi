@@ -48,16 +48,20 @@ impl UiElement for ProgressBar {
   }
 
   fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
-    draw.push(UiDrawCommand::Rectangle {
-      position: layout.position,
-      size: measure.desired_size,
-      color: self.color_background
-    });
-
-    draw.push(UiDrawCommand::Rectangle {
-      position: layout.position,
-      size: measure.desired_size * vec2(self.value, 1.0),
-      color: self.color_foreground
-    });
+    let value = self.value.clamp(0., 1.);
+    if value < 1. {
+      draw.push(UiDrawCommand::Rectangle {
+        position: layout.position,
+        size: measure.desired_size,
+        color: self.color_background
+      });
+    }
+    if value > 0. {
+      draw.push(UiDrawCommand::Rectangle {
+        position: layout.position,
+        size: measure.desired_size * vec2(value, 1.0),
+        color: self.color_foreground
+      });
+    }
   }
 }

@@ -33,6 +33,8 @@ pub struct GliumUiRenderer {
   pub program: glium::Program,
   pub vertex_buffer: glium::VertexBuffer<Vertex>,
   pub index_buffer: glium::IndexBuffer<u32>,
+  pub vertex_count: usize,
+  pub index_count: usize,
 }
 
 impl GliumUiRenderer {
@@ -47,6 +49,8 @@ impl GliumUiRenderer {
       program,
       vertex_buffer,
       index_buffer,
+      vertex_count: 0,
+      index_count: 0,
     }
   }
 
@@ -68,12 +72,14 @@ impl GliumUiRenderer {
   }
 
   fn write_buffer_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
-    log::info!("uploading {} vertices and {} indices", vtx.len(), idx.len());
+    log::debug!("uploading {} vertices and {} indices", vtx.len(), idx.len());
     self.ensure_buffer_size(vtx.len(), idx.len());
     self.vertex_buffer.invalidate();
     self.vertex_buffer.slice_mut(0..vtx.len()).unwrap().write(vtx);
+    self.vertex_count = vtx.len();
     self.index_buffer.invalidate();
     self.index_buffer.slice_mut(0..idx.len()).unwrap().write(idx);
+    self.index_count = idx.len();
   }
 
   pub fn update(&mut self, plan: &UiDrawPlan) {
@@ -83,14 +89,18 @@ impl GliumUiRenderer {
   }
 
   pub fn draw(&self, frame: &mut glium::Frame, resolution: Vec2) {
+    if self.index_count == 0 || self.vertex_count == 0 {
+      return
+    }
+
     let params = DrawParameters {
       blend: Blend::alpha_blending(),
       ..Default::default()
     };
 
     frame.draw(
-      &self.vertex_buffer,
-      &self.index_buffer,
+      self.vertex_buffer.slice(0..self.vertex_count).unwrap(),
+      self.index_buffer.slice(0..self.index_count).unwrap(),
       &self.program,
       &uniform! {
         resolution: resolution.to_array(),

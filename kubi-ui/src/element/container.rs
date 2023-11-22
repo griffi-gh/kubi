@@ -1,5 +1,5 @@
 use glam::{Vec2, Vec4};
-use crate::{UiDirection, LayoutInfo, draw::UiDrawCommand, measure::{IsMeasurable, Response}, state::StateRepo, UiSize};
+use crate::{UiDirection, LayoutInfo, draw::UiDrawCommand, measure::Response, state::StateRepo, UiSize};
 use super::UiElement;
 
 #[derive(Default, Clone, Copy, Debug)]
