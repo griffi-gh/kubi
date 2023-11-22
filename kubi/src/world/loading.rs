@@ -234,8 +234,8 @@ fn process_completed_tasks(
         }
 
         //apply the mesh
-        let vertex_buffer = VertexBuffer::new(&renderer.display, &vertices).unwrap();
-        let index_buffer = IndexBuffer::new(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
+        let vertex_buffer = VertexBuffer::immutable(&renderer.display, &vertices).unwrap();
+        let index_buffer = IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
         let mesh = ChunkMesh {
           vertex_buffer,
           index_buffer,
