@@ -68,6 +68,7 @@ impl GliumUiRenderer {
   }
 
   fn write_buffer_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
+    log::info!("uploading {} vertices and {} indices", vtx.len(), idx.len());
     self.ensure_buffer_size(vtx.len(), idx.len());
     self.vertex_buffer.invalidate();
     self.vertex_buffer.slice_mut(0..vtx.len()).unwrap().write(vtx);
