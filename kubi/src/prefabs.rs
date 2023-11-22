@@ -48,10 +48,6 @@ pub struct ChunkShaderPrefab(pub Program);
 #[repr(transparent)]
 pub struct ColoredShaderPrefab(pub Program);
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ProgressbarShaderPrefab(pub Program);
-
 pub fn load_prefabs(
   storages: AllStoragesView,
   renderer: NonSendSync<UniqueView<Renderer>>,
@@ -81,14 +77,6 @@ pub fn load_prefabs(
       "colored",
       "../shaders/colored.vert",
       "../shaders/colored.frag",
-      &renderer.display
-    )
-  ));
-  storages.add_unique_non_send_sync(ProgressbarShaderPrefab(
-    include_shader_prefab!(
-      "gui/progressbar",
-      "../shaders/gui/progressbar.vert",
-      "../shaders/gui/progressbar.frag",
       &renderer.display
     )
   ));
