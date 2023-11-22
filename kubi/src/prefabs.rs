@@ -92,5 +92,8 @@ pub fn load_prefabs(
       &renderer.display
     )
   ));
+
+  log::info!("releasing shader compiler");
+
   renderer.display.release_shader_compiler();
 }
