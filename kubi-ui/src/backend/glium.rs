@@ -29,32 +29,25 @@ impl From<UiVertex> for Vertex {
 
 implement_vertex!(Vertex, position, color);
 
-pub struct GliumUiRenderer {
-  program: glium::Program,
+struct BufferPair {
   vertex_buffer: glium::VertexBuffer<Vertex>,
   index_buffer: glium::IndexBuffer<u32>,
   vertex_count: usize,
   index_count: usize,
 }
 
-impl GliumUiRenderer {
+impl BufferPair {
   pub fn new<F: Facade>(facade: &F) -> Self {
-    log::info!("init glium backend for ui");
-    log::debug!("init program");
-    let program = Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap();
-    log::debug!("init buffers");
-    let vertex_buffer = VertexBuffer::empty_persistent(facade, 1024).unwrap();
-    let index_buffer = IndexBuffer::empty_persistent(facade, PrimitiveType::TrianglesList, 1024).unwrap();
+    log::debug!("init ui buffers...");
     Self {
-      program,
-      vertex_buffer,
-      index_buffer,
+      vertex_buffer: VertexBuffer::empty_persistent(facade, 1024).unwrap(),
+      index_buffer: IndexBuffer::empty_persistent(facade, PrimitiveType::TrianglesList, 1024).unwrap(),
       vertex_count: 0,
       index_count: 0,
     }
   }
 
-  fn ensure_buffer_size(&mut self, need_vtx: usize, need_idx: usize) {
+  pub fn ensure_buffer_size(&mut self, need_vtx: usize, need_idx: usize) {
     let current_vtx_size = self.vertex_buffer.get_size();
     let current_idx_size = self.index_buffer.get_size();
     if current_vtx_size >= need_vtx && current_idx_size >= need_idx {
@@ -64,14 +57,21 @@ impl GliumUiRenderer {
     let new_idx_size = (need_idx + 1).next_power_of_two();
     log::debug!("resizing buffers: vtx {} -> {}, idx {} -> {}", current_vtx_size, new_vtx_size, current_idx_size, new_idx_size);
     if current_vtx_size != new_vtx_size {
-      self.vertex_buffer = VertexBuffer::empty_persistent(self.vertex_buffer.get_context(), new_vtx_size).unwrap();
+      self.vertex_buffer = VertexBuffer::empty_persistent(
+        self.vertex_buffer.get_context(),
+        new_vtx_size
+      ).unwrap();
     }
     if current_idx_size != new_idx_size {
-      self.index_buffer = IndexBuffer::empty_persistent(self.index_buffer.get_context(), PrimitiveType::TrianglesList, new_idx_size).unwrap();
+      self.index_buffer = IndexBuffer::empty_persistent(
+        self.index_buffer.get_context(),
+        PrimitiveType::TrianglesList,
+        new_idx_size
+      ).unwrap();
     }
   }
 
-  fn write_buffer_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
+  pub fn write_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
     log::debug!("uploading {} vertices and {} indices", vtx.len(), idx.len());
 
     self.vertex_count = vtx.len();
@@ -89,15 +89,36 @@ impl GliumUiRenderer {
     self.index_buffer.slice_mut(0..idx.len()).unwrap().write(idx);
   }
 
+  pub fn is_empty(&self) -> bool {
+    self.vertex_count == 0 || self.index_count == 0
+  }
+}
+
+pub struct GliumUiRenderer {
+  program: glium::Program,
+  buffer: BufferPair,
+}
+
+impl GliumUiRenderer {
+  pub fn new<F: Facade>(facade: &F) -> Self {
+    log::info!("init glium backend for ui");
+    log::debug!("init program");
+    let program = Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap();
+    Self {
+      program,
+      buffer: BufferPair::new(facade)
+    }
+  }
+
   pub fn update(&mut self, plan: &UiDrawPlan) {
     assert!(plan.calls.len() == 1, "multiple draw calls not supported yet");
     let data_vtx = &plan.calls[0].vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>();
     let data_idx = &plan.calls[0].indices;
-    self.write_buffer_data(data_vtx, data_idx);
+    self.buffer.write_data(data_vtx, data_idx);
   }
 
   pub fn draw(&self, frame: &mut glium::Frame, resolution: Vec2) {
-    if self.index_count == 0 || self.vertex_count == 0 {
+    if self.buffer.is_empty() {
       return
     }
 
@@ -107,8 +128,8 @@ impl GliumUiRenderer {
     };
 
     frame.draw(
-      self.vertex_buffer.slice(0..self.vertex_count).unwrap(),
-      self.index_buffer.slice(0..self.index_count).unwrap(),
+      self.buffer.vertex_buffer.slice(0..self.buffer.vertex_count).unwrap(),
+      self.buffer.index_buffer.slice(0..self.buffer.index_count).unwrap(),
       &self.program,
       &uniform! {
         resolution: resolution.to_array(),
