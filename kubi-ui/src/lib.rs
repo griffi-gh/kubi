@@ -37,6 +37,16 @@ impl KubiUi {
     }
   }
 
+  pub fn add<T: UiElement>(&mut self, element: T, max_size: Vec2) {
+    let layout = LayoutInfo {
+      position: Vec2::ZERO,
+      max_size,
+      direction: UiDirection::Vertical,
+    };
+    let measure = element.measure(&self.stateful_state, &layout);
+    element.process(&measure, &mut self.stateful_state, &layout, &mut self.draw_commands.commands);
+  }
+
   pub fn begin(&mut self) {
     std::mem::swap(&mut self.prev_draw_commands, &mut self.draw_commands);
     self.draw_plan_modified = false;

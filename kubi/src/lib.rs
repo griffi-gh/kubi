@@ -159,6 +159,7 @@ fn render() -> Workload {
       render_entities,
     ).into_sequential_workload().run_if(is_ingame),
     legacy_ui_render,
+    kubi_ui_draw,
   ).into_sequential_workload()
 }
 
