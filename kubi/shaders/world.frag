@@ -25,5 +25,5 @@ void main() {
   float light = abs(v_normal.x) + .8 * abs(v_normal.y) + .6 * abs(v_normal.z);
   color *= vec4(vec3(light), 1.);
   //discard alpha
-  color.w = 0.;
+  color.w = 1.;
 }
