@@ -7,6 +7,7 @@ use crate::{
 };
 use super::UiElement;
 
+#[derive(Debug, Clone, Copy)]
 pub struct ProgressBar {
   pub size: (UiSize, UiSize),
   pub value: f32,

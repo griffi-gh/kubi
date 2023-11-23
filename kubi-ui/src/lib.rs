@@ -72,7 +72,7 @@ impl Default for KubiUi {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum UiSize {
   #[default]
   Auto,
