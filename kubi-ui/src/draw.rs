@@ -1,5 +1,4 @@
-use std::num::NonZeroU16;
-use glam::{Vec2, Vec4};
+use glam::{Vec2, Vec4, vec2};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UiDrawCommand {
@@ -30,6 +29,7 @@ pub struct UiDrawCommands {
 pub struct UiVertex {
   pub position: Vec2,
   pub color: Vec4,
+  pub uv: Vec2,
   //pub texture: Option<NonZeroU16>,
 }
 
@@ -56,18 +56,22 @@ impl UiDrawPlan {
             UiVertex {
               position: *position,
               color: *color,
+              uv: vec2(0.0, 0.0),
             },
             UiVertex {
               position: *position + Vec2::new(size.x, 0.0),
               color: *color,
+              uv: vec2(1.0, 0.0),
             },
             UiVertex {
               position: *position + *size,
               color: *color,
+              uv: vec2(1.0, 1.0),
             },
             UiVertex {
               position: *position + Vec2::new(0.0, size.y),
               color: *color,
+              uv: vec2(0.0, 1.0),
             },
           ]);
         }

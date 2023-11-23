@@ -7,6 +7,7 @@ pub mod draw;
 pub mod backend;
 pub mod measure;
 pub mod state;
+pub mod font;
 
 use element::UiElement;
 use state::StateRepo;

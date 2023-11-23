@@ -6,7 +6,7 @@ use crate::{
   state::StateRepo
 };
 
-#[cfg(feature = "builtin")]
+#[cfg(feature = "builtin_elements")]
 mod builtin {
   pub mod rect;
   pub mod container;
@@ -14,7 +14,7 @@ mod builtin {
   pub mod progress_bar;
 }
 
-#[cfg(feature = "builtin")]
+#[cfg(feature = "builtin_elements")]
 pub use builtin::*;
 
 pub trait UiElement {

@@ -13,9 +13,11 @@ const VERTEX_SHADER: &str = include_str!("../../shaders/vertex.vert");
 const FRAGMENT_SHADER: &str = include_str!("../../shaders/fragment.frag");
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 struct Vertex {
   position: [f32; 2],
   color: [f32; 4],
+  uv: [f32; 2],
 }
 
 impl From<UiVertex> for Vertex {
@@ -23,11 +25,12 @@ impl From<UiVertex> for Vertex {
     Self {
       position: v.position.to_array(),
       color: v.color.to_array(),
+      uv: v.uv.to_array(),
     }
   }
 }
 
-implement_vertex!(Vertex, position, color);
+implement_vertex!(Vertex, position, color, uv);
 
 struct BufferPair {
   vertex_buffer: glium::VertexBuffer<Vertex>,
@@ -73,7 +76,7 @@ impl BufferPair {
   }
 
   pub fn write_data(&mut self, vtx: &[Vertex], idx: &[u32]) {
-    log::debug!("uploading {} vertices and {} indices", vtx.len(), idx.len());
+    //log::trace!("uploading {} vertices and {} indices", vtx.len(), idx.len());
 
     self.vertex_count = vtx.len();
     self.index_count = idx.len();

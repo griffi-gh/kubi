@@ -20,6 +20,7 @@ fn main() {
   let mut backend = GliumUiRenderer::new(&display);
 
   let instant = Instant::now();
+  let mut pcnt = 0;
   event_loop.run(|event, window_target| {
     window_target.set_control_flow(ControlFlow::Poll);
     match event {
@@ -46,6 +47,26 @@ fn main() {
               value: instant.elapsed().as_secs_f32().sin().powi(2),
               ..Default::default()
             }),
+            Box::new(Container {
+              gap: 1.,
+              elements: {
+                let mut elements: Vec<Box<dyn UiElement>> = vec![];
+                let cnt = instant.elapsed().as_secs() * 10000;
+                if pcnt != cnt {
+                  log::info!("{cnt}");
+                  pcnt = cnt;
+                }
+                for i in 0..cnt {
+                  elements.push(Box::new(ProgressBar {
+                    value: (instant.elapsed().as_secs_f32() + (i as f32 / 10.)).sin().powi(2),
+                    size: (UiSize::Auto, UiSize::Pixels(5.)),
+                    ..Default::default()
+                  }));
+                }
+                elements
+              },
+              ..Default::default()
+            })
           ],
           ..Default::default()
         }, resolution);

@@ -9,6 +9,7 @@ hashbrown = "0.14"
 nohash-hasher = "0.2"
 glam = { version = "0.24", features = ["approx"] }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
+fontdue = { version = "0.7", optional = true }
 log = "0.4"
 
 [dev-dependencies]
@@ -17,6 +18,8 @@ glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 winit = "0.29"
 
 [features]
-default = ["backend_glium", "builtin"]
+default = ["builtin_elements", "text_rendering", "builtin_font", "backend_glium"]
 backend_glium = ["dep:glium"]
-builtin = []
+text_rendering = ["dep:fontdue"]
+builtin_font = ["text_rendering"]
+builtin_elements = []
