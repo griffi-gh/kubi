@@ -4,6 +4,12 @@ use super::UiElement;
 
 pub struct Spacer(f32);
 
+impl Default for Spacer {
+  fn default() -> Self {
+    Self(5.)
+  }
+}
+
 impl UiElement for Spacer {
   fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response {
     Response {
