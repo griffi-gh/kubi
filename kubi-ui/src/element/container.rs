@@ -1,30 +1,58 @@
-use glam::{Vec2, Vec4};
+use glam::{Vec2, vec2, Vec4};
 use crate::{UiDirection, LayoutInfo, draw::UiDrawCommand, measure::Response, state::StateRepo, UiSize};
 use super::UiElement;
 
-#[derive(Default, Clone, Copy, Debug)]
-pub struct ContainerBorders {
-  pub top: Option<(Vec4, f32)>,
-  pub bottom: Option<(Vec4, f32)>,
-  pub left: Option<(Vec4, f32)>,
-  pub right: Option<(Vec4, f32)>,
-}
-
-pub enum ContainerAlign {
+pub enum Alignment {
   Begin,
   Center,
   End,
+}
+
+pub struct Border {
+  pub color: Vec4,
+  pub width: f32,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Sides<T> {
+  pub top: T,
+  pub bottom: T,
+  pub left: T,
+  pub right: T,
+}
+
+impl<T: Clone> Sides<T> {
+  #[inline]
+  pub fn all(value: T) -> Self {
+    Self {
+      top: value.clone(),
+      bottom: value.clone(),
+      left: value.clone(),
+      right: value,
+    }
+  }
+
+  #[inline]
+  pub fn horizontal_vertical(horizontal: T, vertical: T) -> Self {
+    Self {
+      top: vertical.clone(),
+      bottom: vertical,
+      left: horizontal.clone(),
+      right: horizontal,
+    }
+  }
 }
 
 pub struct Container {
   pub min_size: (UiSize, UiSize),
   pub max_size: (UiSize, UiSize),
   pub direction: UiDirection,
+  //pub reverse: bool,
   pub gap: f32,
-  pub padding: f32,
-  pub align: (ContainerAlign, ContainerAlign),
+  pub padding: Sides<f32>,
+  pub align: (Alignment, Alignment),
   pub background: Option<Vec4>,
-  pub borders: ContainerBorders,
+  pub borders: Sides<Option<Border>>,
   pub clip: bool,
   pub elements: Vec<Box<dyn UiElement>>,
 }
@@ -35,9 +63,10 @@ impl Default for Container {
       min_size: (UiSize::Auto, UiSize::Auto),
       max_size: (UiSize::Auto, UiSize::Auto),
       direction: UiDirection::Vertical,
+      //reverse: false,
       gap: 0.,
-      padding: 0.,
-      align: (ContainerAlign::Center, ContainerAlign::Begin),
+      padding: Sides::all(0.),
+      align: (Alignment::Center, Alignment::Begin),
       background: Default::default(),
       borders: Default::default(),
       clip: Default::default(),
@@ -53,7 +82,7 @@ impl UiElement for Container {
     for element in &self.elements {
       let measure = element.measure(state, &LayoutInfo {
         position: layout.position + size,
-        max_size: layout.max_size - size,
+        max_size: layout.max_size, // - size, //TODO
         direction: self.direction,
       });
       match self.direction {
@@ -74,14 +103,67 @@ impl UiElement for Container {
   }
 
   fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
+    let mut position = layout.position;
+
+    //background
     if let Some(color) = self.background {
       draw.push(UiDrawCommand::Rectangle {
-        position: layout.position,
+        position,
         size: measure.desired_size,
         color
       });
+    }
 
-      //TODO draw borders
+    //padding
+    position += vec2(self.padding.left, self.padding.top);
+
+    //alignment
+    //TODO: REQUIRES MAX MEASURE SIZES!
+    // match self.align.0 {
+    //   Alignment::Begin => (),
+    //   Alignment::Center => {
+    //     position.x += (layout.max_size.x - measure.desired_size.x) / 2.;
+    //   },
+    //   Alignment::End => {
+    //     position.x += layout.max_size.x - measure.desired_size.x;
+    //   }
+    // }
+    // match self.align.1 {
+    //   Alignment::Begin => (),
+    //   Alignment::Center => {
+    //     position.y += (layout.max_size.y - measure.desired_size.y) / 2.;
+    //   },
+    //   Alignment::End => {
+    //     position.y += layout.max_size.y - measure.desired_size.y;
+    //   }
+    // }
+
+    for element in &self.elements {
+      //(passing max size from layout rather than actual bounds for the sake of consistency with measure() above)
+
+      //measure
+      let el_measure = element.measure(state, &LayoutInfo {
+        position,
+        max_size: layout.max_size,
+        direction: self.direction,
+      });
+
+      //process
+      element.process(&el_measure, state, &LayoutInfo {
+        position,
+        max_size: layout.max_size,
+        direction: self.direction,
+      }, draw);
+
+      //layout
+      match self.direction {
+        UiDirection::Horizontal => {
+          position.x += el_measure.desired_size.x + self.gap;
+        },
+        UiDirection::Vertical => {
+          position.y += el_measure.desired_size.y + self.gap;
+        }
+      }
     }
   }
 }
