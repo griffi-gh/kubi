@@ -82,6 +82,15 @@ impl Default for Container {
   }
 }
 
+impl Container {
+  pub fn measure_max_size(&self, layout: &LayoutInfo) -> Vec2 {
+    layout.max_size - vec2(
+      self.padding.left + self.padding.right,
+      self.padding.top + self.padding.bottom,
+    )
+  }
+}
+
 impl UiElement for Container {
   fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response {
     let mut size = Vec2::ZERO;
@@ -89,7 +98,7 @@ impl UiElement for Container {
     for element in &self.elements {
       let measure = element.measure(state, &LayoutInfo {
         position: layout.position + size,
-        max_size: layout.max_size, // - size, //TODO
+        max_size: self.measure_max_size(layout), // - size TODO
         direction: self.direction,
       });
       match self.direction {
@@ -148,19 +157,17 @@ impl UiElement for Container {
     for element in &self.elements {
       //(passing max size from layout rather than actual bounds for the sake of consistency with measure() above)
 
-      //measure
-      let el_measure = element.measure(state, &LayoutInfo {
+      let layout = LayoutInfo {
         position,
-        max_size: layout.max_size,
+        max_size: self.measure_max_size(layout),
         direction: self.direction,
-      });
+      };
+
+      //measure
+      let el_measure = element.measure(state, &layout);
 
       //process
-      element.process(&el_measure, state, &LayoutInfo {
-        position,
-        max_size: layout.max_size,
-        direction: self.direction,
-      }, draw);
+      element.process(&el_measure, state, &layout, draw);
 
       //layout
       match self.direction {
