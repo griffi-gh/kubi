@@ -51,7 +51,7 @@ fn main() {
               gap: 1.,
               elements: {
                 let mut elements: Vec<Box<dyn UiElement>> = vec![];
-                for i in 0..100 {
+                for i in 0..10000 {
                   elements.push(Box::new(ProgressBar {
                     value: (instant.elapsed().as_secs_f32() + (i as f32 / 10.)).sin().powi(2),
                     size: (UiSize::Auto, UiSize::Pixels(5.)),

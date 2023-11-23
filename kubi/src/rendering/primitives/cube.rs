@@ -59,25 +59,25 @@ pub(super) fn init_cube_primitive(
   display: NonSendSync<UniqueView<Renderer>>
 ) {
   {
-    let vert = VertexBuffer::new(
+    let vert = VertexBuffer::immutable(
       &display.display,
       CUBE_VERTICES
     ).unwrap();
-    let index = IndexBuffer::new(
+    let index = IndexBuffer::immutable(
       &display.display,
-      PrimitiveType::TrianglesList, 
+      PrimitiveType::TrianglesList,
       CUBE_INDICES
     ).unwrap();
     storages.add_unique_non_send_sync(CubePrimitive(vert, index));
   }
   {
-    let vert = VertexBuffer::new(
+    let vert = VertexBuffer::immutable(
       &display.display,
       CENTERED_CUBE_VERTICES
     ).unwrap();
-    let index = IndexBuffer::new(
+    let index = IndexBuffer::immutable(
       &display.display,
-      PrimitiveType::TrianglesList, 
+      PrimitiveType::TrianglesList,
       CUBE_INDICES
     ).unwrap();
     storages.add_unique_non_send_sync(CenteredCubePrimitive(vert, index));

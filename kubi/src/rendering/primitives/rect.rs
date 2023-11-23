@@ -18,13 +18,13 @@ pub(super) fn init_rect_primitive(
   storages: AllStoragesView,
   display: NonSendSync<UniqueView<Renderer>>
 ) {
-  let vert = VertexBuffer::new(
+  let vert = VertexBuffer::immutable(
     &display.display,
     RECT_VERTEX
   ).unwrap();
-  let index = IndexBuffer::new(
+  let index = IndexBuffer::immutable(
     &display.display,
-    PrimitiveType::TrianglesList, 
+    PrimitiveType::TrianglesList,
     RECT_INDEX
   ).unwrap();
   storages.add_unique_non_send_sync(RectPrimitive(vert, index));
