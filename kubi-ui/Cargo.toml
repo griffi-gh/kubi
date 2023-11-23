@@ -10,6 +10,7 @@ nohash-hasher = "0.2"
 glam = { version = "0.24", features = ["approx"] }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
 fontdue = { version = "0.7", optional = true }
+rect_packer = { version = "0.2.1", optional = true }
 log = "0.4"
 
 [dev-dependencies]
@@ -18,8 +19,9 @@ glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 winit = "0.29"
 
 [features]
-default = ["builtin_elements", "text_rendering", "builtin_font", "backend_glium"]
+default = ["builtin_elements", "texture_manager", "text_rendering", "builtin_font", "backend_glium"]
 backend_glium = ["dep:glium"]
-text_rendering = ["dep:fontdue"]
+texture_manager = []
+text_rendering = ["dep:fontdue", "texture_manager"]
 builtin_font = ["text_rendering"]
 builtin_elements = []

@@ -7,7 +7,10 @@ pub mod draw;
 pub mod backend;
 pub mod measure;
 pub mod state;
+#[cfg(feature = "text_rendering")]
 pub mod font;
+#[cfg(feature = "texture_manager")]
+pub mod texman;
 
 use element::UiElement;
 use state::StateRepo;
