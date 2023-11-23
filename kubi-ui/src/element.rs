@@ -6,7 +6,8 @@ use crate::{
   state::StateRepo
 };
 
-#[cfg(feature = "builtin")] mod builtin {
+#[cfg(feature = "builtin")]
+mod builtin {
   pub mod rect;
   pub mod container;
   pub mod spacer;
