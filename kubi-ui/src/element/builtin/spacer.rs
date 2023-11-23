@@ -1,6 +1,12 @@
 use glam::vec2;
-use crate::{state::StateRepo, LayoutInfo, measure::Response, draw::UiDrawCommand, UiDirection};
-use super::UiElement;
+use crate::{
+  LayoutInfo,
+  UiDirection,
+  element::UiElement,
+  state::StateRepo,
+  measure::Response,
+  draw::UiDrawCommand
+};
 
 pub struct Spacer(f32);
 

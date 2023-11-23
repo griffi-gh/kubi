@@ -3,9 +3,9 @@ use crate::{
   UiSize, LayoutInfo,
   draw::UiDrawCommand,
   measure::Response,
-  state::StateRepo
+  state::StateRepo,
+  element::UiElement
 };
-use super::UiElement;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ProgressBar {

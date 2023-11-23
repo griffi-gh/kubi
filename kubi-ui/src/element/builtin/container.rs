@@ -1,6 +1,13 @@
 use glam::{Vec2, vec2, Vec4};
-use crate::{UiDirection, LayoutInfo, draw::UiDrawCommand, measure::Response, state::StateRepo, UiSize};
-use super::UiElement;
+use crate::{
+  UiDirection,
+  UiSize,
+  LayoutInfo,
+  draw::UiDrawCommand,
+  measure::Response,
+  state::StateRepo,
+  element::UiElement
+};
 
 pub enum Alignment {
   Begin,

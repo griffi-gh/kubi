@@ -1,6 +1,12 @@
 use glam::{vec2, Vec4};
-use crate::{state::StateRepo, LayoutInfo, measure::Response, draw::UiDrawCommand, UiSize};
-use super::UiElement;
+use crate::{
+  LayoutInfo,
+  UiSize,
+  element::UiElement,
+  state::StateRepo,
+  measure::Response,
+  draw::UiDrawCommand
+};
 
 pub struct Rect {
   pub size: (UiSize, UiSize),

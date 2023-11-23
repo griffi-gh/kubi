@@ -48,8 +48,9 @@ impl BufferPair {
   }
 
   pub fn ensure_buffer_size(&mut self, need_vtx: usize, need_idx: usize) {
-    let current_vtx_size = self.vertex_buffer.get_size();
-    let current_idx_size = self.index_buffer.get_size();
+    let current_vtx_size = self.vertex_buffer.get_size() / std::mem::size_of::<Vertex>();
+    let current_idx_size = self.index_buffer.get_size() / std::mem::size_of::<u32>();
+    //log::debug!("current vtx size: {}, current idx size: {}", current_vtx_size, current_idx_size);
     if current_vtx_size >= need_vtx && current_idx_size >= need_idx {
       return
     }
@@ -84,9 +85,10 @@ impl BufferPair {
       return
     }
 
-    self.ensure_buffer_size(vtx.len(), idx.len());
-    self.vertex_buffer.slice_mut(0..vtx.len()).unwrap().write(vtx);
-    self.index_buffer.slice_mut(0..idx.len()).unwrap().write(idx);
+    self.ensure_buffer_size(self.vertex_count, self.index_count);
+
+    self.vertex_buffer.slice_mut(0..self.vertex_count).unwrap().write(vtx);
+    self.index_buffer.slice_mut(0..self.index_count).unwrap().write(idx);
   }
 
   pub fn is_empty(&self) -> bool {

@@ -6,10 +6,15 @@ use crate::{
   state::StateRepo
 };
 
-#[cfg(feature = "builtin_elements")] pub mod rect;
-#[cfg(feature = "builtin_elements")] pub mod container;
-#[cfg(feature = "builtin_elements")] pub mod spacer;
-#[cfg(feature = "builtin_elements")] pub mod progress_bar;
+#[cfg(feature = "builtin")] mod builtin {
+  pub mod rect;
+  pub mod container;
+  pub mod spacer;
+  pub mod progress_bar;
+}
+
+#[cfg(feature = "builtin")]
+pub use builtin::*;
 
 pub trait UiElement {
   fn name(&self) -> &'static str { "UiElement" }
