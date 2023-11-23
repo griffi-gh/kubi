@@ -12,9 +12,11 @@ glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optiona
 log = "0.4"
 
 [dev-dependencies]
+kubi-logging = { path = "../kubi-logging" }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
+winit = "0.29"
 
 [features]
-default = ["backend_glium", "builtin_elements"]
+default = ["backend_glium", "builtin"]
 backend_glium = ["dep:glium"]
-builtin_elements = []
+builtin = []

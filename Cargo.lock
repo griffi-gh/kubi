@@ -1033,8 +1033,10 @@ dependencies = [
  "glam",
  "glium",
  "hashbrown",
+ "kubi-logging",
  "log",
  "nohash-hasher",
+ "winit",
 ]
 
 [[package]]
