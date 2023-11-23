@@ -11,6 +11,9 @@ glam = { version = "0.24", features = ["approx"] }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
 log = "0.4"
 
+[dev-dependencies]
+glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
+
 [features]
 default = ["backend_glium", "builtin_elements"]
 backend_glium = ["dep:glium"]
