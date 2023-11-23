@@ -7,15 +7,19 @@ pub mod draw;
 pub mod backend;
 pub mod measure;
 pub mod state;
-#[cfg(feature = "text_rendering")]
-pub mod font;
-#[cfg(feature = "texture_manager")]
-pub mod texman;
+pub mod text;
 
 use element::UiElement;
 use state::StateRepo;
 use event::UiEvent;
 use draw::{UiDrawCommands, UiDrawPlan};
+use text::TextRenderer;
+
+pub struct ElementContext<'a> {
+  pub state: &'a mut StateRepo,
+  pub draw: &'a mut UiDrawCommands,
+  pub text: &'a mut TextRenderer,
+}
 
 pub struct KubiUi {
   mouse_position: Vec2,
@@ -25,6 +29,7 @@ pub struct KubiUi {
   draw_commands: UiDrawCommands,
   draw_plan: UiDrawPlan,
   draw_plan_modified: bool,
+  font_renderer: TextRenderer,
 }
 
 impl KubiUi {
@@ -38,6 +43,7 @@ impl KubiUi {
       draw_commands: UiDrawCommands::default(),
       draw_plan: UiDrawPlan::default(),
       draw_plan_modified: false,
+      font_renderer: TextRenderer::new(),
     }
   }
 

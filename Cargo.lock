@@ -548,6 +548,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0793f5137567643cf65ea42043a538804ff0fbf288649e2141442b602d81f9bc"
 dependencies = [
  "hashbrown 0.13.2",
+ "rayon",
  "ttf-parser 0.15.2",
 ]
 
@@ -773,6 +774,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
  "ahash",
+ "rayon",
 ]
 
 [[package]]
@@ -1046,6 +1048,7 @@ dependencies = [
  "kubi-logging",
  "log",
  "nohash-hasher",
+ "rayon",
  "rect_packer",
  "winit",
 ]
