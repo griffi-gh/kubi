@@ -43,7 +43,7 @@ impl KubiUi {
       draw_commands: UiDrawCommands::default(),
       draw_plan: UiDrawPlan::default(),
       draw_plan_modified: false,
-      font_renderer: TextRenderer::new(),
+      font_renderer: TextRenderer::default(),
     }
   }
 

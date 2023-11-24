@@ -10,9 +10,8 @@ nohash-hasher = "0.2"
 glam = "0.24"
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
 fontdue = "0.7"
-rect_packer = { version = "0.2.1", optional = true }
+rect_packer = "0.2"
 log = "0.4"
-rayon = { version = "1.8", optional = true }
 
 [dev-dependencies]
 kubi-logging = { path = "../kubi-logging" }
@@ -20,8 +19,8 @@ glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 winit = "0.29"
 
 [features]
-default = ["builtin_elements", "builtin_font", "backend_glium", "parallel"]
+default = ["builtin_elements", "builtin_font", "backend_glium"]
 backend_glium = ["dep:glium"]
 builtin_font = []
 builtin_elements = []
-parallel = ["dep:rayon", "fontdue/parallel"]
+#parallel = ["dep:rayon", "fontdue/parallel"]
