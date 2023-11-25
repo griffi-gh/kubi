@@ -32,7 +32,9 @@ jobs:
     - name: Build
       run: cargo build
         --release
+        --package kubi
         --bin kubi
+        --package kubi-server
         --bin kubi-server
     - name: Create artifact
       shell: bash
