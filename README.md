@@ -130,6 +130,6 @@ name = "Kubi Server"          # server name
 
 deprecated:
 
-~~`kubi-udp`~~ was a huge pita to work with and eventually got replaced by `uflow` (https://github.com/lowquark/uflow)
+~~`kubi-udp`~~ was a huge pita to work with and eventually got replaced by `uflow` (https://github.com/lowquark/uflow) in #5
 
 <h6 align="right"><i>~ uwu</i></h6>
