@@ -22,9 +22,9 @@ const RESERVED_SIZE: usize = 1048576; //~1mb (16 sectors assuming 32x32x32 world
 const RESERVED_SECTOR_COUNT: usize = RESERVED_SIZE / SECTOR_SIZE;
 
 //magic = "KUBI" + IDENTITY (4 bytes)
-const HEADER_MAGIC_SIZE: usize = 8;
-const HEADER_MAGIC_STR: [u8; 4] = *b"KUBI";
-const HEADER_MAGIC_IDENTITY: u32 = 1;
+const SUBHEADER_SIZE: usize = 8;
+const SUBHEADER_MAGIC: [u8; 4] = *b"KUBI";
+const SUBHEADER_IDENTITY: u32 = 1;
 
 // #[repr(transparent)]
 // struct IVec3Hash(IVec3);
@@ -66,16 +66,16 @@ impl WorldSaveFile {
   fn read_header(&mut self) -> Result<()> {
     self.file.rewind()?;
 
-    let mut subheader = [0u8; HEADER_MAGIC_SIZE];
+    let mut subheader = [0u8; SUBHEADER_SIZE];
     self.file.read_exact(&mut subheader)?;
-    if subheader[0..4] != HEADER_MAGIC_STR {
+    if subheader[0..4] != SUBHEADER_MAGIC {
       return Err(anyhow::anyhow!("invalid file header"));
     }
-    if subheader[4..8] != HEADER_MAGIC_IDENTITY.to_be_bytes() {
+    if subheader[4..8] != SUBHEADER_IDENTITY.to_be_bytes() {
       return Err(anyhow::anyhow!("this save file cannot be loaded by this version of the game"));
     }
 
-    let limit = (RESERVED_SIZE - HEADER_MAGIC_SIZE) as u64;
+    let limit = (RESERVED_SIZE - SUBHEADER_SIZE) as u64;
     self.header = bincode::deserialize_from((&self.file).take(limit))?;
 
     Ok(())
@@ -83,8 +83,8 @@ impl WorldSaveFile {
 
   fn write_header(&mut self) -> Result<()> {
     self.file.rewind()?;
-    self.file.write_all(&HEADER_MAGIC_STR)?;
-    self.file.write_all(&HEADER_MAGIC_IDENTITY.to_be_bytes())?;
+    self.file.write_all(&SUBHEADER_MAGIC)?;
+    self.file.write_all(&SUBHEADER_IDENTITY.to_be_bytes())?;
     //XXX: this can cause the header to destroy chunk data (if it's WAY too long)
     //     read has checks against this, but write doesn't
     //     1mb is pretty generous tho, so it's not a *big* deal
