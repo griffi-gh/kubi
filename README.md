@@ -87,6 +87,8 @@ cargo apk run -p kubi --lib --no-default-features
 
 <h2>touch controls</h2>
 
+warn: multitouch got broken after switching to `android-activity`, I'm still looking for a fix.
+
 <img src=".readme/touch_controls.png" alt="touch control scheme" width="300">
 
 - Left side: **Movement**
@@ -117,5 +119,17 @@ seed = 0xfeb_face_dead_cafe   # worldgen seed to use
 [query]
 name = "Kubi Server"          # server name
 ```
+
+<h2>"In-house" libraries</h2>
+
+- [`kubi-ui`](kubi-ui): semi-imm.mode backend-agnostic ui system\
+  mostly ready to use, it has already replaced the Kubi legacy ui
+- [`kubi-pool`](kubi-pool): very early work-in-progress work-stealing threadpool system\
+  aiming to replace `rayon` threadpool that's currently used inside the kubi client (for more control over task priority)
+- [`kubi-logging`](kubi-logging) fancy-ass custom formatter for `env-logger`
+
+deprecated:
+
+~~`kubi-udp`~~ was a huge pita to work with and eventually got replaced by `uflow` (https://github.com/lowquark/uflow)
 
 <h6 align="right"><i>~ uwu</i></h6>
