@@ -30,7 +30,7 @@ impl Default for GameSettings {
       render_distance: match true {
         cfg!(debug_assertions) => 5,
         cfg!(target_os = "android") => 6,
-        #[allow(unreachable_patterns)] _ => 8,
+        #[allow(unreachable_patterns)] _ => 7,
       },
       mouse_sensitivity: 1.,
       debug_draw_current_chunk_border: false, //cfg!(not(target_os = "android")) && cfg!(debug_assertions),
