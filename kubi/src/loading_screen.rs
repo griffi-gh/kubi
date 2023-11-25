@@ -21,7 +21,7 @@ fn render_progressbar(
     let total = world.chunks.len();
     loaded as f32 / total as f32
   };
-  ui.ui.add(
+  ui.kui.add(
     ProgressBar { value, ..Default::default() },
     size.0.as_vec2()
   );
