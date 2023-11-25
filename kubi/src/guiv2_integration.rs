@@ -28,9 +28,9 @@ pub fn kubi_ui_end(
   mut ui: NonSendSync<UniqueViewMut<UiState>>
 ) {
   let ui: &mut UiState = &mut ui;
-  let UiState { kui: ui, renderer } = ui;
-  ui.end();
-  let (upload_needed, plan) = ui.draw_plan();
+  let UiState { kui, renderer } = ui;
+  kui.end();
+  let (upload_needed, plan) = kui.draw_plan();
   if upload_needed {
     renderer.update(plan);
   }
