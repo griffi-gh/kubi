@@ -1,4 +1,5 @@
 pub mod block;
+pub mod item;
 pub mod networking;
 pub mod worldgen;
 pub mod chunk;

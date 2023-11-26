@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use strum::EnumIter;
 use num_enum::TryFromPrimitive;
+use crate::item::Item;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, EnumIter)]
 #[repr(u8)]
@@ -50,82 +51,95 @@ impl Block {
         render: RenderType::None,
         collision: CollisionType::None,
         raycast_collision: false,
+        drops: None,
       },
       Self::Marker => BlockDescriptor {
         name: "marker",
         render: RenderType::None,
         collision: CollisionType::None,
         raycast_collision: false,
+        drops: None,
       },
-      Self::Stone => BlockDescriptor { 
-        name: "stone", 
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Stone)), 
-        collision: CollisionType::Solid, 
-        raycast_collision: true, 
+      Self::Stone => BlockDescriptor {
+        name: "stone",
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Stone)),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+        drops: None,
       },
-      Self::Dirt => BlockDescriptor { 
-        name: "dirt", 
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Dirt)), 
-        collision: CollisionType::Solid, 
-        raycast_collision: true, 
+      Self::Dirt => BlockDescriptor {
+        name: "dirt",
+        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Dirt)),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+        drops: None,
       },
-      Self::Grass => BlockDescriptor { 
-        name: "grass", 
+      Self::Grass => BlockDescriptor {
+        name: "grass",
         render: RenderType::SolidBlock(CubeTexture::top_sides_bottom(
-          BlockTexture::GrassTop, 
-          BlockTexture::GrassSide, 
+          BlockTexture::GrassTop,
+          BlockTexture::GrassSide,
           BlockTexture::Dirt
-        )), 
-        collision: CollisionType::Solid, 
-        raycast_collision: true, 
+        )),
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+        drops: None,
       },
-      Self::Sand => BlockDescriptor { 
-        name: "sand", 
+      Self::Sand => BlockDescriptor {
+        name: "sand",
         render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Sand)), 
-        collision: CollisionType::Solid, 
-        raycast_collision: true, 
+        collision: CollisionType::Solid,
+        raycast_collision: true,
+        drops: None,
       },
       Self::Cobblestone => BlockDescriptor {
         name: "cobblestone",
         render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Cobblestone)),
         collision: CollisionType::Solid,
         raycast_collision: true,
+        drops: None,
       },
       Self::TallGrass => BlockDescriptor {
         name: "tall grass",
         render: RenderType::CrossShape(CrossTexture::all(BlockTexture::TallGrass)),
         collision: CollisionType::None,
         raycast_collision: true,
+        drops: None,
       },
-      Self::Planks => BlockDescriptor { 
-        name: "planks", 
+      Self::Planks => BlockDescriptor {
+        name: "planks",
         render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Planks)), 
         collision: CollisionType::Solid, 
         raycast_collision: true, 
+        drops: None,
       },
       Self::Torch => BlockDescriptor {
         name: "torch",
         render: RenderType::CrossShape(CrossTexture::all(BlockTexture::Torch)),
         collision: CollisionType::None,
         raycast_collision: true,
+        drops: None,
       },
       Self::Wood => BlockDescriptor {
         name: "leaf",
         render: RenderType::SolidBlock(CubeTexture::horizontal_vertical(BlockTexture::Wood, BlockTexture::WoodTop)),
         collision: CollisionType::Solid,
         raycast_collision: true,
+        drops: None,
       },
       Self::Leaf => BlockDescriptor {
         name: "leaf",
         render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::Leaf)),
         collision: CollisionType::Solid,
         raycast_collision: true,
+        drops: None,
       },
       Self::Water => BlockDescriptor {
         name: "water",
         render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::WaterSolid)),
         collision: CollisionType::None,
         raycast_collision: true,
+        drops: None,
       },
     }
   }
@@ -137,12 +151,8 @@ pub struct BlockDescriptor {
   pub render: RenderType,
   pub collision: CollisionType,
   pub raycast_collision: bool,
+  pub drops: Option<Item>,
 }
-// impl BlockDescriptor {
-//   pub fn of(block: Block) -> Self {
-//     block.descriptor()
-//   }
-// }
 
 #[derive(Clone, Copy, Debug)]
 pub struct CubeTexture {

@@ -20,6 +20,7 @@ hashbrown = { version = "0.14", features = ["serde"] }
 nohash-hasher = "0.2"
 #bytemuck = { version = "1.14", features = ["derive"] }
 static_assertions = "1.1"
+nz = "0.3"
 
 [features]
 default = []

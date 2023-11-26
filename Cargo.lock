@@ -1026,6 +1026,7 @@ dependencies = [
  "hashbrown 0.14.2",
  "nohash-hasher",
  "num_enum",
+ "nz",
  "postcard",
  "rand",
  "rand_xoshiro",
@@ -1324,6 +1325,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "nz"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28ba9cab725a7d7ece4bbf38968a1717ed73abf0516f7ff90a4127d016bebd51"
 
 [[package]]
 name = "objc-sys"
