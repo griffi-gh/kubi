@@ -10,6 +10,9 @@ const BIN_FONT: &[u8] = include_bytes!("../assets/font/ProggyTiny.ttf");
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FontHandle(pub(crate) usize);
 
+#[cfg(feature = "builtin_font")]
+pub const BUILTIN_FONT: FontHandle = FontHandle(0);
+
 #[derive(PartialEq, Eq, Hash)]
 struct GlyphCacheKey {
   font_index: usize,

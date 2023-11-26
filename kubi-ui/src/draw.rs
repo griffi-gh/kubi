@@ -1,6 +1,8 @@
+use std::borrow::Cow;
 use glam::{Vec2, Vec4, vec2};
+use crate::text::TextRenderer;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum UiDrawCommand {
   ///Filled, colored rectangle
   Rectangle {
@@ -10,7 +12,17 @@ pub enum UiDrawCommand {
     size: Vec2,
     ///Color (RGBA)
     color: Vec4,
-  }
+  },
+  Text {
+    ///Position in pixels
+    position: Vec2,
+    ///Font size
+    size: u8,
+    ///Color (RGBA)
+    color: Vec4,
+    ///Text to draw
+    text: Cow<'static, str>,
+  },
 }
 
 #[derive(Default)]
@@ -24,6 +36,11 @@ pub struct UiDrawCommands {
 //     // self.commands.iter().zip(other.commands.iter()).all(|(a, b)| a == b)
 //   }
 // }
+
+pub enum BindTexture {
+  FontTexture,
+  //UserDefined(usize),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UiVertex {
@@ -45,7 +62,7 @@ pub struct UiDrawPlan {
 }
 
 impl UiDrawPlan {
-  pub fn build(calls: &UiDrawCommands) -> Self {
+  pub fn build(calls: &UiDrawCommands, tr: &mut TextRenderer) -> Self {
     let mut call = UiDrawCall::default();
     for command in &calls.commands {
       match command {
@@ -74,6 +91,9 @@ impl UiDrawPlan {
               uv: vec2(0.0, 1.0),
             },
           ]);
+        },
+        UiDrawCommand::Text { position, size, color, text } => {
+          todo!()
         }
       }
     }

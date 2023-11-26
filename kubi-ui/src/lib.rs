@@ -15,11 +15,11 @@ use event::UiEvent;
 use draw::{UiDrawCommands, UiDrawPlan};
 use text::TextRenderer;
 
-pub struct ElementContext<'a> {
-  pub state: &'a mut StateRepo,
-  pub draw: &'a mut UiDrawCommands,
-  pub text: &'a mut TextRenderer,
-}
+// pub struct ElementContext<'a> {
+//   pub state: &'a mut StateRepo,
+//   pub draw: &'a mut UiDrawCommands,
+//   pub text: &'a mut TextRenderer,
+// }
 
 pub struct KubiUi {
   mouse_position: Vec2,
@@ -67,7 +67,7 @@ impl KubiUi {
     if self.draw_commands.commands == self.prev_draw_commands.commands {
       return
     }
-    self.draw_plan = UiDrawPlan::build(&self.draw_commands);
+    self.draw_plan = UiDrawPlan::build(&self.draw_commands, &mut self.font_renderer);
     self.draw_plan_modified = true;
   }
 
