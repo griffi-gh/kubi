@@ -34,6 +34,8 @@ fn main() {
 
         kui.begin();
 
+        let z = instant.elapsed().as_secs_f32().sin().powi(2);
+
         kui.add(Container {
           gap: 5.,
           padding: Sides::all(5.),
@@ -44,7 +46,7 @@ fn main() {
               ..Default::default()
             }),
             Box::new(ProgressBar {
-              value: instant.elapsed().as_secs_f32().sin().powi(2),
+              value: z,
               ..Default::default()
             }),
             Box::new(Container {
@@ -58,11 +60,15 @@ fn main() {
                   color: Some(vec4(0.75, 0., 0., 1.))
                 }),
                 Box::new(Rect {
-                  size: (UiSize::Percentage(instant.elapsed().as_secs_f32().cos().powi(2) / 2. + 0.5), UiSize::Pixels(30.)),
+                  size: (UiSize::Percentage(z / 2. + 0.5), UiSize::Pixels(30.)),
                   color: Some(vec4(0., 0.75, 0., 1.))
                 }),
               ],
               ..Default::default()
+            }),
+            Box::new(Rect {
+              size: (UiSize::Percentage(z / 2. + 0.5), UiSize::Pixels(30.)),
+              color: Some(vec4(0., 0.75, 0., 1.))
             }),
             Box::new(Container {
               gap: 5.,
