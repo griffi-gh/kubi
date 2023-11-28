@@ -6,11 +6,10 @@ use glium::{
   index::PrimitiveType,
   implement_vertex, uniform,
 };
+use kubi_ui::draw::{UiDrawPlan, UiVertex};
 
-use crate::draw::{UiDrawPlan, UiVertex};
-
-const VERTEX_SHADER: &str = include_str!("../../shaders/vertex.vert");
-const FRAGMENT_SHADER: &str = include_str!("../../shaders/fragment.frag");
+const VERTEX_SHADER: &str = include_str!("../shaders/vertex.vert");
+const FRAGMENT_SHADER: &str = include_str!("../shaders/fragment.frag");
 
 #[derive(Clone, Copy)]
 #[repr(C)]

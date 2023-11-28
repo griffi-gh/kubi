@@ -8,19 +8,18 @@ publish = false
 hashbrown = "0.14"
 nohash-hasher = "0.2"
 glam = "0.24"
-glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf", optional = true }
-fontdue = "0.7"
+fontdue = "0.8"
 rect_packer = "0.2"
 log = "0.4"
 
 [dev-dependencies]
 kubi-logging = { path = "../kubi-logging" }
+kubi-ui-glium = { path = "../kubi-ui-glium" }
 glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 winit = "0.29"
 
 [features]
-default = ["builtin_elements", "builtin_font", "backend_glium"]
-backend_glium = ["dep:glium"]
+default = ["builtin_elements", "builtin_font"]
 builtin_font = []
 builtin_elements = []
 #parallel = ["dep:rayon", "fontdue/parallel"]

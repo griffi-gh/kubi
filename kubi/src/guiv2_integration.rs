@@ -1,4 +1,5 @@
-use kubi_ui::{KubiUi, backend::glium::GliumUiRenderer};
+use kubi_ui::KubiUi;
+use kubi_ui_glium::GliumUiRenderer;
 use shipyard::{AllStoragesView, Unique, UniqueView, NonSendSync, UniqueViewMut};
 use crate::rendering::{Renderer, RenderTarget, WindowSize};
 

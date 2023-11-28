@@ -7,8 +7,14 @@ use winit::{
 };
 use kubi_ui::{
   KubiUi,
-  backend::glium::GliumUiRenderer, element::{progress_bar::ProgressBar, container::{Container, Sides}, UiElement}, UiSize
+  element::{
+    UiElement,
+    progress_bar::ProgressBar,
+    container::{Container, Sides}
+  },
+  UiSize
 };
+use kubi_ui_glium::GliumUiRenderer;
 
 fn main() {
   kubi_logging::init();

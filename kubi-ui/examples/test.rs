@@ -1,5 +1,5 @@
 use std::time::Instant;
-use glam::{Vec2, IVec2, UVec2, vec4};
+use glam::{UVec2, vec4};
 use glium::{backend::glutin::SimpleWindowBuilder, Surface};
 use winit::{
   event::{Event, WindowEvent},
@@ -7,8 +7,17 @@ use winit::{
 };
 use kubi_ui::{
   KubiUi,
-  backend::glium::GliumUiRenderer, element::{progress_bar::ProgressBar, container::{Container, Sides, Alignment}, UiElement, rect::Rect}, UiSize, UiDirection
+  element::{
+    UiElement,
+    progress_bar::ProgressBar,
+    container::{Container, Sides, Alignment},
+    rect::Rect
+  },
+  interaction::IntoInteractable,
+  UiSize,
+  UiDirection,
 };
+use kubi_ui_glium::GliumUiRenderer;
 
 fn main() {
   kubi_logging::init();
@@ -109,7 +118,9 @@ fn main() {
                 Box::new(Rect {
                   size: (UiSize::Pixels(50.), UiSize::Pixels(50.)),
                   color: Some(vec4(1., 1., 1., 0.75))
-                })
+                }.into_interactable().on_click(|| {
+                  println!("clicked");
+                }))
               ],
               ..Default::default()
             })

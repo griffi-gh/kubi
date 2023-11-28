@@ -124,6 +124,7 @@ name = "Kubi Server"          # server name
 
 - [`kubi-ui`](kubi-ui): semi-imm.mode backend-agnostic ui system\
   mostly ready to use, it has already replaced the Kubi legacy ui
+- [`kubi-ui-glium`](kubi-ui-backend-glium) Glium-based backend for `kubi-ui`
 - [`kubi-pool`](kubi-pool): very early work-in-progress work-stealing threadpool system\
   aiming to replace `rayon` threadpool that's currently used inside the kubi client (for more control over task priority)
 - [`kubi-logging`](kubi-logging) fancy-ass custom formatter for `env-logger`
