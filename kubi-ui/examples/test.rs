@@ -1,5 +1,5 @@
 use std::time::Instant;
-use glam::{Vec2, IVec2, UVec2};
+use glam::{Vec2, IVec2, UVec2, vec4};
 use glium::{backend::glutin::SimpleWindowBuilder, Surface};
 use winit::{
   event::{Event, WindowEvent},
@@ -7,7 +7,7 @@ use winit::{
 };
 use kubi_ui::{
   KubiUi,
-  backend::glium::GliumUiRenderer, element::{progress_bar::ProgressBar, container::{Container, Sides}, UiElement}, UiSize
+  backend::glium::GliumUiRenderer, element::{progress_bar::ProgressBar, container::{Container, Sides, Alignment}, UiElement, rect::Rect}, UiSize, UiDirection
 };
 
 fn main() {
@@ -37,6 +37,7 @@ fn main() {
         kui.add(Container {
           gap: 5.,
           padding: Sides::all(5.),
+          align: (Alignment::Center, Alignment::Center),
           elements: vec![
             Box::new(ProgressBar {
               value: 0.5,
@@ -46,6 +47,55 @@ fn main() {
               value: instant.elapsed().as_secs_f32().sin().powi(2),
               ..Default::default()
             }),
+            Box::new(Container {
+              size: (UiSize::Percentage(1.), UiSize::Auto),
+              align: (Alignment::Center, Alignment::End),
+              padding: Sides::all(5.),
+              gap: 10.,
+              elements: vec![
+                Box::new(Rect {
+                  size: (UiSize::Percentage(0.5), UiSize::Pixels(30.)),
+                  color: Some(vec4(0.75, 0., 0., 1.))
+                }),
+                Box::new(Rect {
+                  size: (UiSize::Percentage(instant.elapsed().as_secs_f32().cos().powi(2) / 2. + 0.5), UiSize::Pixels(30.)),
+                  color: Some(vec4(0., 0.75, 0., 1.))
+                }),
+              ],
+              ..Default::default()
+            }),
+            Box::new(Container {
+              gap: 5.,
+              padding: Sides::all(5.),
+              background: Some(vec4(0., 0., 0., 0.5)),
+              direction: UiDirection::Horizontal,
+              elements: {
+                let mut x: Vec<Box<dyn UiElement>> = vec![];
+                for i in 0..10 {
+                  x.push(Box::new(Rect {
+                    size: (UiSize::Pixels(50.), UiSize::Pixels(50.)),
+                    color: if i == 1 {
+                      Some(vec4(0.75, 0.75, 0.75, 0.75))
+                    } else {
+                      Some(vec4(0.5, 0.5, 0.5, 0.75))
+                    }
+                  }));
+                }
+                x
+              },
+              ..Default::default()
+            }),
+            Box::new(Container {
+              background: Some(vec4(1., 0., 0., 1.)),
+              padding: Sides::horizontal_vertical(30., 5.),
+              elements: vec![
+                Box::new(Rect {
+                  size: (UiSize::Pixels(50.), UiSize::Pixels(50.)),
+                  color: Some(vec4(1., 1., 1., 0.75))
+                })
+              ],
+              ..Default::default()
+            })
           ],
           ..Default::default()
         }, resolution);
