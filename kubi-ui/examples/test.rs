@@ -113,7 +113,12 @@ fn main() {
             }),
             Box::new(Container {
               background: Some(vec4(1., 0., 0., 1.)),
-              padding: Sides::horizontal_vertical(30., 5.),
+              padding: Sides {
+                top: 10.,
+                bottom: 20.,
+                left: 30.,
+                right: 40.,
+              },
               elements: vec![
                 Box::new(Rect {
                   size: (UiSize::Pixels(50.), UiSize::Pixels(50.)),
