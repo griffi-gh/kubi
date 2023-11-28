@@ -39,12 +39,23 @@ fn main() {
         kui.add(Container {
           gap: 5.,
           padding: Sides::all(5.),
-          align: (Alignment::Center, Alignment::Center),
+          align: (Alignment::Begin, Alignment::Center),
+          size: (UiSize::Percentage(1.), UiSize::Percentage(1.)),
           elements: vec![
             Box::new(ProgressBar {
               value: 0.5,
               ..Default::default()
             }),
+          ],
+          ..Default::default()
+        }, resolution);
+
+        kui.add(Container {
+          gap: 5.,
+          padding: Sides::all(5.),
+          align: (Alignment::End, Alignment::Center),
+          size: (UiSize::Percentage(1.), UiSize::Percentage(1.)),
+          elements: vec![
             Box::new(ProgressBar {
               value: z,
               ..Default::default()

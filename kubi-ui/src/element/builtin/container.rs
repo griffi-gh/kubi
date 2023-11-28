@@ -4,7 +4,7 @@ use crate::{
   UiSize,
   LayoutInfo,
   draw::UiDrawCommand,
-  measure::Response,
+  measure::{Response, Hints},
   state::StateRepo,
   element::UiElement
 };
@@ -88,6 +88,7 @@ impl Default for Container {
 
 impl Container {
   pub fn measure_max_inner_size(&self, layout: &LayoutInfo) -> Vec2 {
+    //TODO take explicit size into account
     layout.max_size - vec2(
       self.padding.left + self.padding.right,
       self.padding.top + self.padding.bottom,
@@ -98,33 +99,36 @@ impl Container {
 impl UiElement for Container {
   fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response {
     let mut size = Vec2::ZERO;
-    if matches!(self.size.0, UiSize::Auto) || matches!(self.size.1, UiSize::Auto) {
-      let mut leftover_gap = Vec2::ZERO;
-      for element in &self.elements {
-        let measure = element.measure(state, &LayoutInfo {
-          position: layout.position + size,
-          max_size: self.measure_max_inner_size(layout), // - size TODO
-          direction: self.direction,
-        });
-        match self.direction {
-          UiDirection::Horizontal => {
-            size.x += measure.desired_size.x + self.gap;
-            size.y = size.y.max(measure.desired_size.y);
-            leftover_gap.x = self.gap;
-          },
-          UiDirection::Vertical => {
-            size.x = size.x.max(measure.desired_size.x);
-            size.y += measure.desired_size.y + self.gap;
-            leftover_gap.y = self.gap;
-          }
+    //if matches!(self.size.0, UiSize::Auto) || matches!(self.size.1, UiSize::Auto) {
+    let mut leftover_gap = Vec2::ZERO;
+    for element in &self.elements {
+      let measure = element.measure(state, &LayoutInfo {
+        position: layout.position + size,
+        max_size: self.measure_max_inner_size(layout), // - size TODO
+        direction: self.direction,
+      });
+      match self.direction {
+        UiDirection::Horizontal => {
+          size.x += measure.size.x + self.gap;
+          size.y = size.y.max(measure.size.y);
+          leftover_gap.x = self.gap;
+        },
+        UiDirection::Vertical => {
+          size.x = size.x.max(measure.size.x);
+          size.y += measure.size.y + self.gap;
+          leftover_gap.y = self.gap;
         }
       }
-      size -= leftover_gap;
-      size += vec2(
-        self.padding.left + self.padding.right,
-        self.padding.top + self.padding.bottom,
-      );
     }
+    size -= leftover_gap;
+
+    let inner_content_size = Some(size);
+
+    size += vec2(
+      self.padding.left + self.padding.right,
+      self.padding.top + self.padding.bottom,
+    );
+
     match self.size.0 {
       UiSize::Auto => (),
       UiSize::Percentage(percentage) => size.x = layout.max_size.x * percentage,
@@ -135,7 +139,15 @@ impl UiElement for Container {
       UiSize::Percentage(percentage) => size.y = layout.max_size.y * percentage,
       UiSize::Pixels(pixels) => size.y = pixels,
     }
-    Response { desired_size: size }
+
+    Response {
+      size,
+      hints: Hints {
+        inner_content_size,
+        ..Default::default()
+      },
+      user_data: None
+    }
   }
 
   fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
@@ -145,7 +157,7 @@ impl UiElement for Container {
     if let Some(color) = self.background {
       draw.push(UiDrawCommand::Rectangle {
         position,
-        size: measure.desired_size,
+        size: measure.size,
         color
       });
     }
@@ -154,25 +166,21 @@ impl UiElement for Container {
     position += vec2(self.padding.left, self.padding.top);
 
     //alignment
-    //TODO: REQUIRES MAX MEASURE SIZES!
-    // match self.align.0 {
-    //   Alignment::Begin => (),
-    //   Alignment::Center => {
-    //     position.x += (layout.max_size.x - measure.desired_size.x) / 2.;
-    //   },
-    //   Alignment::End => {
-    //     position.x += layout.max_size.x - measure.desired_size.x;
-    //   }
-    // }
-    // match self.align.1 {
-    //   Alignment::Begin => (),
-    //   Alignment::Center => {
-    //     position.y += (layout.max_size.y - measure.desired_size.y) / 2.;
-    //   },
-    //   Alignment::End => {
-    //     position.y += layout.max_size.y - measure.desired_size.y;
-    //   }
-    // }
+    match (self.align.0, self.direction) {
+      (Alignment::Begin, _) => (),
+      (Alignment::Center, UiDirection::Horizontal) => {
+        position.x += (measure.size.x - measure.hints.inner_content_size.unwrap().x) / 2.;
+      },
+      (Alignment::Center, UiDirection::Vertical) => {
+        position.y += (measure.size.y - measure.hints.inner_content_size.unwrap().y) / 2.;
+      },
+      (Alignment::End, UiDirection::Horizontal) => {
+        position.x += measure.size.x - measure.hints.inner_content_size.unwrap().x - self.padding.right - self.padding.left;
+      },
+      (Alignment::End, UiDirection::Vertical) => {
+        position.y += measure.size.y - measure.hints.inner_content_size.unwrap().y - self.padding.bottom - self.padding.top;
+      }
+    }
 
     for element in &self.elements {
       //(passing max size from layout rather than actual bounds for the sake of consistency with measure() above)
@@ -190,16 +198,16 @@ impl UiElement for Container {
       match (self.align.1, self.direction) {
         (Alignment::Begin, _) => (),
         (Alignment::Center, UiDirection::Horizontal) => {
-          el_layout.position.y += (measure.desired_size.y - self.padding.bottom - self.padding.top - el_measure.desired_size.y) / 2.;
+          el_layout.position.y += (measure.size.y - self.padding.bottom - self.padding.top - el_measure.size.y) / 2.;
         },
         (Alignment::Center, UiDirection::Vertical) => {
-          el_layout.position.x += (measure.desired_size.x - self.padding.left - self.padding.right - el_measure.desired_size.x) / 2.;
+          el_layout.position.x += (measure.size.x - self.padding.left - self.padding.right - el_measure.size.x) / 2.;
         },
         (Alignment::End, UiDirection::Horizontal) => {
-          el_layout.position.y += measure.desired_size.y - el_measure.desired_size.y - self.padding.bottom;
+          el_layout.position.y += measure.size.y - el_measure.size.y - self.padding.bottom;
         },
         (Alignment::End, UiDirection::Vertical) => {
-          el_layout.position.x += measure.desired_size.x - el_measure.desired_size.x - self.padding.right;
+          el_layout.position.x += measure.size.x - el_measure.size.x - self.padding.right;
         }
       }
 
@@ -209,10 +217,10 @@ impl UiElement for Container {
       //layout
       match self.direction {
         UiDirection::Horizontal => {
-          position.x += el_measure.desired_size.x + self.gap;
+          position.x += el_measure.size.x + self.gap;
         },
         UiDirection::Vertical => {
-          position.y += el_measure.desired_size.y + self.gap;
+          position.y += el_measure.size.y + self.gap;
         }
       }
     }

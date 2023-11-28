@@ -33,7 +33,7 @@ impl UiElement for ProgressBar {
 
   fn measure(&self, _: &StateRepo, layout: &LayoutInfo) -> Response {
     Response {
-      desired_size: vec2(
+      size: vec2(
         match self.size.0 {
           UiSize::Auto => layout.max_size.x.max(300.),
           UiSize::Percentage(p) => layout.max_size.x * p,
@@ -44,7 +44,9 @@ impl UiElement for ProgressBar {
           UiSize::Percentage(p) => layout.max_size.y * p,
           UiSize::Pixels(p) => p,
         }
-      )
+      ),
+      hints: Default::default(),
+      user_data: None,
     }
   }
 
@@ -53,14 +55,14 @@ impl UiElement for ProgressBar {
     if value < 1. {
       draw.push(UiDrawCommand::Rectangle {
         position: layout.position,
-        size: measure.desired_size,
+        size: measure.size,
         color: self.color_background
       });
     }
     if value > 0. {
       draw.push(UiDrawCommand::Rectangle {
         position: layout.position,
-        size: measure.desired_size * vec2(value, 1.0),
+        size: measure.size * vec2(value, 1.0),
         color: self.color_foreground
       });
     }

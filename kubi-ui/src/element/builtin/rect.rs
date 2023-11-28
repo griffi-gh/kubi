@@ -25,7 +25,7 @@ impl Default for Rect {
 impl UiElement for Rect {
   fn measure(&self, _state: &StateRepo, layout: &LayoutInfo) -> Response {
     Response {
-      desired_size: vec2(
+      size: vec2(
         match self.size.0 {
           UiSize::Auto => layout.max_size.x,
           UiSize::Percentage(percentage) => layout.max_size.x * percentage,
@@ -36,7 +36,9 @@ impl UiElement for Rect {
           UiSize::Percentage(percentage) => layout.max_size.y * percentage,
           UiSize::Pixels(pixels) => pixels,
         },
-      )
+      ),
+      hints: Default::default(),
+      user_data: None
     }
   }
 
@@ -44,7 +46,7 @@ impl UiElement for Rect {
     if let Some(color) = self.color {
       draw.push(UiDrawCommand::Rectangle {
         position: layout.position,
-        size: measure.desired_size,
+        size: measure.size,
         color,
       });
     }

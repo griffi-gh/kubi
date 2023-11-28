@@ -19,10 +19,12 @@ impl Default for Spacer {
 impl UiElement for Spacer {
   fn measure(&self, state: &StateRepo, layout: &LayoutInfo) -> Response {
     Response {
-      desired_size: match layout.direction {
+      size: match layout.direction {
         UiDirection::Horizontal => vec2(self.0, 0.),
         UiDirection::Vertical => vec2(0., self.0),
-      }
+      },
+      hints: Default::default(),
+      user_data: None
     }
   }
 
