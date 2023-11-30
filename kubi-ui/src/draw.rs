@@ -1,3 +1,5 @@
+use crate::IfModified;
+
 use std::borrow::Cow;
 use glam::{Vec2, Vec4, vec2};
 
@@ -98,6 +100,15 @@ impl UiDrawPlan {
     }
     Self {
       calls: vec![call]
+    }
+  }
+}
+
+impl IfModified<UiDrawPlan> for (bool, &UiDrawPlan) {
+  fn if_modified(&self) -> Option<&UiDrawPlan> {
+    match self.0 {
+      true => Some(self.1),
+      false => None,
     }
   }
 }

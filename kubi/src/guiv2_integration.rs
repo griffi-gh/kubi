@@ -31,10 +31,7 @@ pub fn kubi_ui_end(
   let ui: &mut UiState = &mut ui;
   let UiState { kui, renderer } = ui;
   kui.end();
-  let (upload_needed, plan) = kui.draw_plan();
-  if upload_needed {
-    renderer.update(plan);
-  }
+  renderer.update(kui);
 }
 
 pub fn kubi_ui_draw(

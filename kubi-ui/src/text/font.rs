@@ -36,3 +36,9 @@ impl FontManager {
     self.fonts.get(handle.0)
   }
 }
+
+impl Default for FontManager {
+  fn default() -> Self {
+    Self::new()
+  }
+}

@@ -15,7 +15,7 @@ use kubi_ui::{
   },
   interaction::IntoInteractable,
   UiSize,
-  UiDirection,
+  UiDirection, IfModified,
 };
 use kubi_ui_glium::GliumUiRenderer;
 
@@ -135,10 +135,7 @@ fn main() {
 
         kui.end();
 
-        let plan = kui.draw_plan();
-        if plan.0 {
-          backend.update(plan.1);
-        }
+        backend.update(&kui);
         backend.draw(&mut frame, resolution);
 
         frame.finish().unwrap();

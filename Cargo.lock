@@ -1034,19 +1034,28 @@ version = "0.0.0"
 dependencies = [
  "fontdue",
  "glam",
- "glium",
  "hashbrown",
- "kubi-logging",
- "kubi-ui-glium",
  "log",
  "nohash-hasher",
  "rect_packer",
+]
+
+[[package]]
+name = "kubi-ui-examples"
+version = "0.0.0"
+dependencies = [
+ "glam",
+ "glium",
+ "kubi-logging",
+ "kubi-ui",
+ "kubi-ui-glium",
+ "log",
  "winit",
 ]
 
 [[package]]
 name = "kubi-ui-glium"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "glam",
  "glium",

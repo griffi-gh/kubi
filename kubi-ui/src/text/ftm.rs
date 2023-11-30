@@ -4,6 +4,8 @@ use glam::{IVec2, UVec2, uvec2, ivec2};
 use hashbrown::HashMap;
 use rect_packer::DensePacker;
 
+use crate::IfModified;
+
 use super::font::{FontHandle, FontManager};
 
 
@@ -15,12 +17,37 @@ struct GlyphCacheKey {
   size: u8,
 }
 
-struct GlyphCacheEntry {
+pub struct GlyphCacheEntry {
   pub data: Vec<u8>,
   pub metrics: Metrics,
   pub position: IVec2,
   pub size: UVec2,
 }
+
+#[derive(Clone, Copy, Debug)]
+pub struct FontTextureInfo<'a> {
+  pub modified: bool,
+  pub data: &'a [u8],
+  pub size: UVec2,
+}
+
+impl<'a> IfModified<FontTextureInfo<'a>> for FontTextureInfo<'a> {
+  fn if_modified(&self) -> Option<&Self> {
+    match self.modified {
+      true => Some(self),
+      false => None,
+    }
+  }
+}
+
+// impl<'a> FontTextureInfo<'a> {
+//   fn if_modified(&self) -> Option<Self> {
+//     match self.modified {
+//       true => Some(*self),
+//       false => None,
+//     }
+//   }
+// }
 
 pub struct FontTextureManager {
   glyph_cache: HashMap<GlyphCacheKey, Arc<GlyphCacheEntry>>,
@@ -32,14 +59,25 @@ pub struct FontTextureManager {
 
 impl FontTextureManager {
   pub fn new(size: UVec2) -> Self {
-    let mut renderer = FontTextureManager {
+    FontTextureManager {
       glyph_cache: HashMap::new(),
       packer: DensePacker::new(size.x as i32, size.y as i32),
       font_texture: vec![0; (size.x * size.y) as usize],
       font_texture_size: size,
       modified: false,
-    };
-    renderer
+    }
+  }
+
+  pub fn reset_modified(&mut self) {
+    self.modified = false;
+  }
+
+  pub fn info(&self) -> FontTextureInfo {
+    FontTextureInfo {
+      modified: self.modified,
+      data: &self.font_texture,
+      size: self.font_texture_size,
+    }
   }
 
   /// Either looks up the glyph in the cache or renders it and adds it to the cache.

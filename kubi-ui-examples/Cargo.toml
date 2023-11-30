@@ -1,0 +1,16 @@
+#created as a workaround for rust-analyzer dependency cycle (which should be allowed)
+
+[package]
+name = "kubi-ui-examples"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+kubi-ui = { path = "../kubi-ui" }
+kubi-ui-glium = { path = "../kubi-ui-glium" }
+kubi-logging = { path = "../kubi-logging" }
+glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
+winit = "0.29"
+glam = "0.24"
+log = "0.4"

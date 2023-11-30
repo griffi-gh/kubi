@@ -13,36 +13,41 @@ use element::UiElement;
 use state::StateRepo;
 use event::UiEvent;
 use draw::{UiDrawCommands, UiDrawPlan};
+use text::{TextRenderer, FontTextureInfo};
 
 // pub struct ElementContext<'a> {
 //   pub state: &'a mut StateRepo,
 //   pub draw: &'a mut UiDrawCommands,
 //   pub text: &'a mut TextRenderer,
 // }
+pub trait IfModified<T> {
+  fn if_modified(&self) -> Option<&T>;
+}
 
 pub struct KubiUi {
-  mouse_position: Vec2,
+  //mouse_position: Vec2,
   stateful_state: StateRepo,
-  event_queue: VecDeque<UiEvent>,
+  //event_queue: VecDeque<UiEvent>,
   prev_draw_commands: UiDrawCommands,
   draw_commands: UiDrawCommands,
   draw_plan: UiDrawPlan,
   draw_plan_modified: bool,
-  // ftm: FontTextureManager,
+  text_renderer: TextRenderer,
 }
 
 impl KubiUi {
   pub fn new() -> Self {
     KubiUi {
-      mouse_position: Vec2::ZERO,
+      //mouse_position: Vec2::ZERO,
       stateful_state: StateRepo::default(),
-      event_queue: VecDeque::new(),
+      //event_queue: VecDeque::new(),
       // root_elements: Vec::new(),
       prev_draw_commands: UiDrawCommands::default(),
       draw_commands: UiDrawCommands::default(),
       draw_plan: UiDrawPlan::default(),
       draw_plan_modified: false,
       // ftm: FontTextureManager::default(),
+      text_renderer: TextRenderer::new(),
     }
   }
 
@@ -60,6 +65,7 @@ impl KubiUi {
     std::mem::swap(&mut self.prev_draw_commands, &mut self.draw_commands);
     self.draw_plan_modified = false;
     self.draw_commands.commands.clear();
+    self.text_renderer.reset_frame();
   }
 
   pub fn end(&mut self) {
@@ -72,6 +78,10 @@ impl KubiUi {
 
   pub fn draw_plan(&self) -> (bool, &UiDrawPlan) {
     (self.draw_plan_modified, &self.draw_plan)
+  }
+
+  pub fn font_texture(&self) -> FontTextureInfo {
+    self.text_renderer.font_texture()
   }
 }
 

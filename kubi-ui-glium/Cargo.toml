@@ -1,11 +1,12 @@
 [package]
 name = "kubi-ui-glium"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 kubi-ui = { path = "../kubi-ui", default-features = false }
+#kubi-ui = { path = "../kubi-ui" }
+glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
 glam = "0.24"
 log = "0.4"

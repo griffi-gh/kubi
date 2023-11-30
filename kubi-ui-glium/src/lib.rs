@@ -4,9 +4,13 @@ use glium::{
   Program, VertexBuffer, IndexBuffer,
   backend::Facade,
   index::PrimitiveType,
-  implement_vertex, uniform,
+  implement_vertex, uniform, texture::{SrgbTexture2d, RawImage2d},
 };
-use kubi_ui::draw::{UiDrawPlan, UiVertex};
+use kubi_ui::{
+  KubiUi,
+  draw::{UiDrawPlan, UiVertex},
+  text::FontTextureInfo, IfModified,
+};
 
 const VERTEX_SHADER: &str = include_str!("../shaders/vertex.vert");
 const FRAGMENT_SHADER: &str = include_str!("../shaders/fragment.frag");
@@ -114,11 +118,29 @@ impl GliumUiRenderer {
     }
   }
 
-  pub fn update(&mut self, plan: &UiDrawPlan) {
+  pub fn update_draw_plan(&mut self, plan: &UiDrawPlan) {
     assert!(plan.calls.len() == 1, "multiple draw calls not supported yet");
     let data_vtx = &plan.calls[0].vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>();
     let data_idx = &plan.calls[0].indices;
     self.buffer.write_data(data_vtx, data_idx);
+  }
+
+  pub fn update_font_texture(&mut self, font_texture: &FontTextureInfo) {
+    //HACK: get context from buffer
+    let ctx = self.buffer.index_buffer.get_context();
+    SrgbTexture2d::new(ctx, RawImage2d::from_raw_rgb(
+      font_texture.data.to_owned(),
+      (font_texture.size.x, font_texture.size.y)
+    )).unwrap();
+  }
+
+  pub fn update(&mut self, kui: &KubiUi) {
+    if let Some(plan) = kui.draw_plan().if_modified() {
+      self.update_draw_plan(plan);
+    }
+    if let Some(texture) = kui.font_texture().if_modified() {
+      self.update_font_texture(texture);
+    }
   }
 
   pub fn draw(&self, frame: &mut glium::Frame, resolution: Vec2) {
