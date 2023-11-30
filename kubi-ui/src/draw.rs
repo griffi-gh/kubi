@@ -38,6 +38,7 @@ pub struct UiDrawCommands {
 //   }
 // }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BindTexture {
   FontTexture,
   //UserDefined(usize),
@@ -48,7 +49,7 @@ pub struct UiVertex {
   pub position: Vec2,
   pub color: Vec4,
   pub uv: Vec2,
-  //pub texture: Option<NonZeroU16>,
+  pub bind_texture: Option<BindTexture>,
 }
 
 #[derive(Default)]
@@ -75,21 +76,25 @@ impl UiDrawPlan {
               position: *position,
               color: *color,
               uv: vec2(0.0, 0.0),
+              bind_texture: None,
             },
             UiVertex {
               position: *position + Vec2::new(size.x, 0.0),
               color: *color,
               uv: vec2(1.0, 0.0),
+              bind_texture: None,
             },
             UiVertex {
               position: *position + *size,
               color: *color,
               uv: vec2(1.0, 1.0),
+              bind_texture: None,
             },
             UiVertex {
               position: *position + Vec2::new(0.0, size.y),
               color: *color,
               uv: vec2(0.0, 1.0),
+              bind_texture: None,
             },
           ]);
         },
