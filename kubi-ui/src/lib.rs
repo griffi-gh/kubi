@@ -13,7 +13,6 @@ use element::UiElement;
 use state::StateRepo;
 use event::UiEvent;
 use draw::{UiDrawCommands, UiDrawPlan};
-use text::TextRenderer;
 
 // pub struct ElementContext<'a> {
 //   pub state: &'a mut StateRepo,
@@ -29,7 +28,7 @@ pub struct KubiUi {
   draw_commands: UiDrawCommands,
   draw_plan: UiDrawPlan,
   draw_plan_modified: bool,
-  font_renderer: TextRenderer,
+  // ftm: FontTextureManager,
 }
 
 impl KubiUi {
@@ -43,7 +42,7 @@ impl KubiUi {
       draw_commands: UiDrawCommands::default(),
       draw_plan: UiDrawPlan::default(),
       draw_plan_modified: false,
-      font_renderer: TextRenderer::default(),
+      // ftm: FontTextureManager::default(),
     }
   }
 
@@ -67,7 +66,7 @@ impl KubiUi {
     if self.draw_commands.commands == self.prev_draw_commands.commands {
       return
     }
-    self.draw_plan = UiDrawPlan::build(&self.draw_commands, &mut self.font_renderer);
+    self.draw_plan = UiDrawPlan::build(&self.draw_commands);
     self.draw_plan_modified = true;
   }
 

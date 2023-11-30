@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use glam::{Vec2, Vec4, vec2};
-use crate::text::TextRenderer;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum UiDrawCommand {
@@ -62,7 +61,7 @@ pub struct UiDrawPlan {
 }
 
 impl UiDrawPlan {
-  pub fn build(calls: &UiDrawCommands, tr: &mut TextRenderer) -> Self {
+  pub fn build(calls: &UiDrawCommands) -> Self {
     let mut call = UiDrawCall::default();
     for command in &calls.commands {
       match command {
