@@ -72,7 +72,7 @@ impl KubiUi {
     if self.draw_commands.commands == self.prev_draw_commands.commands {
       return
     }
-    self.draw_plan = UiDrawPlan::build(&self.draw_commands);
+    self.draw_plan = UiDrawPlan::build(&self.draw_commands, &mut self.text_renderer);
     self.draw_plan_modified = true;
   }
 

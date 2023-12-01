@@ -1,4 +1,4 @@
-use crate::IfModified;
+use crate::{IfModified, text::TextRenderer};
 
 use std::borrow::Cow;
 use glam::{Vec2, Vec4, vec2};
@@ -49,13 +49,13 @@ pub struct UiVertex {
   pub position: Vec2,
   pub color: Vec4,
   pub uv: Vec2,
-  pub bind_texture: Option<BindTexture>,
 }
 
 #[derive(Default)]
 pub struct UiDrawCall {
   pub vertices: Vec<UiVertex>,
   pub indices: Vec<u32>,
+  pub bind_texture: Option<BindTexture>,
 }
 
 #[derive(Default)]
@@ -64,7 +64,7 @@ pub struct UiDrawPlan {
 }
 
 impl UiDrawPlan {
-  pub fn build(calls: &UiDrawCommands) -> Self {
+  pub fn build(calls: &UiDrawCommands, tr: &mut TextRenderer) -> Self {
     let mut call = UiDrawCall::default();
     for command in &calls.commands {
       match command {
@@ -76,25 +76,21 @@ impl UiDrawPlan {
               position: *position,
               color: *color,
               uv: vec2(0.0, 0.0),
-              bind_texture: None,
             },
             UiVertex {
               position: *position + Vec2::new(size.x, 0.0),
               color: *color,
               uv: vec2(1.0, 0.0),
-              bind_texture: None,
             },
             UiVertex {
               position: *position + *size,
               color: *color,
               uv: vec2(1.0, 1.0),
-              bind_texture: None,
             },
             UiVertex {
               position: *position + Vec2::new(0.0, size.y),
               color: *color,
               uv: vec2(0.0, 1.0),
-              bind_texture: None,
             },
           ]);
         },
