@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use fontdue::{Font, Metrics};
+use fontdue::Metrics;
 use glam::{IVec2, UVec2, uvec2, ivec2};
 use hashbrown::HashMap;
 use rect_packer::DensePacker;
@@ -7,8 +7,6 @@ use rect_packer::DensePacker;
 use crate::IfModified;
 
 use super::font::{FontHandle, FontManager};
-
-
 
 #[derive(PartialEq, Eq, Hash)]
 struct GlyphCacheKey {
