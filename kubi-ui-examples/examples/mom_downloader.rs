@@ -8,14 +8,12 @@ use winit::{
 use kubi_ui::{
   KubiUi,
   element::{
-    UiElement,
     progress_bar::ProgressBar,
     container::{Container, Sides, Alignment},
-    rect::Rect, text::Text
+    text::Text
   },
-  interaction::IntoInteractable,
   UiSize,
-  UiDirection, IfModified, elements,
+  elements,
 };
 use kubi_ui_glium::GliumUiRenderer;
 
@@ -24,7 +22,7 @@ fn main() {
 
   let event_loop = EventLoopBuilder::new().build().unwrap();
   let (window, display) = SimpleWindowBuilder::new().build(&event_loop);
-  window.set_title("Mom downloader 2000");
+  window.set_title("Mom Downloader 2000");
 
   let mut kui = KubiUi::new();
   let mut backend = GliumUiRenderer::new(&display);
@@ -47,32 +45,56 @@ fn main() {
 
         kui.begin();
 
+        let mom_ratio = (instant.elapsed().as_secs_f32() / 60.).powf(0.5);
+
         kui.add(Container {
-          gap: 5.,
-          padding: Sides::all(5.),
-          align: (Alignment::Begin, Alignment::Begin),
+          align: (Alignment::Center, Alignment::Center),
           size: (UiSize::Percentage(1.), UiSize::Percentage(1.)),
-          background: Some(vec4(0.2, 0.2, 0.5, 1.)),
-          elements: elements(|el| {
-            if instant.elapsed().as_secs_f32() < 5. {
-              el.add(Text {
-                text: "Downloading your mom...".into(),
-                font: font_handle,
-                ..Default::default()
-              });
-              el.add(ProgressBar {
-                value: (instant.elapsed().as_secs_f32() / 60.).powf(0.5),
-                ..Default::default()
-              });
-            } else {
-              el.add(Text {
-                text: "Error 413 (Request Entity Too Large)".into(),
-                font: font_handle,
-                color: vec4(1., 0., 0., 1.),
-                ..Default::default()
-              });
-            }
-          }),
+          background: Some(vec4(0.1, 0.1, 0.1, 1.)),
+          elements: vec![Box::new(Container {
+            gap: 5.,
+            padding: Sides::all(10.),
+            align: (Alignment::Begin, Alignment::Begin),
+            size: (UiSize::Pixels(450.), UiSize::Auto),
+            background: Some(vec4(0.2, 0.2, 0.5, 1.)),
+            elements: elements(|el| {
+              if instant.elapsed().as_secs_f32() < 5. {
+                el.add(Text {
+                  text: "Downloading your mom...".into(),
+                  font: font_handle,
+                  text_size: 32,
+                  ..Default::default()
+                });
+                el.add(ProgressBar {
+                  value: mom_ratio,
+                  ..Default::default()
+                });
+                el.add(Text {
+                  text: format!("{:.2}% ({:.1} GB)", mom_ratio * 100., mom_ratio * 10000.).into(),
+                  font: font_handle,
+                  text_size: 24,
+                  ..Default::default()
+                });
+              } else if instant.elapsed().as_secs() < 10 {
+                el.add(Text {
+                  text: "Error 413 Request Entity Too Large".into(),
+                  font: font_handle,
+                  color: vec4(1., 0.125, 0.125, 1.),
+                  text_size: 26,
+                  ..Default::default()
+                });
+                el.add(Text {
+                  text: format!("Exiting in {}...", 10 - instant.elapsed().as_secs()).into(),
+                  font: font_handle,
+                  text_size: 24,
+                  ..Default::default()
+                })
+              } else {
+                window_target.exit();
+              }
+            }),
+            ..Default::default()
+          })],
           ..Default::default()
         }, resolution);
 

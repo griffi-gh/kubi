@@ -88,10 +88,19 @@ impl Default for Container {
 
 impl Container {
   pub fn measure_max_inner_size(&self, layout: &LayoutInfo) -> Vec2 {
-    //TODO take explicit size into account
-    layout.max_size - vec2(
-      self.padding.left + self.padding.right,
-      self.padding.top + self.padding.bottom,
+    let outer_size_x = match self.size.0 {
+      UiSize::Auto => layout.max_size.x,
+      UiSize::Percentage(p) => layout.max_size.x * p,
+      UiSize::Pixels(p) => p,
+    };
+    let outer_size_y = match self.size.1 {
+      UiSize::Auto => layout.max_size.y,
+      UiSize::Percentage(p) => layout.max_size.y * p,
+      UiSize::Pixels(p) => p,
+    };
+    vec2(
+      outer_size_x - (self.padding.left + self.padding.right),
+      outer_size_y - (self.padding.top + self.padding.bottom),
     )
   }
 }

@@ -7,7 +7,7 @@ use glium::{
   texture::{SrgbTexture2d, RawImage2d},
   index::PrimitiveType,
   implement_vertex,
-  uniform, uniforms::DynamicUniforms,
+  uniform, uniforms::{Sampler, SamplerBehavior, SamplerWrapFunction},
 };
 use kubi_ui::{
   KubiUi,
@@ -17,6 +17,7 @@ use kubi_ui::{
 
 const VERTEX_SHADER: &str = include_str!("../shaders/vertex.vert");
 const FRAGMENT_SHADER: &str = include_str!("../shaders/fragment.frag");
+const FRAGMENT_SHADER_TEX: &str = include_str!("../shaders/fragment_tex.frag");
 
 #[derive(Clone, Copy)]
 #[repr(C)]
@@ -114,6 +115,7 @@ struct GlDrawCall {
 pub struct GliumUiRenderer {
   context: Rc<Context>,
   program: glium::Program,
+  program_tex: glium::Program,
   font_texture: Option<Rc<SrgbTexture2d>>,
   plan: Vec<GlDrawCall>,
 }
@@ -123,6 +125,7 @@ impl GliumUiRenderer {
     log::info!("init glium backend for kui");
     Self {
       program: Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap(),
+      program_tex: Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER_TEX, None).unwrap(),
       context: Rc::clone(facade.get_context()),
       font_texture: None,
       plan: vec![]
@@ -200,11 +203,13 @@ impl GliumUiRenderer {
         frame.draw(
           vtx_buffer,
           idx_buffer,
-          &self.program,
+          &self.program_tex,
           &uniform! {
             resolution: resolution.to_array(),
-            tex: bind_texture.as_ref(),
-            use_tex: true,
+            tex: Sampler(bind_texture.as_ref(), SamplerBehavior {
+              wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
+              ..Default::default()
+            }),
           },
           &params,
         ).unwrap();
@@ -215,7 +220,6 @@ impl GliumUiRenderer {
           &self.program,
           &uniform! {
             resolution: resolution.to_array(),
-            use_tex: false,
           },
           &params,
         ).unwrap();
