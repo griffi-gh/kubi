@@ -26,12 +26,10 @@ fn main() {
   let (window, display) = SimpleWindowBuilder::new().build(&event_loop);
 
   let mut kui = KubiUi::new();
-
-  let handle = kui.add_font_from_bytes(include_bytes!("../../assets/fonts/roboto/Roboto-Regular.ttf"));
-
   let mut backend = GliumUiRenderer::new(&display);
 
-  let instant = Instant::now();
+  let font_handle = kui.add_font_from_bytes(include_bytes!("../../assets/fonts/roboto/Roboto-Regular.ttf"));
+
   event_loop.run(|event, window_target| {
     window_target.set_control_flow(ControlFlow::Poll);
     match event {
@@ -54,7 +52,7 @@ fn main() {
           elements: vec![
             Box::new(Text {
               text: "Hello_world".into(),
-              font: handle,
+              font: font_handle,
               ..Default::default()
             }),
           ],

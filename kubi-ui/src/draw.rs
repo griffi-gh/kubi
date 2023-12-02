@@ -188,7 +188,6 @@ impl UiDrawPlan {
               },
             ]);
           }
-
         }
       }
       prev_command = Some(command);
