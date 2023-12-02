@@ -12,6 +12,7 @@ mod builtin {
   pub mod container;
   pub mod spacer;
   pub mod progress_bar;
+  pub mod text;
 }
 
 #[cfg(feature = "builtin_elements")]

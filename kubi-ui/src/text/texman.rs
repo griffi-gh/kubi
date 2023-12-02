@@ -60,7 +60,7 @@ impl FontTextureManager {
     FontTextureManager {
       glyph_cache: HashMap::new(),
       packer: DensePacker::new(size.x as i32, size.y as i32),
-      font_texture: vec![0; (size.x * size.y) as usize],
+      font_texture: vec![0; (size.x * size.y * 4) as usize],
       font_texture_size: size,
       modified: false,
     }
@@ -79,17 +79,18 @@ impl FontTextureManager {
   }
 
   /// Either looks up the glyph in the cache or renders it and adds it to the cache.
-  fn glyph_allocate(&mut self, font_manager: &FontManager, font_handle: FontHandle, character: char, size: u8) -> (bool, Arc<GlyphCacheEntry>) {
+  pub fn glyph(&mut self, font_manager: &FontManager, font_handle: FontHandle, character: char, size: u8) -> Arc<GlyphCacheEntry> {
     let key = GlyphCacheKey {
       font_index: font_handle.0,
       character,
       size,
     };
     if let Some(entry) = self.glyph_cache.get(&key) {
-      return (false, Arc::clone(entry));
+      return Arc::clone(entry);
     }
     let font = font_manager.get(font_handle).unwrap();
     let (metrics, bitmap) = font.rasterize(character, size as f32);
+    log::debug!("rasterized glyph: {:?}, {:?}", metrics, bitmap);
     let texture_position = self.packer.pack(metrics.width as i32, metrics.height as i32, false).unwrap();
     let texture_size = uvec2(metrics.width as u32, metrics.height as u32);
     let entry = Arc::new(GlyphCacheEntry {
@@ -99,30 +100,37 @@ impl FontTextureManager {
       size: texture_size,
     });
     self.glyph_cache.insert_unique_unchecked(key, Arc::clone(&entry));
-    (true, entry)
+    self.glyph_place(&entry);
+    self.modified = true;
+    entry
   }
 
   /// Place glyph onto the font texture.
   fn glyph_place(&mut self, entry: &GlyphCacheEntry) {
     let tex_size = self.font_texture_size;
-    let GlyphCacheEntry { size, position, .. } = entry;
+    let GlyphCacheEntry { size, position, data, .. } = entry;
+    //println!("{size:?} {position:?}");
     for y in 0..size.y {
       for x in 0..size.x {
         let src = (size.x * y + x) as usize;
-        let dst = (tex_size.x * (y + position.y as u32) + (x + position.x as u32)) as usize;
-        self.font_texture[dst] = entry.data[src];
+        let dst = (tex_size.x * (y + position.y as u32) + (x + position.x as u32)) as usize * 4;
+        self.font_texture[dst..=(dst + 3)].copy_from_slice(&[255, 0, 0, data[src]]);
+        self.font_texture[dst] = data[src];
+        //print!("{} ", if data[src] > 0 {'#'} else {'.'});
+        //print!("{src} {dst} / ");
       }
+      //println!();
     }
   }
 
-  pub fn glyph(&mut self, font_manager: &FontManager, font_handle: FontHandle, character: char, size: u8) -> Arc<GlyphCacheEntry> {
-    let (is_new, glyph) = self.glyph_allocate(font_manager, font_handle, character, size);
-    if is_new {
-      self.glyph_place(&glyph);
-      self.modified = true;
-    }
-    glyph
-  }
+  // pub fn glyph(&mut self, font_manager: &FontManager, font_handle: FontHandle, character: char, size: u8) -> Arc<GlyphCacheEntry> {
+  //   let (is_new, glyph) = self.glyph_allocate(font_manager, font_handle, character, size);
+  //   if is_new {
+  //     self.glyph_place(&glyph);
+  //     self.modified = true;
+  //   }
+  //   glyph
+  // }
 }
 
 impl Default for FontTextureManager {

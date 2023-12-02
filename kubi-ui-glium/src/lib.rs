@@ -1,14 +1,17 @@
+use std::rc::Rc;
 use glam::Vec2;
 use glium::{
   Surface, DrawParameters, Blend,
   Program, VertexBuffer, IndexBuffer,
-  backend::Facade,
+  backend::{Facade, Context},
+  texture::{SrgbTexture2d, RawImage2d},
   index::PrimitiveType,
-  implement_vertex, uniform, texture::{SrgbTexture2d, RawImage2d},
+  implement_vertex,
+  uniform, uniforms::DynamicUniforms,
 };
 use kubi_ui::{
   KubiUi,
-  draw::{UiDrawPlan, UiVertex},
+  draw::{UiDrawPlan, UiVertex, BindTexture},
   text::FontTextureInfo, IfModified,
 };
 
@@ -36,10 +39,10 @@ impl From<UiVertex> for Vertex {
 implement_vertex!(Vertex, position, color, uv);
 
 struct BufferPair {
-  vertex_buffer: glium::VertexBuffer<Vertex>,
-  index_buffer: glium::IndexBuffer<u32>,
-  vertex_count: usize,
-  index_count: usize,
+  pub vertex_buffer: glium::VertexBuffer<Vertex>,
+  pub index_buffer: glium::IndexBuffer<u32>,
+  pub vertex_count: usize,
+  pub index_count: usize,
 }
 
 impl BufferPair {
@@ -102,65 +105,121 @@ impl BufferPair {
   }
 }
 
-pub struct GliumUiRenderer {
-  program: glium::Program,
+struct GlDrawCall {
+  active: bool,
   buffer: BufferPair,
+  bind_texture: Option<Rc<SrgbTexture2d>>,
+}
+
+pub struct GliumUiRenderer {
+  context: Rc<Context>,
+  program: glium::Program,
+  font_texture: Option<Rc<SrgbTexture2d>>,
+  plan: Vec<GlDrawCall>,
 }
 
 impl GliumUiRenderer {
   pub fn new<F: Facade>(facade: &F) -> Self {
-    log::info!("init glium backend for ui");
-    log::debug!("init program");
-    let program = Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap();
+    log::info!("init glium backend for kui");
     Self {
-      program,
-      buffer: BufferPair::new(facade)
+      program: Program::from_source(facade, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap(),
+      context: Rc::clone(facade.get_context()),
+      font_texture: None,
+      plan: vec![]
     }
   }
 
   pub fn update_draw_plan(&mut self, plan: &UiDrawPlan) {
-    assert!(plan.calls.len() == 1, "multiple draw calls not supported yet");
-    let data_vtx = &plan.calls[0].vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>();
-    let data_idx = &plan.calls[0].indices;
-    self.buffer.write_data(data_vtx, data_idx);
+    if plan.calls.len() > self.plan.len() {
+      self.plan.resize_with(plan.calls.len(), || {
+        GlDrawCall {
+          buffer: BufferPair::new(&self.context),
+          bind_texture: None,
+          active: false,
+        }
+      });
+    } else {
+      for step in &mut self.plan[plan.calls.len()..] {
+        step.active = false;
+      }
+    }
+    for (idx, call) in plan.calls.iter().enumerate() {
+      let data_vtx = &call.vertices.iter().copied().map(Vertex::from).collect::<Vec<_>>()[..];
+      let data_idx = &call.indices[..];
+      self.plan[idx].active = true;
+      self.plan[idx].buffer.write_data(data_vtx, data_idx);
+      self.plan[idx].bind_texture = match call.bind_texture {
+        Some(BindTexture::FontTexture) => {
+          const NO_FNT_TEX: &str = "Font texture exists in draw plan but not yet inited. Make sure to call update_font_texture() *before* update_draw_plan()";
+          Some(Rc::clone(self.font_texture.as_ref().expect(NO_FNT_TEX)))
+        },
+        None => None,
+      }
+    }
   }
 
   pub fn update_font_texture(&mut self, font_texture: &FontTextureInfo) {
-    //HACK: get context from buffer
-    let ctx = self.buffer.index_buffer.get_context();
-    SrgbTexture2d::new(ctx, RawImage2d::from_raw_rgb(
-      font_texture.data.to_owned(),
-      (font_texture.size.x, font_texture.size.y)
-    )).unwrap();
+    log::debug!("updating font texture");
+    self.font_texture = Some(Rc::new(SrgbTexture2d::new(
+      &self.context,
+      RawImage2d::from_raw_rgba(
+        font_texture.data.to_owned(),
+        (font_texture.size.x, font_texture.size.y)
+      )
+    ).unwrap()));
   }
 
   pub fn update(&mut self, kui: &KubiUi) {
-    if let Some(plan) = kui.draw_plan().if_modified() {
-      self.update_draw_plan(plan);
-    }
     if let Some(texture) = kui.font_texture().if_modified() {
       self.update_font_texture(texture);
+    }
+    if let Some(plan) = kui.draw_plan().if_modified() {
+      self.update_draw_plan(plan);
     }
   }
 
   pub fn draw(&self, frame: &mut glium::Frame, resolution: Vec2) {
-    if self.buffer.is_empty() {
-      return
-    }
-
     let params = DrawParameters {
       blend: Blend::alpha_blending(),
       ..Default::default()
     };
 
-    frame.draw(
-      self.buffer.vertex_buffer.slice(0..self.buffer.vertex_count).unwrap(),
-      self.buffer.index_buffer.slice(0..self.buffer.index_count).unwrap(),
-      &self.program,
-      &uniform! {
-        resolution: resolution.to_array(),
-      },
-      &params,
-    ).unwrap();
+    for step in &self.plan {
+      if !step.active {
+        continue
+      }
+
+      if step.buffer.is_empty() {
+        continue
+      }
+
+      let vtx_buffer = step.buffer.vertex_buffer.slice(0..step.buffer.vertex_count).unwrap();
+      let idx_buffer = step.buffer.index_buffer.slice(0..step.buffer.index_count).unwrap();
+
+      if let Some(bind_texture) = step.bind_texture.as_ref() {
+        frame.draw(
+          vtx_buffer,
+          idx_buffer,
+          &self.program,
+          &uniform! {
+            resolution: resolution.to_array(),
+            tex: bind_texture.as_ref(),
+            use_tex: true,
+          },
+          &params,
+        ).unwrap();
+      } else {
+        frame.draw(
+          vtx_buffer,
+          idx_buffer,
+          &self.program,
+          &uniform! {
+            resolution: resolution.to_array(),
+            use_tex: false,
+          },
+          &params,
+        ).unwrap();
+      }
+    }
   }
 }
