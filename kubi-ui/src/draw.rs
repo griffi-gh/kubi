@@ -23,6 +23,8 @@ pub enum UiDrawCommand {
     color: Vec4,
     ///Text to draw
     text: Cow<'static, str>,
+    ///Font handle to use
+    font: FontHandle,
   },
 }
 
@@ -146,12 +148,12 @@ impl UiDrawPlan {
             },
           ]);
         },
-        UiDrawCommand::Text { position, size, color, text } => {
+        UiDrawCommand::Text { position, size, color, text, font } => {
           let mut rpos_x = 0.;
           for char in text.chars() {
             let vidx = swapper.current().vertices.len() as u32;
-            let glyph = tr.glyph(FontHandle(0), char, *size);
-            rpos_x += 32.;//glyph.metrics.advance_width;
+            let glyph = tr.glyph(*font, char, *size);
+            rpos_x += glyph.metrics.advance_width;//glyph.metrics.advance_width;
             swapper.current_mut().indices.extend([vidx, vidx + 1, vidx + 2, vidx, vidx + 2, vidx + 3]);
             let p0x = glyph.position.x as f32 / 1024.;
             let p1x = (glyph.position.x + glyph.size.x as i32) as f32 / 1024.;
@@ -164,17 +166,17 @@ impl UiDrawPlan {
                 uv: vec2(p0x, p0y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x + 32., 0.0),
+                position: *position + vec2(rpos_x + glyph.metrics.width as f32, 0.0),
                 color: *color,
                 uv: vec2(p1x, p0y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x + 32., 32.),
+                position: *position + vec2(rpos_x + glyph.metrics.width as f32, glyph.metrics.height as f32),
                 color: *color,
                 uv: vec2(p1x, p1y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x + 0.0, 32.),
+                position: *position + vec2(rpos_x, glyph.metrics.height as f32),
                 color: *color,
                 uv: vec2(p0x, p1y),
               },

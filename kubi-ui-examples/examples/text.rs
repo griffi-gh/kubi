@@ -26,6 +26,9 @@ fn main() {
   let (window, display) = SimpleWindowBuilder::new().build(&event_loop);
 
   let mut kui = KubiUi::new();
+
+  let handle = kui.add_font_from_bytes(include_bytes!("../../assets/fonts/roboto/Roboto-Regular.ttf"));
+
   let mut backend = GliumUiRenderer::new(&display);
 
   let instant = Instant::now();
@@ -37,7 +40,7 @@ fn main() {
       },
       Event::AboutToWait => {
         let mut frame = display.draw();
-        frame.clear_color_srgb(0.5, 0.5, 0.5, 0.);
+        frame.clear_color_srgb(0., 0., 0., 1.);
 
         let resolution = UVec2::from(display.get_framebuffer_dimensions()).as_vec2();
 
@@ -51,6 +54,7 @@ fn main() {
           elements: vec![
             Box::new(Text {
               text: "Hello_world".into(),
+              font: handle,
               ..Default::default()
             }),
           ],

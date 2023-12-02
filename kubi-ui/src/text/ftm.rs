@@ -90,7 +90,7 @@ impl FontTextureManager {
     }
     let font = font_manager.get(font_handle).unwrap();
     let (metrics, bitmap) = font.rasterize(character, size as f32);
-    log::debug!("rasterized glyph: {:?}, {:?}", metrics, bitmap);
+    log::debug!("rasterized glyph: {}, {:?}, {:?}", character, metrics, bitmap);
     let texture_position = self.packer.pack(metrics.width as i32, metrics.height as i32, false).unwrap();
     let texture_size = uvec2(metrics.width as u32, metrics.height as u32);
     let entry = Arc::new(GlyphCacheEntry {
@@ -114,8 +114,7 @@ impl FontTextureManager {
       for x in 0..size.x {
         let src = (size.x * y + x) as usize;
         let dst = (tex_size.x * (y + position.y as u32) + (x + position.x as u32)) as usize * 4;
-        self.font_texture[dst..=(dst + 3)].copy_from_slice(&[255, 0, 0, data[src]]);
-        self.font_texture[dst] = data[src];
+        self.font_texture[dst..=(dst + 3)].copy_from_slice(&[255, 255, 255, data[src]]);
         //print!("{} ", if data[src] > 0 {'#'} else {'.'});
         //print!("{src} {dst} / ");
       }

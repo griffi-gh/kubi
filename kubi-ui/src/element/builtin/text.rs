@@ -6,13 +6,14 @@ use crate::{
   element::UiElement,
   state::StateRepo,
   measure::Response,
-  draw::UiDrawCommand
+  draw::UiDrawCommand, text::FontHandle
 };
 
 pub struct Text {
   pub text: Cow<'static, str>,
   pub size: (UiSize, UiSize),
   pub color: Vec4,
+  pub font: FontHandle
 }
 
 impl Default for Text {
@@ -21,6 +22,7 @@ impl Default for Text {
       text: "".into(),
       size: (UiSize::Percentage(1.), UiSize::Pixels(32.)),
       color: Vec4::new(1., 1., 1., 1.),
+      font: FontHandle(0)
     }
   }
 }
@@ -51,6 +53,7 @@ impl UiElement for Text {
       position: layout.position,
       size: 32,
       color: self.color,
+      font: self.font
     });
   }
 }

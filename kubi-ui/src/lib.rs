@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use glam::Vec2;
 
 pub mod element;
@@ -11,9 +10,8 @@ pub mod interaction;
 
 use element::UiElement;
 use state::StateRepo;
-use event::UiEvent;
 use draw::{UiDrawCommands, UiDrawPlan};
-use text::{TextRenderer, FontTextureInfo};
+use text::{TextRenderer, FontTextureInfo, FontHandle};
 
 // pub struct ElementContext<'a> {
 //   pub state: &'a mut StateRepo,
@@ -49,6 +47,10 @@ impl KubiUi {
       // ftm: FontTextureManager::default(),
       text_renderer: TextRenderer::new(),
     }
+  }
+
+  pub fn add_font_from_bytes(&mut self, font: &[u8]) -> FontHandle {
+    self.text_renderer.add_font_from_bytes(font)
   }
 
   pub fn add<T: UiElement>(&mut self, element: T, max_size: Vec2) {

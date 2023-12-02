@@ -5,6 +5,7 @@ mod ftm;
 
 use font::FontManager;
 pub use font::FontHandle;
+use fontdue::{Font, FontSettings};
 use ftm::FontTextureManager;
 pub use ftm::{FontTextureInfo, GlyphCacheEntry};
 
@@ -19,6 +20,10 @@ impl TextRenderer {
       fm: FontManager::new(),
       ftm: FontTextureManager::default(),
     }
+  }
+
+  pub fn add_font_from_bytes(&mut self, font: &[u8]) -> FontHandle {
+    self.fm.add_font(Font::from_bytes(font, FontSettings::default()).unwrap())
   }
 
   pub fn reset_frame(&mut self) {

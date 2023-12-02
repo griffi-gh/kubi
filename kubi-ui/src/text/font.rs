@@ -3,7 +3,7 @@ use fontdue::Font;
 #[cfg(feature = "builtin_font")]
 const BIN_FONT: &[u8] = include_bytes!("../../assets/font/ProggyTiny.ttf");
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct FontHandle(pub(crate) usize);
 
 #[cfg(feature = "builtin_font")]
