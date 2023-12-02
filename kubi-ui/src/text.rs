@@ -37,6 +37,10 @@ impl TextRenderer {
   pub fn glyph(&mut self, font_handle: FontHandle, character: char, size: u8) -> Arc<GlyphCacheEntry> {
     self.ftm.glyph(&self.fm, font_handle, character, size)
   }
+
+  pub(crate) fn internal_font(&self, handle: FontHandle) -> &Font {
+    self.fm.get(handle).unwrap()
+  }
 }
 
 impl Default for TextRenderer {

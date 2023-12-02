@@ -1,6 +1,7 @@
 use crate::{IfModified, text::{TextRenderer, FontHandle}};
 
 use std::borrow::Cow;
+use fontdue::layout::{Layout, CoordinateSystem, TextStyle};
 use glam::{Vec2, Vec4, vec2};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -155,11 +156,19 @@ impl UiDrawPlan {
           ]);
         },
         UiDrawCommand::Text { position, size, color, text, font } => {
-          let mut rpos_x = 0.;
-          for char in text.chars() {
+          //XXX: should we be doing this every time?
+          let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
+          layout.append(
+            &[tr.internal_font(*font)],
+            &TextStyle::new(&text, *size as f32, 0)
+          );
+          let glyphs = layout.glyphs();
+
+          //let mut rpos_x = 0.;
+          for layout_glyph in glyphs {
             let vidx = swapper.current().vertices.len() as u32;
-            let glyph = tr.glyph(*font, char, *size);
-            rpos_x += glyph.metrics.advance_width;//glyph.metrics.advance_width;
+            let glyph = tr.glyph(*font, layout_glyph.parent, layout_glyph.key.px as u8);
+            //rpos_x += glyph.metrics.advance_width;//glyph.metrics.advance_width;
             swapper.current_mut().indices.extend([vidx, vidx + 1, vidx + 2, vidx, vidx + 2, vidx + 3]);
             let p0x = glyph.position.x as f32 / 1024.;
             let p1x = (glyph.position.x + glyph.size.x as i32) as f32 / 1024.;
@@ -167,22 +176,22 @@ impl UiDrawPlan {
             let p1y = (glyph.position.y + glyph.size.y as i32) as f32 / 1024.;
             swapper.current_mut().vertices.extend([
               UiVertex {
-                position: *position + vec2(rpos_x, 0.0),
+                position: *position + vec2(layout_glyph.x, layout_glyph.y),
                 color: *color,
                 uv: vec2(p0x, p0y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x + glyph.metrics.width as f32, 0.0),
+                position: *position + vec2(layout_glyph.x + glyph.metrics.width as f32, layout_glyph.y),
                 color: *color,
                 uv: vec2(p1x, p0y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x + glyph.metrics.width as f32, glyph.metrics.height as f32),
+                position: *position + vec2(layout_glyph.x + glyph.metrics.width as f32, layout_glyph.y + glyph.metrics.height as f32),
                 color: *color,
                 uv: vec2(p1x, p1y),
               },
               UiVertex {
-                position: *position + vec2(rpos_x, glyph.metrics.height as f32),
+                position: *position + vec2(layout_glyph.x, layout_glyph.y + glyph.metrics.height as f32),
                 color: *color,
                 uv: vec2(p0x, p1y),
               },
