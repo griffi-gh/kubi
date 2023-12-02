@@ -93,7 +93,7 @@ fn main() {
               });
               elem.add(Spacer(100.));
               elem.add(Text {
-                text: "FLAG SHOULD NOT OVERLAP".into(),
+                text: "FLAG SHOULD NOT OVERLAP WITH TEXT".into(),
                 text_size: 64,
                 color: vec4(1., 0., 1., 1.),
                 ..Default::default()
