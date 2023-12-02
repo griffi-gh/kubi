@@ -114,3 +114,16 @@ pub struct LayoutInfo {
   pub max_size: Vec2,
   pub direction: UiDirection,
 }
+
+pub struct ElementList(Vec<Box<dyn UiElement>>);
+
+impl ElementList {
+  pub fn add(&mut self, element: impl UiElement + 'static) {
+    self.0.push(Box::new(element));
+  }
+}
+pub fn elements(f: impl FnOnce(&mut ElementList)) -> Vec<Box<dyn UiElement>> {
+  let mut elements = ElementList(Vec::new());
+  f(&mut elements);
+  elements.0
+}

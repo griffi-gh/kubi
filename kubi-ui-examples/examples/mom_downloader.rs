@@ -15,7 +15,7 @@ use kubi_ui::{
   },
   interaction::IntoInteractable,
   UiSize,
-  UiDirection, IfModified,
+  UiDirection, IfModified, elements,
 };
 use kubi_ui_glium::GliumUiRenderer;
 
@@ -24,11 +24,14 @@ fn main() {
 
   let event_loop = EventLoopBuilder::new().build().unwrap();
   let (window, display) = SimpleWindowBuilder::new().build(&event_loop);
+  window.set_title("Mom downloader 2000");
 
   let mut kui = KubiUi::new();
   let mut backend = GliumUiRenderer::new(&display);
 
   let font_handle = kui.add_font_from_bytes(include_bytes!("../../assets/fonts/roboto/Roboto-Regular.ttf"));
+
+  let instant = Instant::now();
 
   event_loop.run(|event, window_target| {
     window_target.set_control_flow(ControlFlow::Poll);
@@ -49,13 +52,27 @@ fn main() {
           padding: Sides::all(5.),
           align: (Alignment::Begin, Alignment::Begin),
           size: (UiSize::Percentage(1.), UiSize::Percentage(1.)),
-          elements: vec![
-            Box::new(Text {
-              text: "Hello_world".into(),
-              font: font_handle,
-              ..Default::default()
-            }),
-          ],
+          background: Some(vec4(0.2, 0.2, 0.5, 1.)),
+          elements: elements(|el| {
+            if instant.elapsed().as_secs_f32() < 5. {
+              el.add(Text {
+                text: "Downloading your mom...".into(),
+                font: font_handle,
+                ..Default::default()
+              });
+              el.add(ProgressBar {
+                value: (instant.elapsed().as_secs_f32() / 60.).powf(0.5),
+                ..Default::default()
+              });
+            } else {
+              el.add(Text {
+                text: "Error 413 (Request Entity Too Large)".into(),
+                font: font_handle,
+                color: vec4(1., 0., 0., 1.),
+                ..Default::default()
+              });
+            }
+          }),
           ..Default::default()
         }, resolution);
 

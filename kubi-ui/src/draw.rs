@@ -160,12 +160,15 @@ impl UiDrawPlan {
           let mut layout = Layout::new(CoordinateSystem::PositiveYDown);
           layout.append(
             &[tr.internal_font(*font)],
-            &TextStyle::new(&text, *size as f32, 0)
+            &TextStyle::new(text, *size as f32, 0)
           );
           let glyphs = layout.glyphs();
 
           //let mut rpos_x = 0.;
           for layout_glyph in glyphs {
+            if !layout_glyph.char_data.rasterize() {
+              continue
+            }
             let vidx = swapper.current().vertices.len() as u32;
             let glyph = tr.glyph(*font, layout_glyph.parent, layout_glyph.key.px as u8);
             //rpos_x += glyph.metrics.advance_width;//glyph.metrics.advance_width;
