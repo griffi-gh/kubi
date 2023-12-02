@@ -6,7 +6,7 @@ use crate::{
   element::UiElement,
   state::StateRepo,
   measure::Response,
-  draw::UiDrawCommand, text::FontHandle
+  draw::{UiDrawCommand, UiDrawCommands}, text::FontHandle
 };
 
 pub struct Text {
@@ -47,8 +47,8 @@ impl UiElement for Text {
     }
   }
 
-  fn process(&self, _measure: &Response, _state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
-    draw.push(UiDrawCommand::Text {
+  fn process(&self, _measure: &Response, _state: &mut StateRepo, layout: &LayoutInfo, draw: &mut UiDrawCommands) {
+    draw.add(UiDrawCommand::Text {
       text: self.text.clone(),
       position: layout.position,
       size: 32,

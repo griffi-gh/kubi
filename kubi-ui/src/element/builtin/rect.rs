@@ -5,7 +5,7 @@ use crate::{
   element::UiElement,
   state::StateRepo,
   measure::Response,
-  draw::UiDrawCommand
+  draw::{UiDrawCommand, UiDrawCommands}
 };
 
 pub struct Rect {
@@ -42,9 +42,9 @@ impl UiElement for Rect {
     }
   }
 
-  fn process(&self, measure: &Response, _state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
+  fn process(&self, measure: &Response, _state: &mut StateRepo, layout: &LayoutInfo, draw: &mut UiDrawCommands) {
     if let Some(color) = self.color {
-      draw.push(UiDrawCommand::Rectangle {
+      draw.add(UiDrawCommand::Rectangle {
         position: layout.position,
         size: measure.size,
         color,

@@ -5,7 +5,7 @@ use crate::{
   element::UiElement,
   state::StateRepo,
   measure::Response,
-  draw::UiDrawCommand
+  draw::{UiDrawCommand, UiDrawCommands}
 };
 
 pub struct Spacer(f32);
@@ -28,5 +28,5 @@ impl UiElement for Spacer {
     }
   }
 
-  fn process(&self, _measure: &Response, _state: &mut StateRepo, _layout: &LayoutInfo, _draw: &mut Vec<UiDrawCommand>) {}
+  fn process(&self, _measure: &Response, _state: &mut StateRepo, _layout: &LayoutInfo, _draw: &mut UiDrawCommands) {}
 }

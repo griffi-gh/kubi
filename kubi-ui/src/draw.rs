@@ -33,6 +33,12 @@ pub struct UiDrawCommands {
   pub commands: Vec<UiDrawCommand>,
 }
 
+impl UiDrawCommands {
+  pub fn add(&mut self, command: UiDrawCommand) {
+    self.commands.push(command);
+  }
+}
+
 // impl UiDrawCommands {
 //   pub fn compare(&self, other: &Self) -> bool {
 //     // if self.commands.len() != other.commands.len() { return false }

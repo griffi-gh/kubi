@@ -60,7 +60,7 @@ impl KubiUi {
       direction: UiDirection::Vertical,
     };
     let measure = element.measure(&self.stateful_state, &layout);
-    element.process(&measure, &mut self.stateful_state, &layout, &mut self.draw_commands.commands);
+    element.process(&measure, &mut self.stateful_state, &layout, &mut self.draw_commands);
   }
 
   pub fn begin(&mut self) {

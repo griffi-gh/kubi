@@ -3,7 +3,7 @@ use crate::{
   UiDirection,
   UiSize,
   LayoutInfo,
-  draw::UiDrawCommand,
+  draw::{UiDrawCommand, UiDrawCommands},
   measure::{Response, Hints},
   state::StateRepo,
   element::UiElement
@@ -59,6 +59,7 @@ pub struct Container {
   //pub reverse: bool,
   pub gap: f32,
   pub padding: Sides<f32>,
+  ///Primary/secondary axis
   pub align: (Alignment, Alignment),
   pub background: Option<Vec4>,
   pub borders: Sides<Option<Border>>,
@@ -76,7 +77,6 @@ impl Default for Container {
       //reverse: false,
       gap: 0.,
       padding: Sides::all(0.),
-      ///Primary/secondary axis
       align: (Alignment::Begin, Alignment::Begin),
       background: Default::default(),
       borders: Default::default(),
@@ -150,12 +150,12 @@ impl UiElement for Container {
     }
   }
 
-  fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut Vec<UiDrawCommand>) {
+  fn process(&self, measure: &Response, state: &mut StateRepo, layout: &LayoutInfo, draw: &mut UiDrawCommands) {
     let mut position = layout.position;
 
     //background
     if let Some(color) = self.background {
-      draw.push(UiDrawCommand::Rectangle {
+      draw.add(UiDrawCommand::Rectangle {
         position,
         size: measure.size,
         color
