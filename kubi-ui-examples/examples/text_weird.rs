@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{time::Instant, vec};
 use glam::{UVec2, vec4};
 use glium::{backend::glutin::SimpleWindowBuilder, Surface};
 use winit::{
@@ -10,7 +10,7 @@ use kubi_ui::{
   element::{
     progress_bar::ProgressBar,
     container::{Container, Sides, Alignment},
-    text::Text, rect::Rect
+    text::Text, rect::Rect, spacer::Spacer
   },
   UiSize,
   elements,
@@ -28,6 +28,7 @@ fn main() {
   let mut backend = GliumUiRenderer::new(&display);
 
   let font_handle = kui.add_font_from_bytes(include_bytes!("../../assets/fonts/roboto/Roboto-Regular.ttf"));
+  let instant = Instant::now();
 
   event_loop.run(|event, window_target| {
     window_target.set_control_flow(ControlFlow::Poll);
@@ -81,20 +82,23 @@ fn main() {
               text_size: 32,
               ..Default::default()
             });
-            elem.add(Rect {
-              size: (UiSize::Percentage(1.), UiSize::Pixels(10.)),
-              color: Some(vec4(1., 0., 0., 1.)),
-            });
-            elem.add(Rect {
-              size: (UiSize::Percentage(1.), UiSize::Pixels(10.)),
-              color: Some(vec4(0., 0., 0., 1.)),
-            });
-            elem.add(Text {
-              text: "OVERLAP TEST".into(),
-              font: font_handle,
-              text_size: 15,
-              ..Default::default()
-            });
+            if instant.elapsed().as_secs() & 1 != 0 {
+              elem.add(Rect {
+                size: (UiSize::Percentage(1.), UiSize::Pixels(10.)),
+                color: Some(vec4(1., 0., 0., 1.)),
+              });
+              elem.add(Rect {
+                size: (UiSize::Percentage(1.), UiSize::Pixels(10.)),
+                color: Some(vec4(0., 0., 0., 1.)),
+              });
+              elem.add(Spacer(100.));
+              elem.add(Text {
+                text: "FLAG SHOULD NOT OVERLAP".into(),
+                text_size: 64,
+                color: vec4(1., 0., 1., 1.),
+                ..Default::default()
+              });
+            }
           }),
           ..Default::default()
         }, resolution);

@@ -8,7 +8,7 @@ use crate::{
   draw::{UiDrawCommand, UiDrawCommands}
 };
 
-pub struct Spacer(f32);
+pub struct Spacer(pub f32);
 
 impl Default for Spacer {
   fn default() -> Self {
