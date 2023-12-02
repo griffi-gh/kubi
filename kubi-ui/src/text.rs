@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 mod font;
-mod texman;
+mod ftm;
 
 use font::FontManager;
 pub use font::FontHandle;
-use texman::FontTextureManager;
-pub use texman::{FontTextureInfo, GlyphCacheEntry};
+use ftm::FontTextureManager;
+pub use ftm::{FontTextureInfo, GlyphCacheEntry};
 
 pub struct TextRenderer {
   fm: FontManager,
