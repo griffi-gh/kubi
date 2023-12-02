@@ -119,10 +119,9 @@ impl UiDrawPlan {
         }
       }
 
-      let vidx = swapper.current().vertices.len() as u32;
-
       match command {
         UiDrawCommand::Rectangle { position, size, color } => {
+          let vidx = swapper.current().vertices.len() as u32;
           swapper.current_mut().indices.extend([vidx, vidx + 1, vidx + 2, vidx, vidx + 2, vidx + 3]);
           swapper.current_mut().vertices.extend([
             UiVertex {
@@ -148,32 +147,40 @@ impl UiDrawPlan {
           ]);
         },
         UiDrawCommand::Text { position, size, color, text } => {
+          let mut rpos_x = 0.;
           for char in text.chars() {
-            tr.glyph(FontHandle(0), char, *size);
+            let vidx = swapper.current().vertices.len() as u32;
+            let glyph = tr.glyph(FontHandle(0), char, *size);
+            rpos_x += 32.;//glyph.metrics.advance_width;
+            swapper.current_mut().indices.extend([vidx, vidx + 1, vidx + 2, vidx, vidx + 2, vidx + 3]);
+            let p0x = glyph.position.x as f32 / 1024.;
+            let p1x = (glyph.position.x + glyph.size.x as i32) as f32 / 1024.;
+            let p0y = glyph.position.y as f32 / 1024.;
+            let p1y = (glyph.position.y + glyph.size.y as i32) as f32 / 1024.;
+            swapper.current_mut().vertices.extend([
+              UiVertex {
+                position: *position + vec2(rpos_x, 0.0),
+                color: *color,
+                uv: vec2(p0x, p0y),
+              },
+              UiVertex {
+                position: *position + vec2(rpos_x + 32., 0.0),
+                color: *color,
+                uv: vec2(p1x, p0y),
+              },
+              UiVertex {
+                position: *position + vec2(rpos_x + 32., 32.),
+                color: *color,
+                uv: vec2(p1x, p1y),
+              },
+              UiVertex {
+                position: *position + vec2(rpos_x + 0.0, 32.),
+                color: *color,
+                uv: vec2(p0x, p1y),
+              },
+            ]);
           }
-          swapper.current_mut().indices.extend([vidx, vidx + 1, vidx + 2, vidx, vidx + 2, vidx + 3]);
-          swapper.current_mut().vertices.extend([
-            UiVertex {
-              position: *position,
-              color: *color,
-              uv: vec2(0.0, 0.0),
-            },
-            UiVertex {
-              position: *position + vec2(32., 0.0),
-              color: *color,
-              uv: vec2(1.0, 0.0),
-            },
-            UiVertex {
-              position: *position + vec2(32., 32.),
-              color: *color,
-              uv: vec2(1.0, 1.0),
-            },
-            UiVertex {
-              position: *position + vec2(0.0, 32.),
-              color: *color,
-              uv: vec2(0.0, 1.0),
-            },
-          ]);
+
         }
       }
       prev_command = Some(command);

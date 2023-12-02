@@ -135,6 +135,6 @@ impl FontTextureManager {
 
 impl Default for FontTextureManager {
   fn default() -> Self {
-    Self::new(uvec2(2048, 2048))
+    Self::new(uvec2(1024, 1024))
   }
 }

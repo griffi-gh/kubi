@@ -50,7 +50,7 @@ fn main() {
           size: (UiSize::Percentage(1.), UiSize::Percentage(1.)),
           elements: vec![
             Box::new(Text {
-              text: "Heloworld!Loremipsumsimdoloramet".into(),
+              text: "Hello_world".into(),
               ..Default::default()
             }),
           ],
