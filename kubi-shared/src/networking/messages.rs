@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::{chunk::{BlockData, CHUNK_SIZE}, queue::QueuedBlock, entity::Health};
 use super::client::ClientId;
 
-pub const PROTOCOL_ID: u16 = 1;
+pub const PROTOCOL_ID: u16 = 0;
 
 pub const C_CLIENT_HELLO: u8 = 0;
 pub const C_POSITION_CHANGED: u8 = 1;
