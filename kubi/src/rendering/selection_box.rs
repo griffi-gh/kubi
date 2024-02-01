@@ -17,7 +17,7 @@ use super::{
   primitives::cube::CubePrimitive,
 };
 
-const SMOL: f32 = 0.0001;
+const SMOL: f32 = 0.0025;
 
 pub fn render_selection_box(
   lookat: View<LookingAtBlock>,
