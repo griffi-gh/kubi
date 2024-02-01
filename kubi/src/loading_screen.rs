@@ -6,7 +6,7 @@ use crate::{
   state::{GameState, NextState},
   rendering::WindowSize,
   input::RawKbmInputState,
-  guiv2_integration::UiState,
+  kubi_ui_integration::UiState,
 };
 
 fn render_progressbar(
