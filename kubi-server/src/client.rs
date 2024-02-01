@@ -5,14 +5,14 @@ use uflow::SendMode;
 use std::net::SocketAddr;
 use kubi_shared::{
   networking::{
-    client::{ClientIdMap, Client}, 
-    messages::{ClientToServerMessage, ServerToClientMessage, C_POSITION_CHANGED},
-    channels::CHANNEL_MOVE
+    client::{ClientIdMap, Client},
+    messages::{ClientToServerMessage, ServerToClientMessage, ClientToServerMessageType},
+    channels::Channel
   },
   transform::Transform
 };
 use crate::{
-  server::{ServerEvents, UdpServer}, 
+  server::{ServerEvents, UdpServer},
   util::check_message_auth
 };
 
@@ -41,9 +41,10 @@ pub fn sync_client_positions(
   addrs: View<ClientAddress>,
 ) {
   for event in &events.0 {
-    let Some(message) = check_message_auth::<C_POSITION_CHANGED>(&server, event, &clients, &addr_map) else {
-      continue;
-    };
+    let Some(message) = check_message_auth
+      ::<{ClientToServerMessageType::PositionChanged as u8}>
+      (&server, event, &clients, &addr_map) else { continue };
+
     let ClientToServerMessage::PositionChanged { position, velocity: _, direction } = message.message else {
       unreachable!()
     };
@@ -71,8 +72,8 @@ pub fn sync_client_positions(
             position,
             direction
           }
-        ).unwrap().into_boxed_slice(), 
-        CHANNEL_MOVE, 
+        ).unwrap().into_boxed_slice(),
+        Channel::Move as usize,
         SendMode::Reliable
       );
     }

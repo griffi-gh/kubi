@@ -8,10 +8,10 @@ use kubi_shared::{
       ServerToClientMessage,
       InitData,
       ClientInitData,
-      C_CLIENT_HELLO, 
-    }, 
-    client::{Client, ClientId, Username}, 
-    channels::{CHANNEL_AUTH, CHANNEL_SYS_EVT},
+      ClientToServerMessageType,
+    },
+    client::{Client, ClientId, Username},
+    channels::Channel,
   }, 
   player::{Player, PLAYER_HEALTH}, 
   transform::Transform, entity::{Entity, Health}
@@ -37,7 +37,7 @@ pub fn authenticate_players(
     let ServerEvent::Receive(client_addr, data) = event else{
       continue
     };
-    if !event.is_message_of_type::<C_CLIENT_HELLO>() {
+    if !event.is_message_of_type::<{ClientToServerMessageType::ClientHello as u8}>() {
       continue
     }
     let Some(client) = server.0.client(client_addr) else {
@@ -62,7 +62,7 @@ pub fn authenticate_players(
             postcard::to_allocvec(&ServerToClientMessage::ServerFuckOff {
               reason: "Incorrect password".into()
             }).unwrap().into_boxed_slice(), 
-            CHANNEL_AUTH, 
+            Channel::Auth as usize,
             SendMode::Reliable
           );
           continue
@@ -72,7 +72,7 @@ pub fn authenticate_players(
           postcard::to_allocvec(&ServerToClientMessage::ServerFuckOff {
             reason: "This server is password protected".into()
           }).unwrap().into_boxed_slice(), 
-          CHANNEL_AUTH, 
+          Channel::Auth as usize,
           SendMode::Reliable
         );
         continue
@@ -88,7 +88,7 @@ pub fn authenticate_players(
         postcard::to_allocvec(&ServerToClientMessage::ServerFuckOff {
           reason: "Can't find a free spot for you!".into()
         }).unwrap().into_boxed_slice(), 
-        CHANNEL_AUTH, 
+        Channel::Auth as usize,
         SendMode::Reliable
       );
       continue
@@ -164,7 +164,7 @@ pub fn authenticate_players(
         };
         other_client.borrow_mut().send(
           postcard::to_allocvec(&message).unwrap().into_boxed_slice(),
-          CHANNEL_SYS_EVT,
+          Channel::SysEvt as usize,
           SendMode::Reliable
         );
       }
@@ -175,7 +175,7 @@ pub fn authenticate_players(
       postcard::to_allocvec(&ServerToClientMessage::ServerHello {
         init: init_data
       }).unwrap().into_boxed_slice(), 
-      CHANNEL_AUTH, 
+      Channel::Auth as usize,
       SendMode::Reliable
     );
 

@@ -4,10 +4,10 @@ use uflow::{SendMode, client::Event as ClientEvent};
 use kubi_shared::{
   transform::Transform,
   networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_PLAYER_POSITION_CHANGED, S_PLAYER_CONNECTED},
-    channels::CHANNEL_MOVE, 
+    messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
+    channels::Channel,
     client::ClientIdMap,
-  }, 
+  },
 };
 use crate::{
   events::player_actions::PlayerActionEvent,
@@ -35,7 +35,7 @@ pub fn send_player_movement_events(
         velocity: Vec3::ZERO,
         direction: *direction
       }).unwrap().into_boxed_slice(), 
-      CHANNEL_MOVE,
+      Channel::Move as usize,
       SendMode::TimeSensitive
     );
   }
@@ -51,7 +51,7 @@ pub fn receive_player_movement_events(
       continue
     };
 
-    if !event.is_message_of_type::<S_PLAYER_POSITION_CHANGED>() {
+    if !event.is_message_of_type::<{ServerToClientMessageType::PlayerPositionChanged as u8}>() {
       continue
     }
 
@@ -83,7 +83,7 @@ pub fn receive_player_connect_events(
     let ClientEvent::Receive(data) = &event.0 else {
       return None
     };
-    if !event.is_message_of_type::<S_PLAYER_CONNECTED>() {
+    if !event.is_message_of_type::<{ServerToClientMessageType::PlayerConnected as u8}>() {
       return None
     };
     let Ok(parsed_message) = postcard::from_bytes(data) else {

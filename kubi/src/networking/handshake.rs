@@ -1,11 +1,9 @@
 use shipyard::{UniqueViewMut, View, IntoIter, AllStoragesViewMut};
 use uflow::{client::Event as ClientEvent, SendMode};
-use kubi_shared::{
-  networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_SERVER_HELLO},
-    state::ClientJoinState, 
-    channels::CHANNEL_AUTH, 
-  }, 
+use kubi_shared::networking::{
+  messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
+  state::ClientJoinState,
+  channels::Channel,
 };
 use crate::player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
 use super::{UdpClient, NetworkEvent};
@@ -27,7 +25,7 @@ pub fn say_hello(
     postcard::to_allocvec(
       &ClientToServerMessage::ClientHello { username, password }
     ).unwrap().into_boxed_slice(),
-    CHANNEL_AUTH,
+    Channel::Auth as usize,
     SendMode::Reliable
   );
 }
@@ -40,7 +38,7 @@ pub fn check_server_hello_response(
     let ClientEvent::Receive(data) = &event.0 else {
       return None
     };
-    if !event.is_message_of_type::<S_SERVER_HELLO>() {
+    if !event.is_message_of_type::<{ServerToClientMessageType::ServerHello as u8}>() {
       return None
     }
     let Ok(parsed_message) = postcard::from_bytes(data) else {

@@ -4,9 +4,9 @@ use lz4_flex::decompress_size_prepended;
 use anyhow::{Result, Context};
 use kubi_shared::{
   networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, S_CHUNK_RESPONSE, S_QUEUE_BLOCK},
-    channels::CHANNEL_BLOCK,
-  }, 
+    messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
+    channels::Channel,
+  },
   queue::QueuedBlock
 };
 use crate::{
@@ -31,7 +31,7 @@ pub fn inject_network_responses_into_manager_queue(
   events: View<NetworkEvent>
 ) {
   for event in events.iter() {
-    if event.is_message_of_type::<S_CHUNK_RESPONSE>() {
+    if event.is_message_of_type::<{ServerToClientMessageType::ChunkResponse as u8}>() {
       let NetworkEvent(ClientEvent::Receive(data)) = &event else { unreachable!() };
       let packet = decompress_chunk_packet(data).expect("Chunk decode failed");
       let ServerToClientMessage::ChunkResponse {
@@ -56,13 +56,13 @@ pub fn send_block_place_events(
     };
     client.0.send(
       postcard::to_allocvec(&ClientToServerMessage::QueueBlock {
-        item: QueuedBlock { 
-          position: *position, 
-          block_type: *block, 
+        item: QueuedBlock {
+          position: *position,
+          block_type: *block,
           soft: false
         }
-      }).unwrap().into_boxed_slice(), 
-      CHANNEL_BLOCK, 
+      }).unwrap().into_boxed_slice(),
+      Channel::Block as usize,
       SendMode::Reliable,
     );
   }
@@ -76,7 +76,7 @@ pub fn recv_block_place_events(
     let ClientEvent::Receive(data) = &event.0 else {
       continue
     };
-    if !event.is_message_of_type::<S_QUEUE_BLOCK>() {
+    if !event.is_message_of_type::<{ServerToClientMessageType::QueueBlock as u8}>() {
       continue
     }
     let Ok(parsed_message) = postcard::from_bytes(data) else {

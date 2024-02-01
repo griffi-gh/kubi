@@ -2,8 +2,8 @@ use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllSto
 use glam::IVec3;
 use hashbrown::HashMap;
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, C_CHUNK_SUB_REQUEST, C_QUEUE_BLOCK}, 
-  channels::{CHANNEL_WORLD, CHANNEL_BLOCK}, 
+  messages::{ClientToServerMessage, ServerToClientMessage, ClientToServerMessageType},
+  channels::Channel,
   client::Client,
 };
 use uflow::{server::RemoteClient, SendMode};
@@ -45,7 +45,11 @@ pub fn send_chunk_compressed(
   ser_message.truncate(1);
   ser_message.append(&mut compressed);
   let ser_message = ser_message.into_boxed_slice();
-  client.borrow_mut().send(ser_message, CHANNEL_WORLD, SendMode::Reliable);
+  client.borrow_mut().send(
+    ser_message,
+    Channel::World as usize,
+    SendMode::Reliable
+  );
   Ok(())
 }
 
@@ -59,9 +63,10 @@ fn process_chunk_requests(
   clients: View<Client>
 ) {
   for event in &events.0 {
-    let Some(message) = check_message_auth::<C_CHUNK_SUB_REQUEST>(&server, event, &clients, &addr_map) else {
-      continue;
-    };
+    let Some(message) = check_message_auth
+      ::<{ClientToServerMessageType::ChunkSubRequest as u8}>
+      (&server, event, &clients, &addr_map) else { continue };
+
     let ClientToServerMessage::ChunkSubRequest { chunk: chunk_position } = message.message else {
       unreachable!()
     };
@@ -151,16 +156,17 @@ fn process_block_queue_messages(
   addrs: View<ClientAddress>,
 ) {
   for event in &events.0 {
-    let Some(message) = check_message_auth::<C_QUEUE_BLOCK>(&server, event, &clients, &addr_map) else {
-      continue;
-    };
+    let Some(message) = check_message_auth
+      ::<{ClientToServerMessageType::QueueBlock as u8}>
+      (&server, event, &clients, &addr_map) else { continue };
+
     let ClientToServerMessage::QueueBlock { item } = message.message else { unreachable!() };
     //TODO place in our own queue, for now just send to other clients
     log::info!("Placed block {:?} at {}", item.block_type, item.position);
     for (other_client, other_client_address) in (&clients, &addrs).iter() {
       //No need to send the event back
       if message.client_id == other_client.0 {
-        continue 
+        continue
       }
       //Get client
       let Some(client) = server.0.client(&other_client_address.0) else {
@@ -172,7 +178,7 @@ fn process_block_queue_messages(
         postcard::to_allocvec(
           &ServerToClientMessage::QueueBlock { item }
         ).unwrap().into_boxed_slice(), 
-        CHANNEL_BLOCK, 
+        Channel::Block as usize,
         SendMode::Reliable,
       );
     }
