@@ -179,9 +179,13 @@ pub fn android_main(app: android_activity::AndroidApp) {
 }
 
 #[no_mangle]
-pub fn kubi_main(#[cfg(target_os = "android")] app: android_activity::AndroidApp) {
+pub fn kubi_main(
+  #[cfg(target_os = "android")]
+  app: android_activity::AndroidApp
+) {
   //Attach console on release builds on windows
-  #[cfg(all(windows, not(debug_assertions)))] attach_console();
+  #[cfg(all(windows, not(debug_assertions)))]
+  attach_console();
 
   //Print version
   println!("{:─^54}", format!("[ ▄▀ Kubi client v. {} ]", env!("CARGO_PKG_VERSION")));
