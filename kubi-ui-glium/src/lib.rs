@@ -50,8 +50,8 @@ impl BufferPair {
   pub fn new<F: Facade>(facade: &F) -> Self {
     log::debug!("init ui buffers...");
     Self {
-      vertex_buffer: VertexBuffer::empty_persistent(facade, 1024).unwrap(),
-      index_buffer: IndexBuffer::empty_persistent(facade, PrimitiveType::TrianglesList, 1024).unwrap(),
+      vertex_buffer: VertexBuffer::empty_dynamic(facade, 1024).unwrap(),
+      index_buffer: IndexBuffer::empty_dynamic(facade, PrimitiveType::TrianglesList, 1024).unwrap(),
       vertex_count: 0,
       index_count: 0,
     }
@@ -68,13 +68,13 @@ impl BufferPair {
     let new_idx_size = (need_idx + 1).next_power_of_two();
     log::debug!("resizing buffers: vtx {} -> {}, idx {} -> {}", current_vtx_size, new_vtx_size, current_idx_size, new_idx_size);
     if current_vtx_size != new_vtx_size {
-      self.vertex_buffer = VertexBuffer::empty_persistent(
+      self.vertex_buffer = VertexBuffer::empty_dynamic(
         self.vertex_buffer.get_context(),
         new_vtx_size
       ).unwrap();
     }
     if current_idx_size != new_idx_size {
-      self.index_buffer = IndexBuffer::empty_persistent(
+      self.index_buffer = IndexBuffer::empty_dynamic(
         self.index_buffer.get_context(),
         PrimitiveType::TrianglesList,
         new_idx_size
