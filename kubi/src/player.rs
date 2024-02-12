@@ -1,7 +1,7 @@
 use glam::Mat4;
 use shipyard::{Component, AllStoragesViewMut, UniqueViewMut};
 use kubi_shared::{
-  entity::{Entity, Health}, 
+  entity::{Entity, Health},
   player::{Player, PLAYER_HEALTH, PlayerHolding},
   block::Block,
   networking::{
@@ -10,10 +10,11 @@ use kubi_shared::{
   }
 };
 use crate::{
+  camera::Camera,
+  client_physics::ClPhysicsActor,
+  fly_controller::FlyController,
   transform::Transform,
-  camera::Camera, 
-  fly_controller::FlyController, 
-  world::raycast::LookingAtBlock, 
+  world::raycast::LookingAtBlock
 };
 
 #[derive(Component)]
@@ -23,7 +24,7 @@ pub fn spawn_player (
   mut storages: AllStoragesViewMut,
 ) {
   log::info!("spawning player");
-  storages.add_entity((
+  storages.add_entity(((
     Player,
     MainPlayer,
     Entity,
@@ -33,8 +34,10 @@ pub fn spawn_player (
     FlyController,
     LookingAtBlock::default(),
     PlayerHolding(Some(Block::Cobblestone)),
-    Username("LocalPlayer".into())
-  ));
+    Username("LocalPlayer".into()),
+  ),(
+    ClPhysicsActor::default(),
+  )));
 }
 
 pub fn spawn_local_player_multiplayer (
@@ -42,22 +45,21 @@ pub fn spawn_local_player_multiplayer (
   init: ClientInitData
 ) {
   log::info!("spawning local multiplayer player");
-  let entity_id = storages.add_entity((
-    (
-      Player,
-      Client(init.client_id),
-      MainPlayer,
-      Entity,
-      init.health,
-      Transform(Mat4::from_rotation_translation(init.direction, init.position)),
-      Camera::default(),
-      FlyController,
-      LookingAtBlock::default(),
-      PlayerHolding::default(),
-    ),(
-      Username(init.username)
-    )
-  ));
+  let entity_id = storages.add_entity(((
+    Player,
+    Client(init.client_id),
+    MainPlayer,
+    Entity,
+    init.health,
+    Transform(Mat4::from_rotation_translation(init.direction, init.position)),
+    Camera::default(),
+    FlyController,
+    LookingAtBlock::default(),
+    PlayerHolding::default(),
+  ),(
+    Username(init.username),
+    ClPhysicsActor::default(),
+  )));
 
   //Add ourself to the client id map
   let mut client_id_map = storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();

@@ -37,6 +37,7 @@ pub(crate) mod loading_screen;
 pub(crate) mod connecting_screen;
 pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
+pub(crate) mod client_physics;
 
 use world::{
   init_game_world,
@@ -81,6 +82,7 @@ use loading_screen::update_loading_screen;
 use connecting_screen::switch_to_loading_if_connected;
 use fixed_timestamp::init_fixed_timestamp_storage;
 use filesystem::AssetManager;
+use client_physics::{init_client_physics, update_client_physics_late};
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -104,6 +106,7 @@ fn startup() -> Workload {
     init_input,
     insert_control_flow_unique,
     init_delta_time,
+    init_client_physics,
   ).into_sequential_workload()
 }
 
@@ -131,6 +134,7 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame_or_loading),
     (
       update_controllers,
+      update_client_physics_late,
       generate_move_events,
       update_raycasts,
       update_block_placement,
