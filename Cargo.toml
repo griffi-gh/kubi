@@ -33,3 +33,8 @@ opt-level = 3
 
 [profile.dev.package.rayon]
 opt-level = 3
+
+#this is cursed as fuck
+#enabling debug assertions here causes the game to abort
+[profile.dev.package.android-activity]
+debug-assertions = false
