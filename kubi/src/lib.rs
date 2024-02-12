@@ -51,7 +51,7 @@ use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
 use events::{
   clear_events, 
-  process_glutin_events, 
+  process_winit_events, 
   initial_resize_event,
   player_actions::generate_move_events, 
 };
@@ -257,7 +257,7 @@ pub fn kubi_main(
 
     window_target.set_control_flow(ControlFlow::Poll);
 
-    process_glutin_events(&mut world, &event);
+    process_winit_events(&mut world, &event);
 
     #[allow(clippy::collapsible_match, clippy::single_match)]
     match event {
