@@ -7,6 +7,6 @@ publish = false
 [dependencies]
 kubi-ui = { path = "../kubi-ui", default-features = false }
 #kubi-ui = { path = "../kubi-ui" }
-glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
-glam = "0.24"
+glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
+glam = "0.25"
 log = "0.4"

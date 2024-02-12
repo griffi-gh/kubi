@@ -10,7 +10,7 @@ publish = false
 kubi-ui = { path = "../kubi-ui" }
 kubi-ui-glium = { path = "../kubi-ui-glium" }
 kubi-logging = { path = "../kubi-logging" }
-glium = { git = "https://github.com/glium/glium", rev = "968fc92378caf" }
+glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
 winit = "0.29"
-glam = "0.24"
+glam = "0.25"
 log = "0.4"
