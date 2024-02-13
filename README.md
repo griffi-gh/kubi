@@ -51,8 +51,6 @@ cargo +nightly build --bin kubi --features nightly --release
 
 <h2>build for android</h2>
 
-warn: multitouch got broken after switching to `android-activity`, I'm still looking for a fix.  
-
 please note that android support is highly experimental!\
 gamepad, mouse input is currently borked, and proper touch controls are not available.\
 srgb and blending are broken too, which leads to many rendering issues
@@ -86,8 +84,6 @@ cargo apk run -p kubi --lib --no-default-features
 ```
 
 <h2>touch controls</h2>
-
-warn: multitouch got broken after switching to `android-activity`, I'm still looking for a fix.
 
 <img src=".readme/touch_controls.png" alt="touch control scheme" width="300">
 
