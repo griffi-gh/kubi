@@ -3,10 +3,31 @@ use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWor
 use std::f32::consts::PI;
 use crate::{transform::Transform, input::Inputs, settings::GameSettings, delta_time::DeltaTime};
 
-#[derive(Component)]
-pub struct FlyController;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PlayerControllerType {
+  FlyCam,
+  FpsCtl,
+}
 
-pub fn update_controllers() -> Workload {
+#[derive(Component)]
+pub struct PlayerController {
+  pub control_type: PlayerControllerType,
+  pub speed: f32,
+}
+
+impl PlayerController {
+  pub const DEFAULT_FLY_CAM: Self = Self {
+    control_type: PlayerControllerType::FlyCam,
+    speed: 30.,
+  };
+
+  pub const DEFAULT_FPS_CTL: Self = Self {
+    control_type: PlayerControllerType::FpsCtl,
+    speed: 10.,
+  };
+}
+
+pub fn update_player_controllers() -> Workload {
   (
     update_look,
     update_movement
@@ -16,7 +37,7 @@ pub fn update_controllers() -> Workload {
 const MAX_PITCH: f32 = PI/2. - 0.05;
 
 fn update_look(
-  controllers: View<FlyController>,
+  controllers: View<PlayerController>,
   mut transforms: ViewMut<Transform, track::All>,
   inputs: UniqueView<Inputs>,
   settings: UniqueView<GameSettings>,
@@ -36,13 +57,13 @@ fn update_look(
 }
 
 fn update_movement(
-  controllers: View<FlyController>,
+  controllers: View<PlayerController>,
   mut transforms: ViewMut<Transform, track::All>,
   inputs: UniqueView<Inputs>,
   dt: UniqueView<DeltaTime>,
 ) {
   if inputs.movement == Vec2::ZERO { return }
-  let movement = inputs.movement * 30. * dt.0.as_secs_f32();
+  let movement = inputs.movement * dt.0.as_secs_f32();
   for (_, mut transform) in (&controllers, &mut transforms).iter() {
     let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
     let rotation_norm = rotation.normalize();
