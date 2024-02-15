@@ -1,4 +1,4 @@
-use glam::{EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
+use glam::{vec3, EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
 use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, Unique, UniqueView, View, ViewMut, Workload};
 use winit::keyboard::KeyCode;
 use std::f32::consts::PI;
@@ -77,17 +77,23 @@ fn update_movement(
         transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
       },
       PlayerControllerType::FpsCtl => {
-        let actor = (&mut actors).get(id).unwrap();
+        let mut actor = (&mut actors).get(id).unwrap();
 
         let euler = rotation_norm.to_euler(EulerRot::YZX);
         let right = Vec2::from_angle(-euler.0).extend(0.).xzy();
         let forward = Vec2::from_angle(-(euler.0 + PI/2.)).extend(0.).xzy();
 
-        translation += forward * movement.z * ctl.speed * dt.0.as_secs_f32();
-        translation += right * movement.x * ctl.speed * dt.0.as_secs_f32();
-        translation += Vec3::Y * movement.y * ctl.speed * dt.0.as_secs_f32();
+        actor.apply_force(ctl.speed * (
+          (forward * movement.z) +
+          (right * movement.x) +
+          (Vec3::Y * movement.y)
+        ));
 
-        transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
+        // translation += forward * movement.z * ctl.speed * dt.0.as_secs_f32();
+        // translation += right * movement.x * ctl.speed * dt.0.as_secs_f32();
+        // translation += Vec3::Y * movement.y * ctl.speed * dt.0.as_secs_f32();
+
+        // transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
       }
     }
   }

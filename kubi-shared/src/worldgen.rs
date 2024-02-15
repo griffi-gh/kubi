@@ -52,6 +52,14 @@ pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<Queue
     }
   };
 
+  //STICK
+  if chunk_position.x == 0 && chunk_position.y == 5 {
+    for z in 0..CHUNK_SIZE {
+      blocks[0][0][z] = Block::Stone;
+    }
+  }
+  //
+
   let mut height_noise = FastNoise::seeded(seed);
   height_noise.set_fractal_type(FractalType::FBM);
   height_noise.set_fractal_octaves(4);
