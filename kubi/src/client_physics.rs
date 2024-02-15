@@ -31,7 +31,7 @@ pub struct ClPhysicsActor {
   pub velocity: Vec3,
   pub terminal_velocity: f32,
   //TODO: this should be configurable per block
-  pub friction_agains_ground: f32,
+  pub ground_friction: f32,
   pub gravity_scale: f32,
   flag_ground: bool,
   flag_collision: bool,
@@ -56,7 +56,7 @@ impl Default for ClPhysicsActor {
       forces: Vec3::ZERO,
       velocity: Vec3::ZERO,
       terminal_velocity: 40.,
-      friction_agains_ground: 0.5,
+      ground_friction: 10.,
       gravity_scale: 1.,
       flag_ground: false,
       flag_collision: false,
@@ -114,7 +114,8 @@ pub fn update_client_physics_late(
     //get grid-aligned pos and blocks
     let actor_block_pos = actor_position.floor().as_ivec3();
     let actor_block = world.get_block(actor_block_pos);
-    let actor_block_below = world.get_block(actor_block_pos + IVec3::NEG_Y);
+    let actor_block_pos_slightly_below = (actor_position + Vec3::NEG_Y * 0.01).floor().as_ivec3();
+    let actor_block_below = world.get_block(actor_block_pos_slightly_below);
 
     //update flags
     actor.flag_collision = actor_block.is_solid();
@@ -139,7 +140,7 @@ pub fn update_client_physics_late(
       //HACK: for now, just stop the vertical velocity if on ground altogether,
       //as we don't have proper collision velocity resolution yet (we need to compute dot product or sth)
       if actor.flag_ground {
-        actor.velocity.y = 0.;
+        actor.velocity.y = actor.velocity.y.max(0.);
       }
     }
 
@@ -147,6 +148,13 @@ pub fn update_client_physics_late(
     actor_position += actor.velocity * dt.0.as_secs_f32();
     actor_position += actor.offset;
     transform.0 = Mat4::from_scale_rotation_translation(scale, rotation.normalize(), actor_position);
+
+    //Apply friction
+    // if actor.flag_ground {
+    //   let actor_velocity = actor.velocity;
+    //   let actor_friction = actor.ground_friction;
+    //   actor.velocity -= (actor_velocity * actor_friction * dt.0.as_secs_f32()) * vec3(1., 0., 1.);
+    // }
   }
   // for (_, mut transform) in (&controllers, &mut transforms).iter() {
   //   let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();

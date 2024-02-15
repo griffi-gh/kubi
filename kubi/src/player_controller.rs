@@ -2,7 +2,7 @@ use glam::{vec3, EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
 use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, Unique, UniqueView, View, ViewMut, Workload};
 use winit::keyboard::KeyCode;
 use std::f32::consts::PI;
-use crate::{client_physics::ClPhysicsActor, delta_time::DeltaTime, input::{Inputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
+use crate::{client_physics::ClPhysicsActor, delta_time::DeltaTime, input::{Inputs, PrevInputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlayerControllerType {
@@ -62,10 +62,12 @@ fn update_movement(
   mut transforms: ViewMut<Transform, track::All>,
   mut actors: ViewMut<ClPhysicsActor>,
   inputs: UniqueView<Inputs>,
+  prev_inputs: UniqueView<PrevInputs>,
   dt: UniqueView<DeltaTime>,
 ) {
-  if (inputs.movement == Vec2::ZERO) && !inputs.jump { return }
-  let movement = inputs.movement.extend(inputs.jump as u32 as f32).xzy();
+  let jump = inputs.jump && !prev_inputs.0.jump;
+  if (inputs.movement == Vec2::ZERO) && !jump { return }
+  let movement = inputs.movement.extend(jump as u32 as f32).xzy();
   for (id, (ctl, mut transform)) in (&controllers, &mut transforms).iter().with_id() {
     let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
     let rotation_norm = rotation.normalize();
@@ -78,6 +80,7 @@ fn update_movement(
       },
       PlayerControllerType::FpsCtl => {
         let mut actor = (&mut actors).get(id).unwrap();
+        let actor_on_ground = actor.on_ground();
 
         let euler = rotation_norm.to_euler(EulerRot::YZX);
         let right = Vec2::from_angle(-euler.0).extend(0.).xzy();
@@ -86,7 +89,8 @@ fn update_movement(
         actor.apply_force(ctl.speed * (
           (forward * movement.z) +
           (right * movement.x) +
-          (Vec3::Y * movement.y)
+          //TODO: remove hardcoded jump force
+          (Vec3::Y * movement.y * 125. * (actor_on_ground as u8 as f32))
         ));
 
         // translation += forward * movement.z * ctl.speed * dt.0.as_secs_f32();
