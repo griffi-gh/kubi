@@ -86,12 +86,22 @@ fn update_movement(
         let right = Vec2::from_angle(-euler.0).extend(0.).xzy();
         let forward = Vec2::from_angle(-(euler.0 + PI/2.)).extend(0.).xzy();
 
-        actor.apply_force(ctl.speed * (
-          (forward * movement.z) +
-          (right * movement.x) +
-          //TODO: remove hardcoded jump force
-          (Vec3::Y * movement.y * 125. * (actor_on_ground as u8 as f32))
-        ));
+        //TODO: remove hardcoded jump force
+        // actor.apply_constant_force(ctl.speed * (
+        //   (forward * movement.z) +
+        //   (right * movement.x)
+        // ));
+        actor.apply_force(
+          ctl.speed * (
+            (forward * movement.z) +
+            (right * movement.x)
+          ) +
+          Vec3::Y * movement.y * 1250. * (actor_on_ground as u8 as f32)
+        );
+
+        // actor.decel =
+        //   (right * (1. - inputs.movement.x.abs()) * 10.) +
+        //   (forward * (1. - inputs.movement.y.abs()) * 10.);
 
         // translation += forward * movement.z * ctl.speed * dt.0.as_secs_f32();
         // translation += right * movement.x * ctl.speed * dt.0.as_secs_f32();
