@@ -1,7 +1,8 @@
-use glam::{Vec3, Mat4, Quat, EulerRot, Vec2};
-use shipyard::{Component, View, ViewMut, IntoIter, UniqueView, Workload, IntoWorkload, track};
+use glam::{EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
+use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, Unique, UniqueView, View, ViewMut, Workload};
+use winit::keyboard::KeyCode;
 use std::f32::consts::PI;
-use crate::{transform::Transform, input::Inputs, settings::GameSettings, delta_time::DeltaTime};
+use crate::{client_physics::ClPhysicsActor, delta_time::DeltaTime, input::{Inputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlayerControllerType {
@@ -18,7 +19,7 @@ pub struct PlayerController {
 impl PlayerController {
   pub const DEFAULT_FLY_CAM: Self = Self {
     control_type: PlayerControllerType::FlyCam,
-    speed: 30.,
+    speed: 50.,
   };
 
   pub const DEFAULT_FPS_CTL: Self = Self {
@@ -59,16 +60,51 @@ fn update_look(
 fn update_movement(
   controllers: View<PlayerController>,
   mut transforms: ViewMut<Transform, track::All>,
+  mut actors: ViewMut<ClPhysicsActor>,
   inputs: UniqueView<Inputs>,
   dt: UniqueView<DeltaTime>,
 ) {
-  if inputs.movement == Vec2::ZERO { return }
-  let movement = inputs.movement * dt.0.as_secs_f32();
-  for (ctl, mut transform) in (&controllers, &mut transforms).iter() {
+  if (inputs.movement == Vec2::ZERO) && !inputs.jump { return }
+  let movement = inputs.movement.extend(inputs.jump as u32 as f32).xzy();
+  for (id, (ctl, mut transform)) in (&controllers, &mut transforms).iter().with_id() {
     let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
     let rotation_norm = rotation.normalize();
-    translation += (rotation_norm * Vec3::NEG_Z).normalize() * movement.y * ctl.speed;
-    translation += (rotation_norm * Vec3::X).normalize() * movement.x * ctl.speed;
-    transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
+    match ctl.control_type {
+      PlayerControllerType::FlyCam => {
+        translation += (rotation_norm * Vec3::NEG_Z).normalize() * movement.z * ctl.speed * dt.0.as_secs_f32();
+        translation += (rotation_norm * Vec3::X).normalize() * movement.x * ctl.speed * dt.0.as_secs_f32();
+        translation += Vec3::Y * movement.y * ctl.speed * dt.0.as_secs_f32();
+        transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
+      },
+      PlayerControllerType::FpsCtl => {
+        let actor = (&mut actors).get(id).unwrap();
+
+        let euler = rotation_norm.to_euler(EulerRot::YZX);
+        let right = Vec2::from_angle(-euler.0).extend(0.).xzy();
+        let forward = Vec2::from_angle(-(euler.0 + PI/2.)).extend(0.).xzy();
+
+        translation += forward * movement.z * ctl.speed * dt.0.as_secs_f32();
+        translation += right * movement.x * ctl.speed * dt.0.as_secs_f32();
+        translation += Vec3::Y * movement.y * ctl.speed * dt.0.as_secs_f32();
+
+        transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
+      }
+    }
+  }
+}
+
+pub fn debug_switch_ctl_type(
+  mut controllers: ViewMut<PlayerController>,
+  mut actors: ViewMut<ClPhysicsActor>,
+  kbm_state: UniqueView<RawKbmInputState>,
+) {
+  for (mut controller, mut actor) in (&mut controllers, &mut actors).iter() {
+    if kbm_state.keyboard_state.contains(KeyCode::F4 as u32) {
+      *controller = PlayerController::DEFAULT_FPS_CTL;
+      actor.disable = false;
+    } else if kbm_state.keyboard_state.contains(KeyCode::F5 as u32) {
+      *controller = PlayerController::DEFAULT_FLY_CAM;
+      actor.disable = true;
+    }
   }
 }

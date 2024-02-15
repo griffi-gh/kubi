@@ -187,7 +187,7 @@ fn update_input_state (
   inputs.look += raw_inputs.mouse_delta.as_vec2();
   inputs.action_a |= raw_inputs.button_state[0];
   inputs.action_b |= raw_inputs.button_state[1];
-  inputs.jump |= raw_inputs.button_state[2];
+  inputs.jump |= raw_inputs.keyboard_state.contains(KeyCode::Space as u32);
 }
 
 fn update_input_state_gamepad (

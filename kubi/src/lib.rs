@@ -57,7 +57,7 @@ use events::{
   player_actions::generate_move_events, 
 };
 use input::{init_input, process_inputs};
-use player_controller::update_player_controllers;
+use player_controller::{debug_switch_ctl_type, update_player_controllers};
 use rendering::{
   Renderer, 
   RenderTarget, 
@@ -133,6 +133,7 @@ fn update() -> Workload {
       update_loaded_world_around_player,
     ).into_sequential_workload().run_if(is_ingame_or_loading),
     (
+      debug_switch_ctl_type,
       update_player_controllers,
       update_client_physics_late,
       generate_move_events,

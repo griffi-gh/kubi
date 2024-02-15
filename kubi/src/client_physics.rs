@@ -25,12 +25,14 @@ impl Default for GlobalClPhysicsConfig {
 //XXX: maybe a capsule? (or configurable hull?)
 #[derive(Component)]
 pub struct ClPhysicsActor {
+  pub disable: bool,
   pub offset: Vec3,
   pub forces: Vec3,
   pub velocity: Vec3,
   pub terminal_velocity: f32,
   //TODO: this should be configurable per block
   pub friction_agains_ground: f32,
+  pub gravity_scale: f32,
   flag_ground: bool,
   flag_collision: bool,
 }
@@ -49,11 +51,13 @@ impl Default for ClPhysicsActor {
   fn default() -> Self {
     Self {
       //HACK: for player
+      disable: false,
       offset: vec3(0., 1.5, 0.),
       forces: Vec3::ZERO,
       velocity: Vec3::ZERO,
       terminal_velocity: 40.,
       friction_agains_ground: 0.5,
+      gravity_scale: 1.,
       flag_ground: false,
       flag_collision: false,
     }
@@ -93,6 +97,11 @@ pub fn update_client_physics_late(
   dt: UniqueView<DeltaTime>,
 ) {
   for (mut actor, mut transform) in (&mut actors, &mut transforms).iter() {
+    if actor.disable {
+      actor.forces = Vec3::ZERO;
+      continue;
+    }
+
     //apply forces
     let actor_forces = actor.forces;
     actor.velocity += (actor_forces + conf.gravity) * dt.0.as_secs_f32();
@@ -137,7 +146,7 @@ pub fn update_client_physics_late(
     //Apply velocity
     actor_position += actor.velocity * dt.0.as_secs_f32();
     actor_position += actor.offset;
-    transform.0 = Mat4::from_scale_rotation_translation(scale, rotation, actor_position);
+    transform.0 = Mat4::from_scale_rotation_translation(scale, rotation.normalize(), actor_position);
   }
   // for (_, mut transform) in (&controllers, &mut transforms).iter() {
   //   let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
