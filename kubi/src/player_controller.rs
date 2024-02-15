@@ -64,11 +64,11 @@ fn update_movement(
 ) {
   if inputs.movement == Vec2::ZERO { return }
   let movement = inputs.movement * dt.0.as_secs_f32();
-  for (_, mut transform) in (&controllers, &mut transforms).iter() {
+  for (ctl, mut transform) in (&controllers, &mut transforms).iter() {
     let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
     let rotation_norm = rotation.normalize();
-    translation += (rotation_norm * Vec3::NEG_Z).normalize() * movement.y;
-    translation += (rotation_norm * Vec3::X).normalize() * movement.x;
+    translation += (rotation_norm * Vec3::NEG_Z).normalize() * movement.y * ctl.speed;
+    translation += (rotation_norm * Vec3::X).normalize() * movement.x * ctl.speed;
     transform.0 = Mat4::from_scale_rotation_translation(scale, rotation_norm, translation);
   }
 }
