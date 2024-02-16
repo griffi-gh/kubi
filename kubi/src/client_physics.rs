@@ -1,6 +1,6 @@
 //TODO client-side physics
 //TODO move this to shared
-use glam::{vec3, IVec3, Mat4, Vec3};
+use glam::{vec3, IVec3, Mat4, Vec3, Vec3Swizzles};
 use shipyard::{track, AllStoragesView, Component, IntoIter, Unique, UniqueView, View, ViewMut};
 use kubi_shared::{block::{Block, CollisionType}, transform::Transform};
 use crate::{delta_time::DeltaTime, world::ChunkStorage};
@@ -30,11 +30,12 @@ pub struct ClPhysicsActor {
   pub disable: bool,
   pub offset: Vec3,
   pub forces: Vec3,
-  pub constant_forces: Vec3,
+  pub frame_velocity: Vec3,
   pub velocity: Vec3,
-  pub terminal_velocity: f32,
   pub decel: Vec3,
   pub gravity_scale: f32,
+  pub max_velocity: (Option<f32>, Option<f32>, Option<f32>),
+  pub hack_xz_circular: bool,
   flag_ground: bool,
   flag_collision: bool,
 }
@@ -44,8 +45,8 @@ impl ClPhysicsActor {
     self.forces += force;
   }
 
-  pub fn apply_constant_force(&mut self, force: Vec3) {
-    self.constant_forces += force;
+  pub fn add_frame_velocity(&mut self, force: Vec3) {
+    self.frame_velocity += force;
   }
 
   pub fn on_ground(&self) -> bool {
@@ -60,12 +61,13 @@ impl Default for ClPhysicsActor {
       disable: false,
       offset: vec3(0., 1.5, 0.),
       forces: Vec3::ZERO,
-      constant_forces: Vec3::ZERO,
+      frame_velocity: Vec3::ZERO,
       velocity: Vec3::ZERO,
-      terminal_velocity: 40.,
       //constant deceleration, in ratio per second. e.g. value of 1 should stop the actor in 1 second.
-      decel: vec3(0., 0., 0.),
+      decel: vec3(1., 0., 1.),
       gravity_scale: 1.,
+      max_velocity: (Some(20.), None, Some(20.)),
+      hack_xz_circular: true,
       flag_ground: false,
       flag_collision: false,
     }
@@ -152,16 +154,31 @@ pub fn update_client_physics_late(
       }
     }
 
+    //clamp velocity
+    let max_velocity = actor.max_velocity;
+    if actor.hack_xz_circular && actor.max_velocity.0.is_some() && (actor.max_velocity.0 == actor.max_velocity.2) {
+      actor.velocity.y = actor.velocity.y.clamp(-max_velocity.1.unwrap_or(f32::MAX), max_velocity.1.unwrap_or(f32::MAX));
+      let clamped = actor.velocity.xz().clamp_length_max(actor.max_velocity.0.unwrap_or(f32::MAX));
+      actor.velocity.x = clamped.x;
+      actor.velocity.z = clamped.y;
+    } else {
+      actor.velocity = vec3(
+        actor.velocity.x.clamp(-max_velocity.0.unwrap_or(f32::MAX), max_velocity.0.unwrap_or(f32::MAX)),
+        actor.velocity.y.clamp(-max_velocity.1.unwrap_or(f32::MAX), max_velocity.1.unwrap_or(f32::MAX)),
+        actor.velocity.z.clamp(-max_velocity.2.unwrap_or(f32::MAX), max_velocity.2.unwrap_or(f32::MAX)),
+      );
+    }
+
     //Apply velocity
-    actor_position += (actor.velocity + actor.constant_forces) * dt.0.as_secs_f32();
-    actor.constant_forces = Vec3::ZERO;
+    actor_position += (actor.velocity + actor.frame_velocity) * dt.0.as_secs_f32();
+    actor.frame_velocity = Vec3::ZERO;
     actor_position += actor.offset;
     transform.0 = Mat4::from_scale_rotation_translation(scale, rotation.normalize(), actor_position);
 
     //Apply "friction"
-    // let actor_velocity = actor.velocity;
-    // let actor_decel = actor.decel;
-    // actor.velocity -= actor_velocity * actor_decel * dt.0.as_secs_f32();
+    let actor_velocity = actor.velocity;
+    let actor_decel = actor.decel;
+    actor.velocity -= actor_velocity * actor_decel * dt.0.as_secs_f32();
   }
   // for (_, mut transform) in (&controllers, &mut transforms).iter() {
   //   let (scale, rotation, mut translation) = transform.0.to_scale_rotation_translation();
