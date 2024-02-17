@@ -26,13 +26,13 @@ pub fn send_player_movement_events(
   mut client: UniqueViewMut<UdpClient>,
 ) {
   for event in actions.iter() {
-    let PlayerActionEvent::PositionChanged { position, direction } = event else {
+    let PlayerActionEvent::PositionChanged { position, velocity, direction } = event else {
       continue
     };
     client.0.send(
       postcard::to_allocvec(&ClientToServerMessage::PositionChanged {
         position: *position,
-        velocity: Vec3::ZERO,
+        velocity: *velocity,
         direction: *direction
       }).unwrap().into_boxed_slice(), 
       Channel::Move as usize,
