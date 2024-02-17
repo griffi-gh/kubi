@@ -19,6 +19,7 @@ pub struct Inputs {
   pub look: Vec2,
   pub action_a: bool,
   pub action_b: bool,
+  pub jump: bool,
 }
 
 #[derive(Unique, Clone, Copy, Default, Debug)]
@@ -186,6 +187,7 @@ fn update_input_state (
   inputs.look += raw_inputs.mouse_delta.as_vec2();
   inputs.action_a |= raw_inputs.button_state[0];
   inputs.action_b |= raw_inputs.button_state[1];
+  inputs.jump |= raw_inputs.keyboard_state.contains(KeyCode::Space as u32);
 }
 
 fn update_input_state_gamepad (
@@ -198,9 +200,11 @@ fn update_input_state_gamepad (
       let left_stick = vec2(gamepad.value(Axis::LeftStickX), gamepad.value(Axis::LeftStickY));
       let right_stick = vec2(gamepad.value(Axis::RightStickX), -gamepad.value(Axis::RightStickY));
       inputs.movement += left_stick;
-      inputs.look += right_stick;
-      inputs.action_a |= gamepad.is_pressed(Button::South);
+      //HACK: for now, we multiply look by 2 to make it feel more responsive
+      inputs.look += right_stick * 2.;
+      inputs.action_a |= gamepad.is_pressed(Button::West);
       inputs.action_b |= gamepad.is_pressed(Button::East);
+      inputs.jump |= gamepad.is_pressed(Button::South);
     }
   }
 }

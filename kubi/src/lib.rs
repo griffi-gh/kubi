@@ -23,7 +23,7 @@ pub(crate) mod settings;
 pub(crate) mod camera;
 pub(crate) mod events;
 pub(crate) mod input;
-pub(crate) mod fly_controller;
+pub(crate) mod player_controller;
 pub(crate) mod block_placement;
 pub(crate) mod delta_time;
 pub(crate) mod cursor_lock;
@@ -57,7 +57,7 @@ use events::{
   player_actions::generate_move_events, 
 };
 use input::{init_input, process_inputs};
-use fly_controller::update_controllers;
+use player_controller::{debug_switch_ctl_type, update_player_controllers};
 use rendering::{
   Renderer, 
   RenderTarget, 
@@ -133,7 +133,8 @@ fn update() -> Workload {
       update_loaded_world_around_player,
     ).into_sequential_workload().run_if(is_ingame_or_loading),
     (
-      update_controllers,
+      debug_switch_ctl_type,
+      update_player_controllers,
       update_client_physics_late,
       generate_move_events,
       update_raycasts,

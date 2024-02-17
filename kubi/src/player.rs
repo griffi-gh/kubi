@@ -12,7 +12,7 @@ use kubi_shared::{
 use crate::{
   camera::Camera,
   client_physics::ClPhysicsActor,
-  fly_controller::FlyController,
+  player_controller::PlayerController,
   transform::Transform,
   world::raycast::LookingAtBlock
 };
@@ -31,7 +31,7 @@ pub fn spawn_player (
     Health::new(PLAYER_HEALTH),
     Transform::default(),
     Camera::default(),
-    FlyController,
+    PlayerController::DEFAULT_FPS_CTL,
     LookingAtBlock::default(),
     PlayerHolding(Some(Block::Cobblestone)),
     Username("LocalPlayer".into()),
@@ -53,7 +53,7 @@ pub fn spawn_local_player_multiplayer (
     init.health,
     Transform(Mat4::from_rotation_translation(init.direction, init.position)),
     Camera::default(),
-    FlyController,
+    PlayerController::DEFAULT_FPS_CTL,
     LookingAtBlock::default(),
     PlayerHolding::default(),
   ),(
