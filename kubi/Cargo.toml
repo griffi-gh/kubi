@@ -11,8 +11,8 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-kubi-ui = { path = "../kubi-ui" }
-kubi-ui-glium = { path = "../kubi-ui-glium" }
+hui = { version = "^0.0", git = "https://github.com/griffi-gh/hui", rev = "1e1dccde0c" }
+hui-glium = { version = "^0.0", git = "https://github.com/griffi-gh/hui", rev = "1e1dccde0c" }
 log = "0.4"
 glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
 glutin = "0.31"

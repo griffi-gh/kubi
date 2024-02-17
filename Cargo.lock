@@ -887,6 +887,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "hui"
+version = "0.0.2"
+source = "git+https://github.com/griffi-gh/hui?rev=1e1dccde0c#1e1dccde0c1f8ba8f4143a5a57d91cf923203508"
+dependencies = [
+ "fontdue",
+ "glam",
+ "hashbrown 0.14.3",
+ "log",
+ "nohash-hasher",
+ "rect_packer",
+]
+
+[[package]]
+name = "hui-glium"
+version = "0.0.2"
+source = "git+https://github.com/griffi-gh/hui?rev=1e1dccde0c#1e1dccde0c1f8ba8f4143a5a57d91cf923203508"
+dependencies = [
+ "glam",
+ "glium",
+ "hui",
+ "log",
+]
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1073,11 +1097,11 @@ dependencies = [
  "glutin",
  "glutin-winit",
  "hashbrown 0.14.3",
+ "hui",
+ "hui-glium",
  "image",
  "kubi-logging",
  "kubi-shared",
- "kubi-ui",
- "kubi-ui-glium",
  "log",
  "lz4_flex",
  "ndk",
@@ -1150,41 +1174,6 @@ dependencies = [
  "shipyard",
  "static_assertions",
  "strum",
-]
-
-[[package]]
-name = "kubi-ui"
-version = "0.0.0"
-dependencies = [
- "fontdue",
- "glam",
- "hashbrown 0.14.3",
- "log",
- "nohash-hasher",
- "rect_packer",
-]
-
-[[package]]
-name = "kubi-ui-examples"
-version = "0.0.0"
-dependencies = [
- "glam",
- "glium",
- "kubi-logging",
- "kubi-ui",
- "kubi-ui-glium",
- "log",
- "winit",
-]
-
-[[package]]
-name = "kubi-ui-glium"
-version = "0.0.0"
-dependencies = [
- "glam",
- "glium",
- "kubi-ui",
- "log",
 ]
 
 [[package]]

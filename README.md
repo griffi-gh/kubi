@@ -118,7 +118,7 @@ name = "Kubi Server"          # server name
 
 <h2>"In-house" libraries</h2>
 
-- [`kubi-ui`](kubi-ui): semi-imm.mode backend-agnostic ui system\
+- [`hui`](https://github.com/griffi-gh/hui): semi-imm.mode backend-agnostic ui system\
   mostly ready to use, it has already replaced the Kubi legacy ui
 - [`kubi-ui-glium`](kubi-ui-glium) Glium-based backend for `kubi-ui`
 - [`kubi-pool`](kubi-pool): very early work-in-progress work-stealing threadpool system\

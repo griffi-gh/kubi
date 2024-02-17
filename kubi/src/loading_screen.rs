@@ -1,4 +1,4 @@
-use kubi_ui::element::progress_bar::ProgressBar;
+use hui::element::progress_bar::ProgressBar;
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
   state::{GameState, NextState},
   rendering::WindowSize,
   input::RawKbmInputState,
-  kubi_ui_integration::UiState,
+  hui_integration::UiState,
 };
 
 fn render_progressbar(
@@ -21,7 +21,7 @@ fn render_progressbar(
     let total = world.chunks.len();
     loaded as f32 / total as f32
   };
-  ui.kui.add(
+  ui.hui.add(
     ProgressBar { value, ..Default::default() },
     size.0.as_vec2()
   );

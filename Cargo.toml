@@ -4,10 +4,7 @@ members = [
   "kubi-server",
   "kubi-shared",
   "kubi-logging",
-  "kubi-pool",
-  "kubi-ui",
-  "kubi-ui-glium",
-  "kubi-ui-examples"
+  "kubi-pool"
 ]
 default-members = ["kubi"]
 resolver = "2"
@@ -38,3 +35,6 @@ opt-level = 3
 #enabling debug assertions here causes the game to abort
 [profile.dev.package.android-activity]
 debug-assertions = false
+
+[patch.crates-io]
+glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
