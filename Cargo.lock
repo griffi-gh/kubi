@@ -888,8 +888,8 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hui"
-version = "0.0.2"
-source = "git+https://github.com/griffi-gh/hui?rev=1e1dccde0c#1e1dccde0c1f8ba8f4143a5a57d91cf923203508"
+version = "0.1.0-alpha.1"
+source = "git+https://github.com/griffi-gh/hui?rev=41049e5f#41049e5f59ab56d0e0bd3f813a6789d0935b5460"
 dependencies = [
  "fontdue",
  "glam",
@@ -901,8 +901,8 @@ dependencies = [
 
 [[package]]
 name = "hui-glium"
-version = "0.0.2"
-source = "git+https://github.com/griffi-gh/hui?rev=1e1dccde0c#1e1dccde0c1f8ba8f4143a5a57d91cf923203508"
+version = "0.1.0-alpha.1"
+source = "git+https://github.com/griffi-gh/hui?rev=41049e5f#41049e5f59ab56d0e0bd3f813a6789d0935b5460"
 dependencies = [
  "glam",
  "glium",
