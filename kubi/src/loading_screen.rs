@@ -1,6 +1,6 @@
 use hui::{
   element::{container::Container, progress_bar::ProgressBar, text::Text},
-  layout::{Alignment, UiSize},
+  layout::{Alignment, UiDirection, UiSize},
   rectangle::{Corners, Sides}
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
@@ -48,7 +48,8 @@ fn render_loading_ui(
             }),
             Box::new(Container {
               size: (UiSize::Static(400.), UiSize::Auto),
-              align: (Alignment::End, Alignment::End).into(),
+              align: (Alignment::End, Alignment::Begin).into(),
+              direction: UiDirection::Horizontal,
               elements: vec![
                 Box::new(Text {
                   text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
