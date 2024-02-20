@@ -529,6 +529,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "document-features"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef5282ad69563b5fc40319526ba27e0e7363d552a896f0297d54f767717f9b95"
+dependencies = [
+ "litrs",
+]
+
+[[package]]
 name = "downcast-rs"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -888,21 +897,23 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hui"
-version = "0.1.0-alpha.1"
-source = "git+https://github.com/griffi-gh/hui?rev=41049e5f#41049e5f59ab56d0e0bd3f813a6789d0935b5460"
+version = "0.1.0-alpha.3"
+source = "git+https://github.com/griffi-gh/hui?rev=9bb95b3baff#9bb95b3baff69b0ddee67ee28c1d271e79668468"
 dependencies = [
+ "document-features",
  "fontdue",
  "glam",
  "hashbrown 0.14.3",
  "log",
  "nohash-hasher",
+ "nz",
  "rect_packer",
 ]
 
 [[package]]
 name = "hui-glium"
-version = "0.1.0-alpha.1"
-source = "git+https://github.com/griffi-gh/hui?rev=41049e5f#41049e5f59ab56d0e0bd3f813a6789d0935b5460"
+version = "0.1.0-alpha.3"
+source = "git+https://github.com/griffi-gh/hui?rev=9bb95b3baff#9bb95b3baff69b0ddee67ee28c1d271e79668468"
 dependencies = [
  "glam",
  "glium",
@@ -1230,6 +1241,12 @@ name = "linux-raw-sys"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
+
+[[package]]
+name = "litrs"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
 
 [[package]]
 name = "lock_api"
