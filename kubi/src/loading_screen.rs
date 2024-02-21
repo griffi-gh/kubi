@@ -1,16 +1,17 @@
 use hui::{
   element::{container::Container, progress_bar::ProgressBar, text::Text, UiElement},
   layout::{Alignment, UiDirection, UiSize},
-  rectangle::{Corners, Sides}, UiInstance
+  rectangle::{Corners, Sides},
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
 use crate::{
-  world::ChunkStorage,
-  state::{GameState, NextState},
-  rendering::WindowSize,
-  input::RawKbmInputState,
   hui_integration::UiState,
+  input::RawKbmInputState,
+  networking::ServerAddress,
+  rendering::WindowSize,
+  state::{GameState, NextState},
+  world::ChunkStorage
 };
 
 pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> Container {
@@ -21,7 +22,7 @@ pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> 
     elements: vec![
       Box::new(Container {
         padding: Sides::all(10.),
-        gap: 10.,
+        gap: 5.,
         background: (0.2, 0.2, 0.2).into(),
         corner_radius: Corners::all(8.),
         elements,
@@ -33,8 +34,9 @@ pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> 
 }
 
 fn render_loading_ui(
-  mut ui: NonSendSync<UniqueViewMut<UiState>>,
+  addr: Option<UniqueView<ServerAddress>>,
   world: UniqueView<ChunkStorage>,
+  mut ui: NonSendSync<UniqueViewMut<UiState>>,
   size: UniqueView<WindowSize>
 ) {
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
@@ -43,9 +45,16 @@ fn render_loading_ui(
   let total = world.chunks.len();
   let value = loaded as f32 / total as f32;
   let percentage = value * 100.;
+
+  let font_handle = ui.fonts[0];
   ui.hui.add(loading_screen_base(vec![
     Box::new(Text {
-      text: "Loading...".into(),
+      text: match addr {
+        Some(addr) => format!("Connected to {}\nDownloading world data...", addr.0).into(),
+        _ => "Loading...".into(),
+      },
+      font: font_handle,
+      text_size: 16,
       ..Default::default()
     }),
     Box::new(ProgressBar {
@@ -61,11 +70,20 @@ fn render_loading_ui(
       elements: vec![
         Box::new(Text {
           text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
+          font: font_handle,
+          text_size: 16,
           ..Default::default()
         })
       ],
       ..Default::default()
     }),
+    // Box::new(Text {
+    //   text: "--------------------------------------------------\nTip: You can press F to skip this loading screen".into(),
+    //   font: font_handle,
+    //   text_size: 16,
+    //   color: (0.5, 0.5, 0.5, 1.).into(),
+    //   ..Default::default()
+    // })
   ], 1. - (value - 0.75).max(0.)), size.0.as_vec2());
 }
 

@@ -77,9 +77,9 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use hui_integration::{kubi_ui_init, kubi_ui_begin, kubi_ui_end, kubi_ui_draw};
+use hui_integration::{kubi_ui_begin, kubi_ui_draw, kubi_ui_end, kubi_ui_init, kubi_ui_load_assets};
 use loading_screen::update_loading_screen;
-use connecting_screen::switch_to_loading_if_connected;
+use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
 use filesystem::AssetManager;
 use client_physics::{init_client_physics, update_client_physics_late};
@@ -97,6 +97,7 @@ fn startup() -> Workload {
     initial_resize_event,
     init_window_size,
     kubi_ui_init,
+    kubi_ui_load_assets,
     load_prefabs,
     init_primitives,
     insert_lock_state,
@@ -124,7 +125,7 @@ fn update() -> Workload {
     ).into_sequential_workload().run_if(is_ingame_or_loading),
     update_networking().run_if(is_multiplayer),
     (
-      switch_to_loading_if_connected
+      update_connecting_screen,
     ).into_sequential_workload().run_if(is_connecting),
     (
       update_loading_screen,
