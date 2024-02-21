@@ -13,7 +13,13 @@ use winit::{
 use glam::vec3;
 use std::time::Instant;
 
-pub use kubi_shared::transform;
+pub(crate) use kubi_shared::transform;
+
+mod ui {
+  pub(crate) mod loading_screen;
+  pub(crate) mod connecting_screen;
+}
+pub(crate) use ui::{loading_screen, connecting_screen};
 
 pub(crate) mod rendering;
 pub(crate) mod world;
@@ -33,8 +39,6 @@ pub(crate) mod hui_integration;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
-pub(crate) mod loading_screen;
-pub(crate) mod connecting_screen;
 pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
 pub(crate) mod client_physics;
@@ -77,7 +81,7 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use hui_integration::{kubi_ui_begin, kubi_ui_draw, kubi_ui_end, kubi_ui_init, kubi_ui_load_assets};
+use hui_integration::{kubi_ui_begin, kubi_ui_draw, kubi_ui_end, kubi_ui_init};
 use loading_screen::update_loading_screen;
 use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
@@ -97,7 +101,6 @@ fn startup() -> Workload {
     initial_resize_event,
     init_window_size,
     kubi_ui_init,
-    kubi_ui_load_assets,
     load_prefabs,
     init_primitives,
     insert_lock_state,

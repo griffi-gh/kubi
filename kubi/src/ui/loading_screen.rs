@@ -6,12 +6,7 @@ use hui::{
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
 use crate::{
-  hui_integration::UiState,
-  input::RawKbmInputState,
-  networking::ServerAddress,
-  rendering::WindowSize,
-  state::{GameState, NextState},
-  world::ChunkStorage
+  hui_integration::UiState, input::RawKbmInputState, networking::ServerAddress, prefabs::UiFontPrefab, rendering::WindowSize, state::{GameState, NextState}, world::ChunkStorage
 };
 
 pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> Container {
@@ -37,6 +32,7 @@ fn render_loading_ui(
   addr: Option<UniqueView<ServerAddress>>,
   world: UniqueView<ChunkStorage>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
+  font: UniqueView<UiFontPrefab>,
   size: UniqueView<WindowSize>
 ) {
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
@@ -46,14 +42,13 @@ fn render_loading_ui(
   let value = loaded as f32 / total as f32;
   let percentage = value * 100.;
 
-  let font_handle = ui.fonts[0];
   ui.hui.add(loading_screen_base(vec![
     Box::new(Text {
       text: match addr {
         Some(addr) => format!("Connected to {}\nDownloading world data...", addr.0).into(),
         _ => "Loading...".into(),
       },
-      font: font_handle,
+      font: font.0,
       text_size: 16,
       ..Default::default()
     }),
@@ -70,7 +65,7 @@ fn render_loading_ui(
       elements: vec![
         Box::new(Text {
           text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
-          font: font_handle,
+          font: font.0,
           text_size: 16,
           ..Default::default()
         })

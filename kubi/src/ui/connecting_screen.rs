@@ -5,6 +5,7 @@ use crate::{
   hui_integration::UiState,
   loading_screen::loading_screen_base,
   networking::ServerAddress,
+  prefabs::UiFontPrefab,
   rendering::WindowSize,
   state::{GameState, NextState}
 };
@@ -12,9 +13,9 @@ use crate::{
 fn render_connecting_ui(
   addr: UniqueView<ServerAddress>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
+  font: UniqueView<UiFontPrefab>,
   size: UniqueView<WindowSize>,
 ) {
-  let font_handle = ui.fonts[0];
   ui.hui.add(
     loading_screen_base(vec![
       Box::new(Text {
@@ -22,7 +23,7 @@ fn render_connecting_ui(
           "Connecting to {}...",
           addr.0,
         ).into(),
-        font: font_handle,
+        font: font.0,
         text_size: 16,
         ..Default::default()
       }),
