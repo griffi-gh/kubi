@@ -22,10 +22,12 @@ mod handshake;
 mod world;
 mod player;
 
+pub use handshake::ConnectionRejectionReason;
 use handshake::{
   set_client_join_state_to_connected,
   say_hello,
-  check_server_hello_response
+  check_server_hello_response,
+  check_server_fuck_off_response,
 };
 use world::{
   inject_network_responses_into_manager_queue,
@@ -129,6 +131,7 @@ pub fn update_networking() -> Workload {
     ).into_sequential_workload().run_if(if_just_connected),
     (
       check_server_hello_response,
+      check_server_fuck_off_response,
       handle_disconnect,
     ).into_sequential_workload().run_if(is_join_state::<{ClientJoinState::Connected as u8}>),
     (

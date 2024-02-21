@@ -4,7 +4,7 @@ use shipyard::{IntoWorkload, NonSendSync, UniqueView, UniqueViewMut, Workload};
 use crate::{
   hui_integration::UiState,
   loading_screen::loading_screen_base,
-  networking::ServerAddress,
+  networking::{ConnectionRejectionReason, ServerAddress},
   prefabs::UiFontPrefab,
   rendering::WindowSize,
   state::{GameState, NextState}
@@ -12,6 +12,8 @@ use crate::{
 
 fn render_connecting_ui(
   addr: UniqueView<ServerAddress>,
+  rejection: Option<UniqueView<ConnectionRejectionReason>>,
+  join_state: UniqueView<ClientJoinState>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
   font: UniqueView<UiFontPrefab>,
   size: UniqueView<WindowSize>,
@@ -19,10 +21,11 @@ fn render_connecting_ui(
   ui.hui.add(
     loading_screen_base(vec![
       Box::new(Text {
-        text: format!(
-          "Connecting to {}...",
-          addr.0,
-        ).into(),
+        text: match (rejection, *join_state) {
+          (Some(err), _) => format!("Connection rejected by {}\n\n{}", addr.0, err.reason).into(),
+          (_, ClientJoinState::Disconnected) => format!("Lost connection to {}", addr.0).into(),
+          _ => format!("Connecting to {}...", addr.0).into(),
+        },
         font: font.0,
         text_size: 16,
         ..Default::default()

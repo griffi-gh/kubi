@@ -1,4 +1,4 @@
-use shipyard::{UniqueViewMut, View, IntoIter, AllStoragesViewMut};
+use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, Unique, UniqueView, UniqueViewMut, View};
 use uflow::{client::Event as ClientEvent, SendMode};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
@@ -7,6 +7,11 @@ use kubi_shared::networking::{
 };
 use crate::player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
 use super::{UdpClient, NetworkEvent};
+
+#[derive(Unique)]
+pub struct ConnectionRejectionReason {
+  pub reason: String,
+}
 
 pub fn set_client_join_state_to_connected(
   mut join_state: UniqueViewMut<ClientJoinState>
@@ -73,4 +78,34 @@ pub fn check_server_hello_response(
   *join_state = ClientJoinState::Joined;
 
   log::info!("Joined the server!");
+}
+
+pub fn check_server_fuck_off_response(
+  storages: AllStoragesView,
+) {
+  //Check if we got the message and extract the init data from it
+  let Some(reason) = storages.borrow::<View<NetworkEvent>>().unwrap().iter().find_map(|event| {
+    let ClientEvent::Receive(data) = &event.0 else {
+      return None
+    };
+    if !event.is_message_of_type::<{ServerToClientMessageType::ServerFuckOff as u8}>() {
+      return None
+    }
+    let Ok(parsed_message) = postcard::from_bytes(data) else {
+      log::error!("Malformed message");
+      return None
+    };
+    let ServerToClientMessage::ServerFuckOff { reason } = parsed_message else {
+      unreachable!()
+    };
+    Some(reason)
+  }) else { return };
+
+  let mut client = storages.borrow::<UniqueViewMut<UdpClient>>().unwrap();
+  client.0.disconnect_now();
+
+  let mut join_state = storages.borrow::<UniqueViewMut<ClientJoinState>>().unwrap();
+  *join_state = ClientJoinState::Disconnected;
+
+  storages.add_unique(ConnectionRejectionReason { reason });
 }
