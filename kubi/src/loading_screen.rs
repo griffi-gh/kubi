@@ -1,7 +1,7 @@
 use hui::{
-  element::{container::Container, progress_bar::ProgressBar, text::Text},
+  element::{container::Container, progress_bar::ProgressBar, text::Text, UiElement},
   layout::{Alignment, UiDirection, UiSize},
-  rectangle::{Corners, Sides}
+  rectangle::{Corners, Sides}, UiInstance
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
@@ -12,6 +12,25 @@ use crate::{
   input::RawKbmInputState,
   hui_integration::UiState,
 };
+
+pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> Container {
+  Container {
+    size: (UiSize::Fraction(1.), UiSize::Fraction(1.)),
+    background: (0.1, 0.1, 0.1, bg_alpha).into(),
+    align: Alignment::Center.into(),
+    elements: vec![
+      Box::new(Container {
+        padding: Sides::all(10.),
+        gap: 10.,
+        background: (0.2, 0.2, 0.2).into(),
+        corner_radius: Corners::all(8.),
+        elements,
+        ..Default::default()
+      })
+    ],
+    ..Default::default()
+  }
+}
 
 fn render_loading_ui(
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
@@ -24,48 +43,30 @@ fn render_loading_ui(
   let total = world.chunks.len();
   let value = loaded as f32 / total as f32;
   let percentage = value * 100.;
-  ui.hui.add(
-    Container {
-      size: (UiSize::Fraction(1.), UiSize::Fraction(1.)),
-      background: (0.1, 0.1, 0.1, 1. - (value - 0.75).max(0.)).into(),
-      align: Alignment::Center.into(),
+  ui.hui.add(loading_screen_base(vec![
+    Box::new(Text {
+      text: "Loading...".into(),
+      ..Default::default()
+    }),
+    Box::new(ProgressBar {
+      value,
+      size: (UiSize::Static(400.), UiSize::Auto),
+      corner_radius: Corners::all(2.),
+      ..Default::default()
+    }),
+    Box::new(Container {
+      size: (UiSize::Static(400.), UiSize::Auto),
+      align: (Alignment::End, Alignment::Begin).into(),
+      direction: UiDirection::Horizontal,
       elements: vec![
-        Box::new(Container {
-          padding: Sides::all(10.),
-          gap: 10.,
-          background: (0.2, 0.2, 0.2).into(),
-          corner_radius: Corners::all(8.),
-          elements: vec![
-            Box::new(Text {
-              text: "Loading...".into(),
-              ..Default::default()
-            }),
-            Box::new(ProgressBar {
-              value,
-              size: (UiSize::Static(400.), UiSize::Auto),
-              corner_radius: Corners::all(2.),
-              ..Default::default()
-            }),
-            Box::new(Container {
-              size: (UiSize::Static(400.), UiSize::Auto),
-              align: (Alignment::End, Alignment::Begin).into(),
-              direction: UiDirection::Horizontal,
-              elements: vec![
-                Box::new(Text {
-                  text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
-                  ..Default::default()
-                })
-              ],
-              ..Default::default()
-            })
-          ],
+        Box::new(Text {
+          text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
           ..Default::default()
         })
       ],
       ..Default::default()
-    },
-    size.0.as_vec2()
-  );
+    }),
+  ], 1. - (value - 0.75).max(0.)), size.0.as_vec2());
 }
 
 fn switch_to_ingame_if_loaded(
