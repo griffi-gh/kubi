@@ -75,7 +75,8 @@ pub fn load_prefabs(
     let asset_handle = assman.open_asset(Path::new("fonts/Crisp.ttf")).unwrap();
     let mut font_data = vec![];
     BufReader::new(asset_handle).read_to_end(&mut font_data).unwrap();
-    let font_handle = ui.hui.add_font_from_bytes(&font_data);
+    let font_handle = ui.hui.add_font(&font_data);
+    ui.hui.push_font(font_handle);
     storages.add_unique(UiFontPrefab(font_handle));
   }
 

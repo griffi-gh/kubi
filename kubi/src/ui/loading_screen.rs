@@ -1,38 +1,48 @@
 use hui::{
-  element::{container::Container, progress_bar::ProgressBar, text::Text, UiElement},
-  layout::{Alignment, UiDirection, UiSize},
-  rectangle::{Corners, Sides},
+  element::{
+    container::Container,
+    progress_bar::ProgressBar,
+    text::Text,
+    ElementList,
+    UiElementExt,
+  },
+  layout::{Alignment, Direction},
+  frame_rect, size,
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
 use crate::{
-  hui_integration::UiState, input::RawKbmInputState, networking::ServerAddress, prefabs::UiFontPrefab, rendering::WindowSize, state::{GameState, NextState}, world::ChunkStorage
+  hui_integration::UiState,
+  input::RawKbmInputState,
+  networking::ServerAddress,
+  rendering::WindowSize,
+  state::{GameState, NextState},
+  world::ChunkStorage,
 };
 
-pub fn loading_screen_base(elements: Vec<Box<dyn UiElement>>, bg_alpha: f32) -> Container {
-  Container {
-    size: (UiSize::Fraction(1.), UiSize::Fraction(1.)),
-    background: (0.1, 0.1, 0.1, bg_alpha).into(),
-    align: Alignment::Center.into(),
-    elements: vec![
-      Box::new(Container {
-        padding: Sides::all(10.),
-        gap: 5.,
-        background: (0.2, 0.2, 0.2).into(),
-        corner_radius: Corners::all(8.),
-        elements,
-        ..Default::default()
-      })
-    ],
-    ..Default::default()
-  }
+pub fn loading_screen_base(bg_alpha: f32, xui: impl FnOnce(&mut ElementList)) -> Container {
+  Container::default()
+    .with_size(size!(100%))
+    .with_background((0.1, 0.1, 0.1, bg_alpha))
+    .with_align(Alignment::Center)
+    .with_children(|ui| {
+      Container::default()
+        .with_size(size!(400, auto))
+        .with_background(frame_rect! {
+          color: (0.2, 0.2, 0.2),
+          corner_radius: 8.
+        })
+        .with_gap(5.)
+        .with_padding(10.)
+        .with_children(xui)
+        .add_child(ui);
+    })
 }
 
 fn render_loading_ui(
   addr: Option<UniqueView<ServerAddress>>,
   world: UniqueView<ChunkStorage>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  font: UniqueView<UiFontPrefab>,
   size: UniqueView<WindowSize>
 ) {
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
@@ -42,44 +52,38 @@ fn render_loading_ui(
   let value = loaded as f32 / total as f32;
   let percentage = value * 100.;
 
-  ui.hui.add(loading_screen_base(vec![
-    Box::new(Text {
-      text: match addr {
-        Some(addr) => format!("Connected to {}\nDownloading world data...", addr.0).into(),
+  loading_screen_base(1. - (value - 0.75).max(0.), |ui| {
+    Text::new(match addr {
+        Some(addr) => format!("Connected to {}\nDownloading world data...", addr.0),
         _ => "Loading...".into(),
-      },
-      font: font.0,
-      text_size: 16,
-      ..Default::default()
-    }),
-    Box::new(ProgressBar {
-      value,
-      size: (UiSize::Static(400.), UiSize::Auto),
-      corner_radius: Corners::all(2.),
-      ..Default::default()
-    }),
-    Box::new(Container {
-      size: (UiSize::Static(400.), UiSize::Auto),
-      align: (Alignment::End, Alignment::Begin).into(),
-      direction: UiDirection::Horizontal,
-      elements: vec![
-        Box::new(Text {
-          text: format!("{loaded}/{total} ({percentage:.1}%)").into(),
-          font: font.0,
-          text_size: 16,
-          ..Default::default()
-        })
-      ],
-      ..Default::default()
-    }),
-    // Box::new(Text {
-    //   text: "--------------------------------------------------\nTip: You can press F to skip this loading screen".into(),
-    //   font: font_handle,
-    //   text_size: 16,
-    //   color: (0.5, 0.5, 0.5, 1.).into(),
-    //   ..Default::default()
-    // })
-  ], 1. - (value - 0.75).max(0.)), size.0.as_vec2());
+      })
+      .with_text_size(16)
+      .add_child(ui);
+
+    ProgressBar::default()
+      .with_value(value)
+      .with_size(size!(100%, 15))
+      .with_background(frame_rect! {
+        color: (0.1, 0.1, 0.1),
+        corner_radius: 2.
+      })
+      .with_foreground(frame_rect! {
+        color: (0.4, 0.4, 1.0),
+        corner_radius: 2.
+      })
+      .add_child(ui);
+
+    Container::default()
+      .with_size(size!(100%, auto))
+      .with_align((Alignment::End, Alignment::Begin))
+      .with_direction(Direction::Horizontal)
+      .with_children(|ui| {
+        Text::new(format!("{loaded}/{total} ({percentage:.1}%)"))
+          .with_text_size(16)
+          .add_child(ui)
+      })
+      .add_child(ui);
+  }).add_root(&mut ui.hui, size.0.as_vec2());
 }
 
 fn switch_to_ingame_if_loaded(

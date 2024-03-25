@@ -1,11 +1,10 @@
-use hui::element::text::Text;
+use hui::element::{text::Text, UiElementExt};
 use kubi_shared::networking::state::ClientJoinState;
 use shipyard::{IntoWorkload, NonSendSync, UniqueView, UniqueViewMut, Workload};
 use crate::{
   hui_integration::UiState,
   loading_screen::loading_screen_base,
   networking::{ConnectionRejectionReason, ServerAddress},
-  prefabs::UiFontPrefab,
   rendering::WindowSize,
   state::{GameState, NextState}
 };
@@ -15,24 +14,25 @@ fn render_connecting_ui(
   rejection: Option<UniqueView<ConnectionRejectionReason>>,
   join_state: UniqueView<ClientJoinState>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  font: UniqueView<UiFontPrefab>,
   size: UniqueView<WindowSize>,
 ) {
-  ui.hui.add(
-    loading_screen_base(vec![
-      Box::new(Text {
-        text: match (rejection, *join_state) {
-          (Some(err), _) => format!("Connection rejected by {}\n\n{}", addr.0, err.reason).into(),
-          (_, ClientJoinState::Disconnected) => format!("Lost connection to {}", addr.0).into(),
-          _ => format!("Connecting to {}...", addr.0).into(),
-        },
-        font: font.0,
-        text_size: 16,
-        ..Default::default()
-      }),
-    ], 1.),
-    size.0.as_vec2(),
-  );
+  let text = match (rejection, *join_state) {
+    (Some(err), _) => {
+      format!("Connection rejected by {}\n\n{}", addr.0, err.reason)
+    },
+    (_, ClientJoinState::Disconnected) => {
+      format!("Lost connection to {}", addr.0)
+    },
+    _ => {
+      format!("Connecting to {}...", addr.0)
+    },
+  };
+
+  loading_screen_base(1., |ui| {
+    Text::new(text)
+      .with_text_size(16)
+      .add_child(ui);
+  }).add_root(&mut ui.hui, size.0.as_vec2())
 }
 
 fn switch_to_loading_if_connected(

@@ -11,15 +11,15 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-hui = { version = "0.1.0-alpha.3", git = "https://github.com/griffi-gh/hui", rev = "9bb95b3baff" }
-hui-glium = { version = "0.1.0-alpha.3", git = "https://github.com/griffi-gh/hui", rev = "9bb95b3baff" }
+hui = { version = "0.1.0-alpha.4", git = "https://github.com/griffi-gh/hui", rev = "dd5af8b9e2" }
+hui-glium = { version = "0.1.0-alpha.4", git = "https://github.com/griffi-gh/hui", rev = "dd5af8b9e2" }
 log = "0.4"
 glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
 glutin = "0.31"
 winit = { version = "0.29", features = ["android-native-activity"] }
 glutin-winit = "0.4"
 raw-window-handle = "=0.5.*"
-glam = { version = "0.25", features = ["debug-glam-assert", "fast-math"] }
+glam = { version = "0.27", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.24", default_features = false, features = ["png"] }
 strum = { version = "0.26", features = ["derive"] }
 hashbrown = "0.14"

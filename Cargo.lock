@@ -383,6 +383,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -489,7 +495,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -500,7 +506,7 @@ checksum = "c5a91391accf613803c2a9bf9abccdbaa07c54b4244a5b64883f9c3c137c86be"
 dependencies = [
  "darling_core",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -511,6 +517,31 @@ checksum = "b42b6fa04a440b495c8b04d0e71b707c585f83cb9cb28cf8cd0d976c315e31b4"
 dependencies = [
  "powerfmt",
  "serde",
+]
+
+[[package]]
+name = "derive_more"
+version = "0.99.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
+dependencies = [
+ "convert_case",
+ "proc-macro2",
+ "quote",
+ "rustc_version",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "derive_setters"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e8ef033054e131169b8f0f9a7af8f5533a9436fadf3c500ed547f730f07090d"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -649,7 +680,7 @@ checksum = "1a5c6c585bc94aaf2c7b51dd4c2ba22680844aba4c687be581871a6f518c5742"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -747,9 +778,9 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.25.0"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "151665d9be52f9bb40fc7966565d39666f2d1e69233571b71b87791c7e0528b3"
+checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 dependencies = [
  "serde",
 ]
@@ -897,23 +928,36 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hui"
-version = "0.1.0-alpha.3"
-source = "git+https://github.com/griffi-gh/hui?rev=9bb95b3baff#9bb95b3baff69b0ddee67ee28c1d271e79668468"
+version = "0.1.0-alpha.4"
+source = "git+https://github.com/griffi-gh/hui?rev=dd5af8b9e2#dd5af8b9e2dc4cb2beb0b130d82167258ea2bd4e"
 dependencies = [
+ "derive_more",
+ "derive_setters",
  "document-features",
  "fontdue",
  "glam",
  "hashbrown 0.14.3",
+ "hui-derive",
+ "image 0.25.0",
  "log",
  "nohash-hasher",
- "nz",
  "rect_packer",
+ "tinyset",
+]
+
+[[package]]
+name = "hui-derive"
+version = "0.1.0-alpha.4"
+source = "git+https://github.com/griffi-gh/hui?rev=dd5af8b9e2#dd5af8b9e2dc4cb2beb0b130d82167258ea2bd4e"
+dependencies = [
+ "quote",
+ "syn 2.0.49",
 ]
 
 [[package]]
 name = "hui-glium"
-version = "0.1.0-alpha.3"
-source = "git+https://github.com/griffi-gh/hui?rev=9bb95b3baff#9bb95b3baff69b0ddee67ee28c1d271e79668468"
+version = "0.1.0-alpha.4"
+source = "git+https://github.com/griffi-gh/hui?rev=dd5af8b9e2#dd5af8b9e2dc4cb2beb0b130d82167258ea2bd4e"
 dependencies = [
  "glam",
  "glium",
@@ -978,6 +1022,17 @@ dependencies = [
  "color_quant",
  "num-traits",
  "png",
+]
+
+[[package]]
+name = "image"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9b4f005360d32e9325029b38ba47ebd7a56f3316df09249368939562d518645"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "num-traits",
 ]
 
 [[package]]
@@ -1110,7 +1165,7 @@ dependencies = [
  "hashbrown 0.14.3",
  "hui",
  "hui-glium",
- "image",
+ "image 0.24.8",
  "kubi-logging",
  "kubi-shared",
  "log",
@@ -1403,7 +1458,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -1824,7 +1879,7 @@ checksum = "33c85360c95e7d137454dc81d9a4ed2b8efd8fbe19cee57357b32b9771fccb67"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -1874,7 +1929,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -1897,7 +1952,7 @@ source = "git+https://github.com/leudz/shipyard?rev=9099b990e#9099b990e332229f7e
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -2013,7 +2068,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn",
+ "syn 2.0.49",
+]
+
+[[package]]
+name = "syn"
+version = "1.0.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -2059,7 +2125,7 @@ checksum = "a953cb265bef375dae3de6663da4d3804eee9682ea80d8e2542529b73c531c81"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
 
 [[package]]
@@ -2270,7 +2336,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
  "wasm-bindgen-shared",
 ]
 
@@ -2304,7 +2370,7 @@ checksum = "642f325be6301eb8107a83d12a8ac6c1e1c54345a7ef1a9261962dfefda09e66"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -2829,5 +2895,5 @@ checksum = "9ce1b18ccd8e73a9321186f97e46f9f04b778851177567b1975109d26a08d2a6"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.49",
 ]
