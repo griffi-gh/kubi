@@ -8,7 +8,7 @@ publish = false
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
 log = "0.4"
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "9099b990e", default-features = false, features = ["std", "proc", "thread_local"] }
+shipyard = { git = "https://github.com/leudz/shipyard", rev = "aacf3b1df5", default-features = false, features = ["std", "proc", "thread_local"] }
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 toml = "0.8"
 glam = { version = "0.27", features = ["debug-glam-assert", "fast-math"] }

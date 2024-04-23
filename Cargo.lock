@@ -1935,7 +1935,7 @@ dependencies = [
 [[package]]
 name = "shipyard"
 version = "0.6.0"
-source = "git+https://github.com/leudz/shipyard?rev=9099b990e#9099b990e332229f7e128706615c39dcd144aff3"
+source = "git+https://github.com/leudz/shipyard?rev=aacf3b1df5#aacf3b1df540c7d9d384830d7431ba618eee75c9"
 dependencies = [
  "hashbrown 0.14.3",
  "lock_api",
@@ -1948,7 +1948,7 @@ dependencies = [
 [[package]]
 name = "shipyard_proc"
 version = "0.3.0"
-source = "git+https://github.com/leudz/shipyard?rev=9099b990e#9099b990e332229f7e128706615c39dcd144aff3"
+source = "git+https://github.com/leudz/shipyard?rev=aacf3b1df5#aacf3b1df540c7d9d384830d7431ba618eee75c9"
 dependencies = [
  "proc-macro2",
  "quote",
