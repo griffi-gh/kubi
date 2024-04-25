@@ -1,14 +1,18 @@
+use kubi_shared::networking::client::ClientId;
 use shipyard::{AllStoragesView, Unique, UniqueViewMut};
 
 pub enum ChatMessage {
   PlayerMessage {
+    id: ClientId,
     username: String,
     message: String,
   },
   PlayerJoin {
+    id: ClientId,
     username: String,
   },
   PlayerLeave {
+    id: ClientId,
     username: String,
   },
   System(String),
@@ -24,16 +28,16 @@ impl ChatManager {
     self.messages.push(message);
   }
 
-  pub fn add_chat_message(&mut self, username: String, message: String,) {
-    self.messages.push(ChatMessage::PlayerMessage { username, message });
+  pub fn add_chat_message(&mut self, id: ClientId, username: String, message: String,) {
+    self.messages.push(ChatMessage::PlayerMessage { id, username, message });
   }
 
-  pub fn add_player_join(&mut self, username: String) {
-    self.messages.push(ChatMessage::PlayerJoin { username });
+  pub fn add_player_join(&mut self, id: ClientId, username: String) {
+    self.messages.push(ChatMessage::PlayerJoin { id, username });
   }
 
-  pub fn add_player_leave(&mut self, username: String) {
-    self.messages.push(ChatMessage::PlayerLeave { username });
+  pub fn add_player_leave(&mut self, id: ClientId, username: String) {
+    self.messages.push(ChatMessage::PlayerLeave { id, username });
   }
 
   pub fn add_system_message(&mut self, message: String) {

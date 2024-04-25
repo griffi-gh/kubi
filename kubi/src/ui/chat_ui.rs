@@ -1,4 +1,4 @@
-use hui::{element::{container::Container, text::Text, UiElementExt}, layout::Alignment, size};
+use hui::{color, element::{container::Container, text::Text, UiElementExt}, layout::Alignment, size};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
 use crate::{chat::{ChatManager, ChatMessage}, hui_integration::UiState, rendering::WindowSize};
 
@@ -14,23 +14,26 @@ pub fn render_chat(
     .with_align((Alignment::Begin, Alignment::End))
     .with_children(|ui| {
       for message in messages.iter().rev().take(10).rev() {
-        let text = match message {
-          ChatMessage::PlayerMessage { username, message } => {
-            format!("{}: {}", username, message)
+        let (text, color) = match message {
+          ChatMessage::PlayerMessage { username, id, message } => {
+            (format!("{username} ({id}): {message}"), color::CYAN)
           }
-          ChatMessage::PlayerJoin { username } => {
-            format!("{} joined the game", username)
+          ChatMessage::PlayerJoin { username, id } => {
+            (format!("{username} ({id}) joined the game"), color::YELLOW)
           }
-          ChatMessage::PlayerLeave { username } => {
-            format!("{} left the game", username)
+          ChatMessage::PlayerLeave { username, id } => {
+            (format!("{username} ({id}) left the game"), color::YELLOW)
           }
-          ChatMessage::System(message) => message.clone(),
+          ChatMessage::System(message) => {
+            (message.clone(), color::WHITE)
+          }
         };
         Container::default()
           .with_background((0., 0., 0., 0.5))
           .with_padding((5., 2.))
           .with_children(|ui| {
             Text::new(text)
+              .with_color(color)
               .add_child(ui)
           })
           .add_child(ui);

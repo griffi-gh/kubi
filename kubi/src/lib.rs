@@ -78,7 +78,7 @@ use rendering::{
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
-use cursor_lock::{insert_lock_state, update_cursor_lock_state, lock_cursor_now};
+use cursor_lock::{debug_toggle_lock, insert_lock_state, lock_cursor_now, update_cursor_lock_state};
 use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
@@ -121,6 +121,7 @@ fn startup() -> Workload {
 
 fn update() -> Workload {
   (
+    debug_toggle_lock,
     update_window_size,
     update_cursor_lock_state,
     process_inputs,

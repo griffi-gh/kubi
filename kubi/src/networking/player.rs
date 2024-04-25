@@ -4,12 +4,13 @@ use uflow::{SendMode, client::Event as ClientEvent};
 use kubi_shared::{
   transform::Transform,
   networking::{
-    messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
     channels::Channel,
-    client::ClientIdMap,
+    client::{ClientIdMap, Username},
+    messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},
   },
 };
 use crate::{
+  chat::ChatManager,
   events::player_actions::PlayerActionEvent,
   player::spawn_remote_player_multiplayer,
 };
@@ -96,6 +97,9 @@ pub fn receive_player_connect_events(
   for message in messages {
     let ServerToClientMessage::PlayerConnected { init } = message else { unreachable!() };
     log::info!("player connected: {} (id {})", init.username, init.client_id);
+    let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+    chat.add_player_join(init.client_id, init.username.clone());
+    drop(chat);
     spawn_remote_player_multiplayer(&mut storages, init);
   }
 }
@@ -120,12 +124,21 @@ pub fn receive_player_disconnect_events(
   for message in messages {
     let ServerToClientMessage::PlayerDisconnected { id } = message else { unreachable!() };
     log::info!("player disconnected: {}", id);
+
     let mut id_map = storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();
     let Some(ent_id) = id_map.0.remove(&id) else {
       log::warn!("Disconnected player entity not found in client-id map");
       continue
     };
+
+    let username = storages.get::<&Username>(ent_id).unwrap();
+    let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+    chat.add_player_leave(id, username.0.to_string());
+
+    drop(chat);
     drop(id_map);
+    drop(username);
+
     if !storages.delete_entity(ent_id) {
       log::warn!("Disconnected player entity not found in storage");
     }

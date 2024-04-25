@@ -1,6 +1,10 @@
-use shipyard::{AllStoragesView, Unique, NonSendSync, UniqueView, UniqueViewMut};
-use crate::rendering::Renderer;
-use winit::window::CursorGrabMode;
+use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
+use crate::{events::InputDeviceEvent, rendering::Renderer};
+use winit::{
+  event::{DeviceEvent, ElementState, RawKeyEvent},
+  keyboard::{KeyCode, PhysicalKey},
+  window::CursorGrabMode
+};
 
 #[derive(Unique)]
 pub struct CursorLock(pub bool);
@@ -33,4 +37,19 @@ pub fn lock_cursor_now(
   mut lock: UniqueViewMut<CursorLock>
 ) {
   lock.0 = true
+}
+
+/// XXX: this is a huge hack
+pub fn debug_toggle_lock(
+  mut lock: UniqueViewMut<CursorLock>,
+  device_events: View<InputDeviceEvent>,
+) {
+  for evt in device_events.iter() {
+    if let DeviceEvent::Key(RawKeyEvent {
+      physical_key: PhysicalKey::Code(KeyCode::F3),
+      state: ElementState::Pressed,
+    }) = evt.event {
+      lock.0 = !lock.0;
+    }
+  }
 }
