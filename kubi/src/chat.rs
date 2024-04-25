@@ -18,6 +18,12 @@ pub enum ChatMessage {
   System(String),
 }
 
+// impl ChatMessage {
+//   pub fn render() -> String {
+//     todo!() //TODO
+//   }
+// }
+
 #[derive(Unique, Default)]
 pub struct ChatHistory {
   pub messages: Vec<ChatMessage>,
