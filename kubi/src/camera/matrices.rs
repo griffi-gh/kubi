@@ -43,6 +43,7 @@ fn need_perspective_calc(
 pub fn update_matrices() -> Workload {
   (
     update_view_matrix, 
+    //update_perspective_matrix,
     update_perspective_matrix.run_if(need_perspective_calc),
   ).into_sequential_workload()
 }

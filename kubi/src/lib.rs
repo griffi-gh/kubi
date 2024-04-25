@@ -18,8 +18,9 @@ pub(crate) use kubi_shared::transform;
 mod ui {
   pub(crate) mod loading_screen;
   pub(crate) mod connecting_screen;
+  pub(crate) mod chat_ui;
 }
-pub(crate) use ui::{loading_screen, connecting_screen};
+pub(crate) use ui::{loading_screen, connecting_screen, chat_ui};
 
 pub(crate) mod rendering;
 pub(crate) mod world;
@@ -42,6 +43,7 @@ pub(crate) mod color;
 pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
 pub(crate) mod client_physics;
+pub(crate) mod chat;
 
 use world::{
   init_game_world,
@@ -87,6 +89,8 @@ use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
 use filesystem::AssetManager;
 use client_physics::{init_client_physics, update_client_physics_late};
+use chat_ui::render_chat;
+use chat::init_chat_manager;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -111,6 +115,7 @@ fn startup() -> Workload {
     insert_control_flow_unique,
     init_delta_time,
     init_client_physics,
+    init_chat_manager,
   ).into_sequential_workload()
 }
 
@@ -144,6 +149,7 @@ fn update() -> Workload {
       update_raycasts,
       update_block_placement,
       apply_queued_blocks,
+      render_chat,
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
