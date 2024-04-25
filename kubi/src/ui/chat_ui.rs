@@ -22,7 +22,7 @@ pub fn render_chat(
             (format!("{username} ({id}) joined the game"), color::YELLOW)
           }
           ChatMessage::PlayerLeave { username, id } => {
-            (format!("{username} ({id}) left the game"), color::RED)
+            (format!("{username} ({id}) left the game"), color::YELLOW)
           }
           ChatMessage::System(message) => {
             (message.clone(), color::WHITE)
