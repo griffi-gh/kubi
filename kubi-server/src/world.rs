@@ -213,6 +213,7 @@ fn process_block_queue(
   mut chunk_manager: UniqueViewMut<ChunkManager>,
   mut queue: UniqueViewMut<LocalBlockQueue>,
 ) {
+  let initial_len = queue.queue.len();
   queue.queue.retain(|item| {
     let chunk_position = item.position.div_euclid(IVec3::splat(CHUNK_SIZE as i32));
     let block_position = item.position.rem_euclid(IVec3::splat(CHUNK_SIZE as i32));
@@ -225,6 +226,9 @@ fn process_block_queue(
     blocks[block_position.x as usize][block_position.y as usize][block_position.z as usize] = item.block_type;
     false
   });
+  if initial_len != queue.queue.len() {
+    log::debug!("queue processed {}/{} items", initial_len - queue.queue.len(), initial_len);
+  }
 }
 
 /// init local block queue and chunk manager
