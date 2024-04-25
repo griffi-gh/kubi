@@ -1,11 +1,11 @@
 use hui::{color, element::{container::Container, text::Text, UiElementExt}, layout::Alignment, size};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
-use crate::{chat::{ChatManager, ChatMessage}, hui_integration::UiState, rendering::WindowSize};
+use crate::{chat::{ChatHistory, ChatMessage}, hui_integration::UiState, rendering::WindowSize};
 
 pub fn render_chat(
   mut hui: NonSendSync<UniqueViewMut<UiState>>,
   size: UniqueView<WindowSize>,
-  chat: UniqueView<ChatManager>,
+  chat: UniqueView<ChatHistory>,
 ) {
   let messages = chat.get_messages();
   if messages.is_empty() { return }

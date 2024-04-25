@@ -19,11 +19,11 @@ pub enum ChatMessage {
 }
 
 #[derive(Unique, Default)]
-pub struct ChatManager {
+pub struct ChatHistory {
   pub messages: Vec<ChatMessage>,
 }
 
-impl ChatManager {
+impl ChatHistory {
   pub fn add_message(&mut self, message: ChatMessage) {
     self.messages.push(message);
   }
@@ -52,7 +52,7 @@ impl ChatManager {
 pub fn init_chat_manager(
   storages: AllStoragesView,
 ) {
-  let mut chat_manager = ChatManager::default();
+  let mut chat_manager = ChatHistory::default();
   chat_manager.add_system_message("Welcome to Kubi! Chat messages will appear here".to_string());
   storages.add_unique(chat_manager);
 }

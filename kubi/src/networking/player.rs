@@ -10,7 +10,7 @@ use kubi_shared::{
   },
 };
 use crate::{
-  chat::ChatManager,
+  chat::ChatHistory,
   events::player_actions::PlayerActionEvent,
   player::spawn_remote_player_multiplayer,
 };
@@ -97,7 +97,7 @@ pub fn receive_player_connect_events(
   for message in messages {
     let ServerToClientMessage::PlayerConnected { init } = message else { unreachable!() };
     log::info!("player connected: {} (id {})", init.username, init.client_id);
-    let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+    let mut chat = storages.borrow::<UniqueViewMut<ChatHistory>>().unwrap();
     chat.add_player_join(init.client_id, init.username.clone());
     drop(chat);
     spawn_remote_player_multiplayer(&mut storages, init);
@@ -132,7 +132,7 @@ pub fn receive_player_disconnect_events(
     };
 
     let username = storages.get::<&Username>(ent_id).unwrap();
-    let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+    let mut chat = storages.borrow::<UniqueViewMut<ChatHistory>>().unwrap();
     chat.add_player_leave(id, username.0.to_string());
 
     drop(chat);

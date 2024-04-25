@@ -6,7 +6,7 @@ use kubi_shared::networking::{
   channels::Channel,
 };
 use rand::prelude::*;
-use crate::{chat::ChatManager, player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer}};
+use crate::{chat::ChatHistory, player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer}};
 use super::{UdpClient, NetworkEvent};
 
 const USERNAME_BANK: &[&str] = &[
@@ -96,7 +96,7 @@ pub fn check_server_hello_response(
   log::info!("Joined the server!");
 
   // Send chat message
-  let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+  let mut chat = storages.borrow::<UniqueViewMut<ChatHistory>>().unwrap();
   chat.add_player_join(client_id, username);
 }
 
