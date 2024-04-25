@@ -49,6 +49,6 @@ pub fn init_chat_manager(
   storages: AllStoragesView,
 ) {
   let mut chat_manager = ChatManager::default();
-  chat_manager.add_system_message("Welcome to Kubi!".to_string());
+  chat_manager.add_system_message("Welcome to Kubi! Chat messages will appear here".to_string());
   storages.add_unique(chat_manager);
 }

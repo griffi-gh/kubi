@@ -28,6 +28,7 @@ pub fn render_chat(
         };
         Container::default()
           .with_background((0., 0., 0., 0.5))
+          .with_padding((5., 2.))
           .with_children(|ui| {
             Text::new(text)
               .add_child(ui)
