@@ -38,7 +38,8 @@ use player::{
   init_client_map,
   send_player_movement_events,
   receive_player_movement_events, 
-  receive_player_connect_events
+  receive_player_connect_events,
+  receive_player_disconnect_events,
 };
 
 const NET_TICKRATE: u16 = 33;
@@ -137,6 +138,7 @@ pub fn update_networking() -> Workload {
     (
       (
         receive_player_connect_events,
+        receive_player_disconnect_events,
       ).into_workload(),
       (
         recv_block_place_events,

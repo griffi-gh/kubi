@@ -1,7 +1,7 @@
 use glam::Mat4;
-use shipyard::{Component, EntityId, Unique, AllStoragesView, UniqueView, NonSendSync, View, ViewMut, Get, IntoIter};
+use shipyard::{AllStoragesView, AllStoragesViewMut, Component, EntitiesViewMut, EntityId, Get, IntoIter, NonSendSync, Remove, Unique, UniqueView, UniqueViewMut, View, ViewMut};
 use hashbrown::HashMap;
-use uflow::SendMode;
+use uflow::{server::Event, SendMode};
 use std::net::SocketAddr;
 use kubi_shared::{
   networking::{
@@ -13,7 +13,7 @@ use kubi_shared::{
 };
 use crate::{
   server::{ServerEvents, UdpServer},
-  util::check_message_auth
+  util::check_message_auth, world::ChunkManager
 };
 
 #[derive(Component, Clone, Copy)]
@@ -77,5 +77,58 @@ pub fn sync_client_positions(
         SendMode::Reliable
       );
     }
+  }
+}
+
+pub fn on_client_disconnect(
+  mut all_storages: AllStoragesViewMut,
+) {
+  let mut to_delete = Vec::new();
+  {
+    let server = all_storages.borrow::<NonSendSync<UniqueView<UdpServer>>>().unwrap();
+    let events = all_storages.borrow::<UniqueView<ServerEvents>>().unwrap();
+    let mut addr_map = all_storages.borrow::<UniqueViewMut<ClientAddressMap>>().unwrap();
+    let mut id_map = all_storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();
+    let clients = all_storages.borrow::<View<Client>>().unwrap();
+    let mut chunk_manager = all_storages.borrow::<UniqueViewMut<ChunkManager>>().unwrap();
+    let addrs = all_storages.borrow::<View<ClientAddress>>().unwrap();
+
+    for event in &events.0 {
+      if let Event::Disconnect(addr) = event {
+        let net_client = server.0.client(addr).unwrap();
+        let Some(&entity_id) = addr_map.0.get(addr) else {
+          log::error!("Disconnected client not authenticated, moving on");
+          continue;
+        };
+        let client_id = clients.get(entity_id).unwrap().0;
+        log::info!("Client disconnected: ID {}", client_id);
+
+        addr_map.0.remove(addr);
+        id_map.0.remove(&client_id);
+        to_delete.push(entity_id);
+
+        //unsubscribe from chunks
+        chunk_manager.unsubscribe_all(client_id);
+
+        //send disconnect message to other clients
+        for (_, other_client_address) in (&clients, &addrs).iter() {
+          let Some(client) = server.0.client(&other_client_address.0) else {
+            log::error!("Client with address not found");
+            continue
+          };
+          client.borrow_mut().send(
+            postcard::to_allocvec(
+              &ServerToClientMessage::PlayerDisconnected { id: client_id }
+            ).unwrap().into_boxed_slice(),
+            Channel::SysEvt as usize,
+            SendMode::Reliable
+          );
+        }
+      }
+    }
+
+  }
+  for entity_id in to_delete {
+    all_storages.delete_entity(entity_id);
   }
 }

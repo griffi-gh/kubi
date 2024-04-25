@@ -99,3 +99,35 @@ pub fn receive_player_connect_events(
     spawn_remote_player_multiplayer(&mut storages, init);
   }
 }
+
+pub fn receive_player_disconnect_events(
+  mut storages: AllStoragesViewMut,
+) {
+  let messages: Vec<ServerToClientMessage> = storages.borrow::<View<NetworkEvent>>().unwrap().iter().filter_map(|event| {
+    let ClientEvent::Receive(data) = &event.0 else {
+      return None
+    };
+    if !event.is_message_of_type::<{ServerToClientMessageType::PlayerDisconnected as u8}>() {
+      return None
+    };
+    let Ok(parsed_message) = postcard::from_bytes(data) else {
+      log::error!("Malformed message");
+      return None
+    };
+    Some(parsed_message)
+  }).collect();
+
+  for message in messages {
+    let ServerToClientMessage::PlayerDisconnected { id } = message else { unreachable!() };
+    log::info!("player disconnected: {}", id);
+    let mut id_map = storages.borrow::<UniqueViewMut<ClientIdMap>>().unwrap();
+    let Some(ent_id) = id_map.0.remove(&id) else {
+      log::warn!("Disconnected player entity not found in client-id map");
+      continue
+    };
+    drop(id_map);
+    if !storages.delete_entity(ent_id) {
+      log::warn!("Disconnected player entity not found in storage");
+    }
+  }
+}

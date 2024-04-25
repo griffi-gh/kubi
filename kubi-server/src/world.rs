@@ -2,9 +2,7 @@ use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllSto
 use glam::IVec3;
 use hashbrown::HashMap;
 use kubi_shared::networking::{
-  messages::{ClientToServerMessage, ServerToClientMessage, ClientToServerMessageType},
-  channels::Channel,
-  client::Client,
+  channels::Channel, client::{Client, ClientId}, messages::{ClientToServerMessage, ClientToServerMessageType, ServerToClientMessage}
 };
 use uflow::{server::RemoteClient, SendMode};
 use lz4_flex::compress_prepend_size as lz4_compress;
@@ -30,6 +28,11 @@ pub struct ChunkManager {
   pub chunks: HashMap<IVec3, Chunk>
 }
 impl ChunkManager {
+  pub fn unsubscribe_all(&mut self, client_id: ClientId) {
+    for chunk in self.chunks.values_mut() {
+      chunk.subscriptions.remove(&client_id);
+    }
+  }
   pub fn new() -> Self {
     Self::default()
   }

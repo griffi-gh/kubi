@@ -10,7 +10,7 @@ mod auth;
 
 use config::read_config;
 use server::{bind_server, update_server, log_server_errors};
-use client::{init_client_maps, sync_client_positions};
+use client::{init_client_maps, on_client_disconnect, sync_client_positions};
 use auth::authenticate_players;
 use world::{update_world, init_world};
 
@@ -31,6 +31,7 @@ fn update() -> Workload {
       authenticate_players,
       update_world,
       sync_client_positions,
+      on_client_disconnect,
     ).into_workload()
   ).into_sequential_workload()
 }
