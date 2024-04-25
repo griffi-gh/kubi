@@ -5,8 +5,20 @@ use kubi_shared::networking::{
   state::ClientJoinState,
   channels::Channel,
 };
-use crate::player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer};
+use rand::prelude::*;
+use crate::{chat::ChatManager, player::{spawn_local_player_multiplayer, spawn_remote_player_multiplayer}};
 use super::{UdpClient, NetworkEvent};
+
+const USERNAME_BANK: &[&str] = &[
+  "XxX-FishFucker-69420",
+  "Sbeve34",
+  "ShadowBladeX",
+  "CyberNinja92",
+  "sputnik1",
+  "dumbpotato",
+  "FortNiteNinja",
+  "MinecraftMiner",
+];
 
 #[derive(Unique)]
 pub struct ConnectionRejectionReason {
@@ -23,7 +35,8 @@ pub fn set_client_join_state_to_connected(
 pub fn say_hello(
   mut client: UniqueViewMut<UdpClient>,
 ) {
-  let username = "XxX-FishFucker-69420-XxX".into(); 
+  let mut rng = thread_rng();
+  let username = (*USERNAME_BANK.choose(&mut rng).unwrap()).to_owned();
   let password = None;
   log::info!("Authenticating");
   client.0.send(
@@ -64,7 +77,10 @@ pub fn check_server_hello_response(
   //    direction: Quat,
   //    health: Health,
   //  }
-  
+
+  let client_id = init.user.client_id;
+  let username = init.user.username.clone();
+
   //Add components to main player
   spawn_local_player_multiplayer(&mut storages, init.user);
 
@@ -78,6 +94,10 @@ pub fn check_server_hello_response(
   *join_state = ClientJoinState::Joined;
 
   log::info!("Joined the server!");
+
+  // Send chat message
+  let mut chat = storages.borrow::<UniqueViewMut<ChatManager>>().unwrap();
+  chat.add_player_join(client_id, username);
 }
 
 pub fn check_server_fuck_off_response(
