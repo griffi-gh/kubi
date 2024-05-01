@@ -1,4 +1,4 @@
-use glam::{Vec3, Mat4, Quat, ivec3};
+use glam::{ivec3, IVec3, Mat4, Quat, Vec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
 use glium::{
   implement_vertex, uniform,
@@ -50,10 +50,13 @@ pub fn draw_world(
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
   program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
   texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
+  transform: View<Transform>,
   camera: View<Camera>,
   settings: UniqueView<GameSettings>
 ) {
-  let camera = camera.iter().next().expect("No cameras in the scene");
+  let (camera, transform) = (&camera, &transform).iter().next().expect("No cameras in the scene");
+  let camera_position = transform.0.to_scale_rotation_translation().2;
+
   let mut draw_parameters = DrawParameters {
     depth: Depth {
       test: DepthTest::IfLess,
@@ -119,6 +122,11 @@ pub fn draw_world(
 
   draw_parameters.blend = Blend::alpha_blending();
   draw_parameters.backface_culling = BackfaceCullingMode::CullingDisabled;
+  draw_parameters.smooth = Some(glium::Smooth::DontCare);
+
+  enqueue_trans.sort_by_key(|k| -(
+    (k.0.position + IVec3::splat((CHUNK_SIZE >> 1) as i32)).distance_squared(camera_position.as_ivec3())
+  ));
 
   for (chunk, mesh) in enqueue_trans {
     let world_position = chunk.position.as_vec3() * CHUNK_SIZE as f32;
