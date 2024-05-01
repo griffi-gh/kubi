@@ -1,6 +1,6 @@
 use glam::{IVec3, ivec3};
 use strum::IntoEnumIterator;
-use kubi_shared::block::{Block, RenderType};
+use kubi_shared::block::{Block, BlockTexture, RenderType};
 use crate::world::chunk::CHUNK_SIZE;
 use crate::rendering::world::ChunkVertex;
 
@@ -10,7 +10,10 @@ mod builder;
 use data::MeshGenData;
 use builder::{MeshBuilder, CubeFace, DiagonalFace};
 
-pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
+pub fn generate_mesh(data: MeshGenData) -> (
+  (Vec<ChunkVertex>, Vec<u32>),
+  (Vec<ChunkVertex>, Vec<u32>),
+) {
   let get_block = |pos: IVec3| -> Block {
     if pos.x < 0 {
       data.block_data_neg_x[(CHUNK_SIZE as i32 + pos.x) as usize][pos.y as usize][pos.z as usize]
@@ -30,6 +33,7 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
   };
 
   let mut builder = MeshBuilder::new();
+  let mut trans_builder = MeshBuilder::new();
 
   for x in 0..CHUNK_SIZE as i32 {
     for y in 0..CHUNK_SIZE as i32 {
@@ -39,7 +43,9 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
         let descriptor = block.descriptor();
         match descriptor.render {
           RenderType::None => continue,
-          RenderType::SolidBlock(textures) | RenderType::BinaryTransparency(textures) => {
+          RenderType::SolidBlock(textures) |
+          RenderType::BinaryTransparency(textures) |
+          RenderType::TransBlock(textures) => {
             for face in CubeFace::iter() {
               let facing_direction = face.normal();
               let facing_coord = coord + facing_direction;
@@ -47,10 +53,12 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
               let facing_descriptor = facing_block.descriptor();
               let face_obstructed = match descriptor.render {
                 RenderType::SolidBlock(_) => matches!(facing_descriptor.render, RenderType::SolidBlock(_)),
-                RenderType::BinaryTransparency(_) => {
+                RenderType::BinaryTransparency(_) |
+                RenderType::TransBlock(_) => {
                   match facing_descriptor.render {
                     RenderType::SolidBlock(_) => true,
-                    RenderType::BinaryTransparency(_) => block == facing_block,
+                    RenderType::BinaryTransparency(_) |
+                    RenderType::TransBlock(_) => block == facing_block,
                     _ => false,
                   }
                 },
@@ -65,7 +73,11 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
                   CubeFace::Back   => textures.back,
                   CubeFace::Bottom => textures.bottom,
                 };
-                builder.add_face(face, coord, face_texture as u8);
+                let cur_builder = match descriptor.render {
+                  RenderType::TransBlock(_) => &mut trans_builder,
+                  _ => &mut builder,
+                };
+                cur_builder.add_face(face, coord, face_texture as u8);
               }
             }
           },
@@ -88,5 +100,5 @@ pub fn generate_mesh(data: MeshGenData) -> (Vec<ChunkVertex>, Vec<u32>) {
     }
   }
 
-  builder.finish()
+  (builder.finish(), trans_builder.finish())
 }

@@ -15,12 +15,13 @@ use std::time::Instant;
 
 pub(crate) use kubi_shared::transform;
 
-mod ui {
-  pub(crate) mod loading_screen;
-  pub(crate) mod connecting_screen;
-  pub(crate) mod chat_ui;
-}
-pub(crate) use ui::{loading_screen, connecting_screen, chat_ui};
+mod ui;
+pub(crate) use ui::{
+  loading_screen,
+  connecting_screen,
+  chat_ui,
+  crosshair_ui,
+};
 
 pub(crate) mod rendering;
 pub(crate) mod world;
@@ -91,6 +92,7 @@ use filesystem::AssetManager;
 use client_physics::{init_client_physics, update_client_physics_late};
 use chat_ui::render_chat;
 use chat::init_chat_manager;
+use crosshair_ui::{init_crosshair_image, draw_crosshair};
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -116,6 +118,7 @@ fn startup() -> Workload {
     init_delta_time,
     init_client_physics,
     init_chat_manager,
+    init_crosshair_image,
   ).into_sequential_workload()
 }
 
@@ -151,6 +154,7 @@ fn update() -> Workload {
       update_block_placement,
       apply_queued_blocks,
       render_chat,
+      draw_crosshair,
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,

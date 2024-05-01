@@ -54,7 +54,7 @@ pub fn draw_world(
   settings: UniqueView<GameSettings>
 ) {
   let camera = camera.iter().next().expect("No cameras in the scene");
-  let draw_parameters = DrawParameters {
+  let mut draw_parameters = DrawParameters {
     depth: Depth {
       test: DepthTest::IfLess,
       write: true,
@@ -74,6 +74,8 @@ pub fn draw_world(
   });
   let view = camera.view_matrix.to_cols_array_2d();
   let perspective = camera.perspective_matrix.to_cols_array_2d();
+
+  let mut enqueue_trans = Vec::new();
 
   for (&position, chunk) in &chunks.chunks {
     if let Some(key) = chunk.mesh_index {
@@ -107,7 +109,30 @@ pub fn draw_world(
         },
         &draw_parameters
       ).unwrap();
+
+      if mesh.trans_index_buffer.len() > 0 {
+        enqueue_trans.push((chunk, mesh));
+      }
     }
+  }
+
+  draw_parameters.blend = Blend::alpha_blending();
+  draw_parameters.backface_culling = BackfaceCullingMode::CullingDisabled;
+
+  for (chunk, mesh) in enqueue_trans {
+    let world_position = chunk.position.as_vec3() * CHUNK_SIZE as f32;
+    target.0.draw(
+      &mesh.trans_vertex_buffer,
+      &mesh.trans_index_buffer,
+      &program.0,
+      &uniform! {
+        position_offset: world_position.to_array(),
+        view: view,
+        perspective: perspective,
+        tex: texture_sampler,
+      },
+      &draw_parameters
+    ).unwrap();
   }
 }
 

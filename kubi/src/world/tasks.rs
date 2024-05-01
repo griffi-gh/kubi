@@ -29,7 +29,9 @@ pub enum ChunkTaskResponse {
   GeneratedMesh {
     position: IVec3,
     vertices: Vec<ChunkVertex>,
-    indexes: Vec<u32>
+    indices: Vec<u32>,
+    trans_vertices: Vec<ChunkVertex>,
+    trans_indices: Vec<u32>,
   },
 }
 
@@ -55,8 +57,15 @@ impl ChunkTaskManager {
     self.pool.spawn(move || {
       let _ = sender.send(match task {
         ChunkTask::GenerateMesh { position, data } => {
-          let (vertices, indexes) = generate_mesh(data);
-          ChunkTaskResponse::GeneratedMesh { position, vertices, indexes }
+          let (
+            (vertices, indices),
+            (trans_vertices, trans_indices),
+          ) = generate_mesh(data);
+          ChunkTaskResponse::GeneratedMesh {
+            position,
+            vertices, indices,
+            trans_vertices, trans_indices,
+          }
         },
         ChunkTask::LoadChunk { position, seed } => {
           let (chunk_data, queued) = generate_world(position, seed);

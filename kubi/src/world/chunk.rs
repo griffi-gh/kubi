@@ -17,6 +17,8 @@ impl ChunkData {
 pub struct ChunkMesh {
   pub vertex_buffer: VertexBuffer<ChunkVertex>,
   pub index_buffer: IndexBuffer<u32>,
+  pub trans_vertex_buffer: VertexBuffer<ChunkVertex>,
+  pub trans_index_buffer: IndexBuffer<u32>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -27,8 +29,8 @@ pub enum CurrentChunkState {
   Loaded,
   CalculatingMesh,
   Rendered,
-  RecalculatingMesh, 
-  Unloading,      
+  RecalculatingMesh,
+  Unloading,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

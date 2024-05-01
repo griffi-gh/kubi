@@ -220,7 +220,11 @@ fn process_completed_tasks(
         //increase ops counter
         ops += 1;
       },
-      ChunkTaskResponse::GeneratedMesh { position, vertices, indexes } => {
+      ChunkTaskResponse::GeneratedMesh {
+        position,
+        vertices, indices,
+        trans_vertices, trans_indices,
+      } => {
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
           log::warn!("mesh discarded: chunk doesn't exist");
@@ -234,11 +238,12 @@ fn process_completed_tasks(
         }
 
         //apply the mesh
-        let vertex_buffer = VertexBuffer::immutable(&renderer.display, &vertices).unwrap();
-        let index_buffer = IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indexes).unwrap();
+        //TODO: Skip if mesh is empty? (i.e. set to None)
         let mesh = ChunkMesh {
-          vertex_buffer,
-          index_buffer,
+          vertex_buffer: VertexBuffer::immutable(&renderer.display, &vertices).unwrap(),
+          index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indices).unwrap(),
+          trans_vertex_buffer: VertexBuffer::immutable(&renderer.display, &trans_vertices).unwrap(),
+          trans_index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &trans_indices).unwrap(),
         };
         if let Some(index) = chunk.mesh_index {
           meshes.update(index, mesh).expect("Mesh update failed");

@@ -22,6 +22,7 @@ pub enum BlockTexture {
   Cobblestone,
   Planks,
   WaterSolid,
+  Water,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, EnumIter, TryFromPrimitive)]
@@ -136,7 +137,7 @@ impl Block {
       },
       Self::Water => BlockDescriptor {
         name: "water",
-        render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::WaterSolid)),
+        render: RenderType::TransBlock(CubeTexture::all(BlockTexture::Water)),
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
@@ -217,6 +218,7 @@ pub enum CollisionType {
 pub enum RenderType {
   None,
   SolidBlock(CubeTexture),
+  TransBlock(CubeTexture),
   BinaryTransparency(CubeTexture),
   CrossShape(CrossTexture),
 }
