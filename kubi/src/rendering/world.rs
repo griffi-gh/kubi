@@ -106,6 +106,7 @@ pub fn draw_world(
           view: view,
           perspective: perspective,
           tex: texture_sampler,
+          discard_alpha: true,
         },
         &draw_parameters
       ).unwrap();
@@ -130,6 +131,7 @@ pub fn draw_world(
         view: view,
         perspective: perspective,
         tex: texture_sampler,
+        discard_alpha: false,
       },
       &draw_parameters
     ).unwrap();
