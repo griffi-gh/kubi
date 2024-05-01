@@ -63,81 +63,108 @@ impl Block {
       },
       Self::Stone => BlockDescriptor {
         name: "stone",
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Stone)),
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::all(BlockTexture::Stone)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Dirt => BlockDescriptor {
         name: "dirt",
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Dirt)),
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::all(BlockTexture::Dirt)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Grass => BlockDescriptor {
         name: "grass",
-        render: RenderType::SolidBlock(CubeTexture::top_sides_bottom(
-          BlockTexture::GrassTop,
-          BlockTexture::GrassSide,
-          BlockTexture::Dirt
-        )),
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::top_sides_bottom(
+            BlockTexture::GrassTop,
+            BlockTexture::GrassSide,
+            BlockTexture::Dirt
+          )
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Sand => BlockDescriptor {
         name: "sand",
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Sand)), 
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::all(BlockTexture::Sand)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Cobblestone => BlockDescriptor {
         name: "cobblestone",
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Cobblestone)),
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::all(BlockTexture::Cobblestone)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::TallGrass => BlockDescriptor {
         name: "tall grass",
-        render: RenderType::CrossShape(CrossTexture::all(BlockTexture::TallGrass)),
+        render: RenderType::Cross(CrossTexture::all(BlockTexture::TallGrass)),
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
       },
       Self::Planks => BlockDescriptor {
         name: "planks",
-        render: RenderType::SolidBlock(CubeTexture::all(BlockTexture::Planks)), 
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::all(BlockTexture::Planks)
+        ),
         collision: CollisionType::Solid, 
         raycast_collision: true, 
         drops: None,
       },
       Self::Torch => BlockDescriptor {
         name: "torch",
-        render: RenderType::CrossShape(CrossTexture::all(BlockTexture::Torch)),
+        render: RenderType::Cross(CrossTexture::all(BlockTexture::Torch)),
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
       },
       Self::Wood => BlockDescriptor {
         name: "leaf",
-        render: RenderType::SolidBlock(CubeTexture::horizontal_vertical(BlockTexture::Wood, BlockTexture::WoodTop)),
+        render: RenderType::Cube(
+          Transparency::Solid,
+          CubeTexture::horizontal_vertical(BlockTexture::Wood, BlockTexture::WoodTop)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Leaf => BlockDescriptor {
         name: "leaf",
-        render: RenderType::BinaryTransparency(CubeTexture::all(BlockTexture::Leaf)),
+        render: RenderType::Cube(
+          Transparency::Binary,
+          CubeTexture::all(BlockTexture::Leaf)
+        ),
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
       },
       Self::Water => BlockDescriptor {
         name: "water",
-        render: RenderType::TransBlock(CubeTexture::all(BlockTexture::Water)),
+        render: RenderType::Cube(
+          Transparency::Trans,
+          CubeTexture::all(BlockTexture::Water)
+        ),
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
@@ -215,10 +242,15 @@ pub enum CollisionType {
 }
 
 #[derive(Clone, Copy, Debug)]
+pub enum Transparency {
+  Solid,
+  Binary,
+  Trans,
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum RenderType {
   None,
-  SolidBlock(CubeTexture),
-  TransBlock(CubeTexture),
-  BinaryTransparency(CubeTexture),
-  CrossShape(CrossTexture),
+  Cube(Transparency, CubeTexture),
+  Cross(CrossTexture),
 }

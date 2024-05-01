@@ -1,6 +1,6 @@
 use glam::{IVec3, ivec3};
 use strum::IntoEnumIterator;
-use kubi_shared::block::{Block, BlockTexture, RenderType};
+use kubi_shared::block::{Block, BlockTexture, RenderType, Transparency};
 use crate::world::chunk::CHUNK_SIZE;
 use crate::rendering::world::ChunkVertex;
 
@@ -43,26 +43,23 @@ pub fn generate_mesh(data: MeshGenData) -> (
         let descriptor = block.descriptor();
         match descriptor.render {
           RenderType::None => continue,
-          RenderType::SolidBlock(textures) |
-          RenderType::BinaryTransparency(textures) |
-          RenderType::TransBlock(textures) => {
+          RenderType::Cube(trans_type, textures) => {
             for face in CubeFace::iter() {
               let facing_direction = face.normal();
               let facing_coord = coord + facing_direction;
               let facing_block = get_block(facing_coord);
               let facing_descriptor = facing_block.descriptor();
-              let face_obstructed = match descriptor.render {
-                RenderType::SolidBlock(_) => matches!(facing_descriptor.render, RenderType::SolidBlock(_)),
-                RenderType::BinaryTransparency(_) |
-                RenderType::TransBlock(_) => {
+              let face_obstructed = match trans_type {
+                Transparency::Solid => matches!(facing_descriptor.render, RenderType::Cube(Transparency::Solid, _)),
+                Transparency::Binary | Transparency::Trans => {
                   match facing_descriptor.render {
-                    RenderType::SolidBlock(_) => true,
-                    RenderType::BinaryTransparency(_) |
-                    RenderType::TransBlock(_) => block == facing_block,
+                    RenderType::Cube(trans_type, _) => match trans_type {
+                      Transparency::Solid => true,
+                      Transparency::Binary | Transparency::Trans => block == facing_block,
+                    },
                     _ => false,
                   }
                 },
-                _ => unreachable!(),
               };
               if !face_obstructed {
                 let face_texture = match face {
@@ -73,15 +70,15 @@ pub fn generate_mesh(data: MeshGenData) -> (
                   CubeFace::Back   => textures.back,
                   CubeFace::Bottom => textures.bottom,
                 };
-                let cur_builder = match descriptor.render {
-                  RenderType::TransBlock(_) => &mut trans_builder,
+                let target_builder = match trans_type {
+                  Transparency::Trans => &mut trans_builder,
                   _ => &mut builder,
                 };
-                cur_builder.add_face(face, coord, face_texture as u8);
+                target_builder.add_face(face, coord, face_texture as u8);
               }
             }
           },
-          RenderType::CrossShape(textures) => {
+          RenderType::Cross(textures) => {
             builder.add_diagonal_face(
               coord, 
               DiagonalFace::LeftZ, 
