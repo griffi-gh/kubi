@@ -19,6 +19,7 @@ pub struct GameSettings {
   pub render_distance: u8,
   pub mouse_sensitivity: f32,
   pub debug_draw_current_chunk_border: bool,
+  pub dynamic_crosshair: bool,
 }
 impl Default for GameSettings {
   fn default() -> Self {
@@ -34,6 +35,7 @@ impl Default for GameSettings {
       },
       mouse_sensitivity: 1.,
       debug_draw_current_chunk_border: false, //cfg!(not(target_os = "android")) && cfg!(debug_assertions),
+      dynamic_crosshair: true,
     }
   }
 }
