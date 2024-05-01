@@ -22,14 +22,26 @@ const CROSSHAIR: &[u8] = &[
   0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00,
 ];
+const CROSSHAIR_ALT: &[u8] = &[
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+  0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+  0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+  0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+  0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+  0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+];
 
 #[derive(Unique)]
-pub struct CrosshairImage(ImageHandle);
+pub struct CrosshairImage(ImageHandle, ImageHandle);
 
 pub fn init_crosshair_image(storages: AllStoragesViewMut) {
   let mut ui = storages.borrow::<NonSendSync<UniqueViewMut<UiState>>>().unwrap();
   let image = ui.hui.add_image(TextureFormat::Grayscale, CROSSHAIR, CROSSHAIR_SIZE);
-  storages.add_unique(CrosshairImage(image));
+  let image_alt = ui.hui.add_image(TextureFormat::Grayscale, CROSSHAIR_ALT, CROSSHAIR_SIZE);
+  storages.add_unique(CrosshairImage(image, image_alt));
 }
 
 pub fn draw_crosshair(
@@ -40,25 +52,20 @@ pub fn draw_crosshair(
   raycast: View<LookingAtBlock>,
   settings: UniqueView<GameSettings>,
 ) {
-  let mut active = false;
+  let mut active = !settings.dynamic_crosshair;
   if settings.dynamic_crosshair {
     if let Some((_, raycast)) = (&player, &raycast).iter().next() {
       active = raycast.0.is_some();
     }
-  } else {
-    active = true;
   }
 
   Container::default()
     .with_size(size!(100%))
     .with_align(Alignment::Center)
     .with_children(|ui| {
-      Image::new(crosshair.0)
-        .with_color((1., 1., 1., if active { 0.5 } else { 0.3 }))
-        .with_size(size!(18, 18))
-        .transform()
-        .scale(Vec2::splat(if active { 1. } else { 0.66 }))
-        .rotate(if active { 0. } else { PI / 4. })
+      Image::new(if active { crosshair.0 } else { crosshair.1 })
+        .with_color((1., 1., 1., 0.5))
+        .with_size(size!((CROSSHAIR_SIZE * 2)))
         .add_child(ui);
     })
     .add_root(&mut ui.hui, uvec2(size.0.x & !1, size.0.y & !1).as_vec2());
