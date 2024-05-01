@@ -1,21 +1,11 @@
 use glam::{ivec3, IVec3, Mat4, Quat, Vec3};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
 use glium::{
-  implement_vertex, uniform,
-  Surface, DrawParameters, 
-  uniforms::{
-    Sampler, 
-    SamplerBehavior, 
-    MinifySamplerFilter, 
-    MagnifySamplerFilter, 
-    SamplerWrapFunction
-  },
   draw_parameters::{
-    Depth,
-    DepthTest,
-    PolygonMode,
-    BackfaceCullingMode,
-  }, Blend
+    BackfaceCullingMode, Depth, DepthTest, PolygonMode
+  }, implement_vertex, uniform, uniforms::{
+    MagnifySamplerFilter, MinifySamplerFilter, Sampler, SamplerBehavior, SamplerWrapFunction
+  }, Blend, DrawParameters, Smooth, Surface
 };
 use crate::{
   camera::Camera,
@@ -122,13 +112,13 @@ pub fn draw_world(
 
   draw_parameters.blend = Blend::alpha_blending();
   draw_parameters.backface_culling = BackfaceCullingMode::CullingDisabled;
-  draw_parameters.smooth = Some(glium::Smooth::DontCare);
+  draw_parameters.smooth = Some(Smooth::Fastest);
 
-  enqueue_trans.sort_by_key(|k| -(
-    (k.0.position + IVec3::splat((CHUNK_SIZE >> 1) as i32)).distance_squared(camera_position.as_ivec3())
-  ));
+  // enqueue_trans.sort_by_key(|k| -(
+  //   (k.0.position + IVec3::splat((CHUNK_SIZE >> 1) as i32)).distance_squared(camera_position.as_ivec3())
+  // ));
 
-  for (chunk, mesh) in enqueue_trans {
+  for (chunk, mesh) in enqueue_trans.drain(..).rev() {
     let world_position = chunk.position.as_vec3() * CHUNK_SIZE as f32;
     target.0.draw(
       &mesh.trans_vertex_buffer,
