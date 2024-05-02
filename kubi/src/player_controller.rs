@@ -2,7 +2,7 @@ use glam::{vec3, EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
 use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, Unique, UniqueView, View, ViewMut, Workload};
 use winit::keyboard::KeyCode;
 use std::f32::consts::PI;
-use crate::{client_physics::ClPhysicsActor, delta_time::DeltaTime, input::{Inputs, PrevInputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
+use crate::{client_physics::ClPhysicsActor, cursor_lock::CursorLock, delta_time::DeltaTime, input::{Inputs, PrevInputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlayerControllerType {
@@ -43,7 +43,10 @@ fn update_look(
   inputs: UniqueView<Inputs>,
   settings: UniqueView<GameSettings>,
   dt: UniqueView<DeltaTime>,
+  lock: UniqueView<CursorLock>,
 ) {
+  //Only update if the cursor is locked
+  if !lock.0 { return }
   let look = inputs.look * settings.mouse_sensitivity * dt.0.as_secs_f32();
   if look == Vec2::ZERO { return }
   for (_, mut transform) in (&controllers, &mut transforms).iter() {
