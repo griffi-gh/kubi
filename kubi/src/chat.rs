@@ -60,5 +60,6 @@ pub fn init_chat_manager(
 ) {
   let mut chat_manager = ChatHistory::default();
   chat_manager.add_system_message("Welcome to Kubi! Chat messages will appear here".to_string());
+  chat_manager.add_system_message("F1 (Hold): Settings; F3: Release cursor; F4/F5: Gamemode".to_string());
   storages.add_unique(chat_manager);
 }
