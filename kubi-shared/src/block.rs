@@ -26,9 +26,10 @@ pub enum BlockTexture {
   Water,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, EnumIter, TryFromPrimitive)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq, EnumIter, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Block {
+  #[default]
   Air,
   Marker,
   Stone,
