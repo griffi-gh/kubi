@@ -9,11 +9,8 @@ use crate::{
   queue::QueuedBlock,
 };
 
-mod _01_terrain;
-mod _02_water;
-mod _03_caves;
-mod _04_layers;
-mod _05_decorate;
+pub mod steps;
+pub mod structures;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Default, NoUninit, CheckedBitPattern)]
@@ -186,11 +183,12 @@ impl WorldGenerator {
   /// Will return `None` only if the generation was aborted.
   pub fn generate(mut self, abort: Option<Arc<Atomic<AbortState>>>) -> Option<(BlockData, Vec<QueuedBlock>)> {
     run_steps!(&mut self, abort, [
-      _01_terrain::TerrainStep,
-      _02_water::WaterStep,
-      _03_caves::CaveStep,
-      _04_layers::LayersStep,
-      _05_decorate::DecorateStep,
+      steps::_01_terrain::TerrainStep,
+      steps::_02_water::WaterStep,
+      steps::_03_caves::CaveStep,
+      steps::_04_layers::LayersStep,
+      steps::_05_decorate::DecorateStep,
+      steps::_06_trees::TreesStep,
     ]).then_some((self.blocks, self.queue))
   }
 }

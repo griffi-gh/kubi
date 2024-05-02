@@ -1,6 +1,6 @@
 use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE};
-use super::{WorldGenerator, WorldGenStep};
+use super::super::{WorldGenerator, WorldGenStep};
 
 pub const WATER_LEVEL: i32 = 0;
 

@@ -1,6 +1,10 @@
 use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE};
-use super::{WorldGenStep, WorldGenerator, _02_water::WATER_LEVEL};
+use super::{
+  _02_water::WATER_LEVEL,
+  super::{WorldGenStep, WorldGenerator}
+};
+
 pub struct LayersStep;
 
 impl WorldGenStep for LayersStep {
