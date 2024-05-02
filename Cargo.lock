@@ -961,6 +961,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hui-winit"
+version = "0.1.0-alpha.4"
+source = "git+https://github.com/griffi-gh/hui?rev=dd5af8b9e2#dd5af8b9e2dc4cb2beb0b130d82167258ea2bd4e"
+dependencies = [
+ "glam",
+ "hui",
+ "log",
+ "winit",
+]
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1148,6 +1159,7 @@ dependencies = [
  "hashbrown 0.14.3",
  "hui",
  "hui-glium",
+ "hui-winit",
  "image",
  "kubi-logging",
  "kubi-shared",

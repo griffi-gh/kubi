@@ -1,4 +1,9 @@
-use hui::{color, element::{br::Break, container::Container, slider::Slider, text::Text, UiElementExt}, layout::{Alignment, Direction}, signal::Signal, size};
+use hui::{
+  element::{br::Break, container::Container, slider::Slider, text::Text, UiElementExt},
+  layout::{Alignment, Direction},
+  signal::Signal,
+  frame_rect, size,
+};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
 use winit::keyboard::KeyCode;
 use crate::{hui_integration::UiState, input::RawKbmInputState, rendering::WindowSize, settings::GameSettings};
@@ -20,10 +25,14 @@ pub fn render_settings_ui(
   }
   Container::default()
     .with_size(size!(100%))
+    .with_background((0., 0., 0., 0.5))
     .with_align(Alignment::Center)
     .with_children(|ui| {
       Container::default()
-        .with_background(color::BLACK)
+        .with_background(frame_rect! {
+          color: (0.2, 0.2, 0.2),
+          corner_radius: 8.
+        })
         .with_size(size!(50%, 50%))
         .with_direction(Direction::Horizontal)
         .with_gap(10.)

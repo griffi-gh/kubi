@@ -95,6 +95,8 @@ use chat::init_chat_manager;
 use crosshair_ui::{init_crosshair_image, draw_crosshair};
 use settings_ui::render_settings_ui;
 
+use crate::hui_integration::hui_process_winit_events;
+
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
   (
@@ -280,6 +282,7 @@ pub fn kubi_main(
 
     window_target.set_control_flow(ControlFlow::Poll);
 
+    world.run_with_data(hui_process_winit_events, &event);
     process_winit_events(&mut world, &event);
 
     #[allow(clippy::collapsible_match, clippy::single_match)]

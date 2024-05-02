@@ -41,3 +41,10 @@ pub fn kubi_ui_draw(
 ) {
   ui.renderer.draw(&mut target.0, size.0.as_vec2());
 }
+
+pub fn hui_process_winit_events(
+  event: &winit::event::Event<()>,
+  mut ui: NonSendSync<UniqueViewMut<UiState>>,
+) {
+  hui_winit::handle_winit_event(&mut ui.hui, event);
+}
