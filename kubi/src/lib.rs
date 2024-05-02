@@ -21,8 +21,8 @@ pub(crate) use ui::{
   connecting_screen,
   chat_ui,
   crosshair_ui,
+  settings_ui,
 };
-
 pub(crate) mod rendering;
 pub(crate) mod world;
 pub(crate) mod player;
@@ -93,6 +93,7 @@ use client_physics::{init_client_physics, update_client_physics_late};
 use chat_ui::render_chat;
 use chat::init_chat_manager;
 use crosshair_ui::{init_crosshair_image, draw_crosshair};
+use settings_ui::render_settings_ui;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -153,8 +154,10 @@ fn update() -> Workload {
       update_raycasts,
       update_block_placement,
       apply_queued_blocks,
+      //UI:
       render_chat,
       draw_crosshair,
+      render_settings_ui,
     ).into_sequential_workload().run_if(is_ingame),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
