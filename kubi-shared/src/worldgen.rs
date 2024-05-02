@@ -66,6 +66,8 @@ macro_rules! run_steps {
           ::atomic::Ordering::Relaxed
         ).is_ok();
 
+      if _chkabt() { return false }
+
       $({
         let _ensure_ref: &mut $crate::worldgen::WorldGenerator = $gen;
         struct _Ensure0<T: $crate::worldgen::WorldGenStep>(T);
