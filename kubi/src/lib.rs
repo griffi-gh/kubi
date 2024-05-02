@@ -1,7 +1,13 @@
+//TODO move lints to workspace Cargo.toml
 #![allow(
   clippy::too_many_arguments, // allowed because systems often need a lot of argumentss
   clippy::enum_variant_names,
   clippy::type_complexity
+)]
+#![forbid(
+  static_mut_refs,
+  unsafe_op_in_unsafe_fn,
+  rust_2024_compatibility,
 )]
 
 use shipyard::{
