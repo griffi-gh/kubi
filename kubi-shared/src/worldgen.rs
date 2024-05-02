@@ -23,6 +23,31 @@ pub enum AbortState {
 }
 const_assert!(Atomic::<AbortState>::is_lock_free());
 
+pub struct SeedThingy {
+  pseed: u64,
+  iseed: i32,
+  iter: u8,
+}
+
+impl SeedThingy {
+  pub fn new(seed: u64) -> Self {
+    Self {
+      pseed: seed,
+      iseed: (seed & 0x7fffffffu64) as i32,
+      iter: 0,
+    }
+  }
+
+  pub fn next_seed(&mut self) -> i32 {
+    self.iter += 1;
+    self.iseed = (
+      self.pseed
+        .rotate_left((3 * self.iter) as _)
+      & 0x7fffffff
+    ) as i32;
+    self.iseed
+  }
+}
 trait WorldGenStep {
   fn initialize(generator: &WorldGenerator) -> Self;
   fn generate(&mut self, generator: &mut WorldGenerator);

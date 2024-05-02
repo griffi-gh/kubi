@@ -1,4 +1,3 @@
-use bracket_noise::prelude::{FastNoise, FractalType};
 use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE};
 use super::{WorldGenerator, WorldGenStep};
