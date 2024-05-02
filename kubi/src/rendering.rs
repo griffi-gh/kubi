@@ -22,6 +22,7 @@ pub mod primitives;
 pub mod world;
 pub mod selection_box;
 pub mod entities;
+pub mod sumberge;
 
 #[derive(Unique)]
 #[repr(transparent)]

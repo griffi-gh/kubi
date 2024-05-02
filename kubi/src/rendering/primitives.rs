@@ -3,9 +3,11 @@ use glium::implement_vertex;
 
 pub mod cube;
 pub mod rect;
+pub mod stri;
 
 use cube::init_cube_primitive;
 use rect::init_rect_primitive;
+use stri::init_stri_primitive;
 
 #[derive(Clone, Copy, Default)]
 pub struct PositionOnlyVertex {
@@ -23,5 +25,6 @@ pub fn init_primitives() -> Workload {
   (
     init_cube_primitive,
     init_rect_primitive,
-  ).into_sequential_workload()
+    init_stri_primitive,
+  ).into_workload()
 }

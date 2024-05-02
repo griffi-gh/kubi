@@ -1,3 +1,4 @@
+use glam::{vec4, Vec4};
 use serde::{Serialize, Deserialize};
 use strum::EnumIter;
 use num_enum::TryFromPrimitive;
@@ -53,6 +54,7 @@ impl Block {
         collision: CollisionType::None,
         raycast_collision: false,
         drops: None,
+        submerge: None,
       },
       Self::Marker => BlockDescriptor {
         name: "marker",
@@ -60,6 +62,7 @@ impl Block {
         collision: CollisionType::None,
         raycast_collision: false,
         drops: None,
+        submerge: None,
       },
       Self::Stone => BlockDescriptor {
         name: "stone",
@@ -70,6 +73,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Dirt => BlockDescriptor {
         name: "dirt",
@@ -80,6 +84,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Grass => BlockDescriptor {
         name: "grass",
@@ -94,6 +99,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Sand => BlockDescriptor {
         name: "sand",
@@ -104,6 +110,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Cobblestone => BlockDescriptor {
         name: "cobblestone",
@@ -114,6 +121,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::TallGrass => BlockDescriptor {
         name: "tall grass",
@@ -121,6 +129,7 @@ impl Block {
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Planks => BlockDescriptor {
         name: "planks",
@@ -131,6 +140,7 @@ impl Block {
         collision: CollisionType::Solid, 
         raycast_collision: true, 
         drops: None,
+        submerge: None,
       },
       Self::Torch => BlockDescriptor {
         name: "torch",
@@ -138,6 +148,7 @@ impl Block {
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Wood => BlockDescriptor {
         name: "leaf",
@@ -148,6 +159,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Leaf => BlockDescriptor {
         name: "leaf",
@@ -158,6 +170,7 @@ impl Block {
         collision: CollisionType::Solid,
         raycast_collision: true,
         drops: None,
+        submerge: None,
       },
       Self::Water => BlockDescriptor {
         name: "water",
@@ -168,6 +181,7 @@ impl Block {
         collision: CollisionType::None,
         raycast_collision: true,
         drops: None,
+        submerge: Some(vec4(0., 0., 0.25, 0.75)),
       },
     }
   }
@@ -180,6 +194,7 @@ pub struct BlockDescriptor {
   pub collision: CollisionType,
   pub raycast_collision: bool,
   pub drops: Option<Item>,
+  pub submerge: Option<Vec4>,
 }
 
 #[derive(Clone, Copy, Debug)]

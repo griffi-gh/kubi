@@ -53,6 +53,10 @@ pub struct ColoredShaderPrefab(pub Program);
 
 #[derive(Unique)]
 #[repr(transparent)]
+pub struct Colored2ShaderPrefab(pub Program);
+
+#[derive(Unique)]
+#[repr(transparent)]
 pub struct UiFontPrefab(pub FontHandle);
 
 pub fn load_prefabs(
@@ -95,6 +99,14 @@ pub fn load_prefabs(
       "colored",
       "../shaders/colored.vert",
       "../shaders/colored.frag",
+      &renderer.display
+    )
+  ));
+  storages.add_unique_non_send_sync(Colored2ShaderPrefab(
+    include_shader_prefab!(
+      "colored",
+      "../shaders/colored2.vert",
+      "../shaders/colored2.frag",
       &renderer.display
     )
   ));

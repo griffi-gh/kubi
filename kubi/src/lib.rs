@@ -76,6 +76,7 @@ use rendering::{
   world::{draw_world, draw_current_chunk_border},
   selection_box::render_selection_box,
   entities::render_entities, 
+  sumberge::render_submerged_view,
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -178,6 +179,7 @@ fn render() -> Workload {
       draw_current_chunk_border,
       render_selection_box,
       render_entities,
+      render_submerged_view,
     ).into_sequential_workload().run_if(is_ingame),
     kubi_ui_draw,
   ).into_sequential_workload()
