@@ -118,15 +118,12 @@ name = "Kubi Server"          # server name
 
 <h2>"In-house" libraries</h2>
 
-- [`hui`](https://github.com/griffi-gh/hui): semi-imm.mode backend-agnostic ui system\
-  mostly ready to use, it has already replaced the Kubi legacy ui
-- [`kubi-ui-glium`](kubi-ui-glium) Glium-based backend for `kubi-ui`
-- [`kubi-pool`](kubi-pool): very early work-in-progress work-stealing threadpool system\
-  aiming to replace `rayon` threadpool that's currently used inside the kubi client (for more control over task priority)
+- [`hui`, `hui-glium`, `hui-winit`](https://github.com/griffi-gh/hui): semi-imm.mode backend-agnostic ui system\
 - [`kubi-logging`](kubi-logging) fancy-ass custom formatter for `env-logger`
 
 deprecated:
 
-~~`kubi-udp`~~ was a huge pita to work with and eventually got replaced by `uflow` (https://github.com/lowquark/uflow) in #5
+- ~~`kubi-udp`~~ eventually got replaced by `uflow` (https://github.com/lowquark/uflow) in #5
+- ~~`kubi-pool`~~ decided there's no need to replace rayon for now
 
 <h6 align="right"><i>~ uwu</i></h6>
