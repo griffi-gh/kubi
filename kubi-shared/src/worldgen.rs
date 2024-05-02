@@ -12,6 +12,8 @@ use crate::{
 mod _01_terrain;
 mod _02_water;
 mod _03_caves;
+mod _04_layers;
+mod _05_decorate;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Default, NoUninit, CheckedBitPattern)]
@@ -83,11 +85,17 @@ macro_rules! run_steps {
   };
 }
 
+#[derive(Default)]
+pub struct WorldGeneratorData {
+  pub master_height_map: Option<Vec<Vec<i32>>>,
+}
+
 pub struct WorldGenerator {
   seed: u64,
   chunk_position: IVec3,
   blocks: BlockData,
   queue: Vec<QueuedBlock>,
+  pub data: WorldGeneratorData,
 }
 
 impl WorldGenerator {
@@ -153,12 +161,23 @@ impl WorldGenerator {
     (0..CHUNK_SIZE as i32).contains(&position).then_some(position)
   }
 
+  /// crude hash of self.seed and x
+  fn seeded_hash(&self, x: impl std::hash::Hash) -> u64 {
+    //use std::hash to hash the seed and x
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    x.hash(&mut hasher);
+    self.seed.hash(&mut hasher);
+    hasher.finish()
+  }
+
   pub fn new(chunk_position: IVec3, seed: u64) -> Self {
     Self {
       seed,
       chunk_position,
       blocks: Box::new([[[Block::Air; CHUNK_SIZE]; CHUNK_SIZE]; CHUNK_SIZE]),
       queue: Vec::with_capacity(0),
+      data: Default::default(),
     }
   }
 
@@ -170,6 +189,8 @@ impl WorldGenerator {
       _01_terrain::TerrainStep,
       _02_water::WaterStep,
       _03_caves::CaveStep,
+      _04_layers::LayersStep,
+      _05_decorate::DecorateStep,
     ]).then_some((self.blocks, self.queue))
   }
 }

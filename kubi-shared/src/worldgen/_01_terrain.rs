@@ -18,14 +18,17 @@ impl WorldGenStep for TerrainStep {
   }
 
   fn generate(&mut self, gen: &mut WorldGenerator) {
+    let mut height_map = vec![vec![0; CHUNK_SIZE]; CHUNK_SIZE];
     for x in 0..CHUNK_SIZE as i32 {
       for z in 0..CHUNK_SIZE as i32 {
         let global_xz = gen.global_position(ivec3(x, 0, z));
         let height = (self.noise.get_noise_2d(global_xz.x as f64, global_xz.z as f64) * 32.0) as i32;
+        height_map[x as usize][z as usize] = height;
         for y in 0..gen.local_height(height) {
           gen.place(ivec3(x, y, z), Block::Stone);
         }
       }
     }
+    gen.data.master_height_map = Some(height_map);
   }
 }
