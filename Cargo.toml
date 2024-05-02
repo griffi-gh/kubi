@@ -27,6 +27,9 @@ opt-level = 3
 [profile.dev.package.bracket-noise]
 opt-level = 3
 
+[profile.dev.package.fastnoise-lite]
+opt-level = 3
+
 [profile.dev.package.rayon]
 opt-level = 3
 
