@@ -34,7 +34,7 @@ impl WorldGenStep for CaveStep {
 
           if noise_min > 0.5 { return }
 
-          gen.place(ivec3(x, y, z), Block::Air);
+          //gen.place(ivec3(x, y, z), Block::Air);
         }
       }
     }
