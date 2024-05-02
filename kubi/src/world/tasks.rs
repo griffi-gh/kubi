@@ -1,6 +1,8 @@
+use std::sync::Arc;
+use atomic::Atomic;
 use flume::{Sender, Receiver};
 use glam::IVec3;
-use kubi_shared::queue::QueuedBlock;
+use kubi_shared::{queue::QueuedBlock, worldgen::AbortState};
 use shipyard::Unique;
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use super::{
@@ -13,7 +15,8 @@ use crate::rendering::world::ChunkVertex;
 pub enum ChunkTask {
   LoadChunk {
     seed: u64,
-    position: IVec3
+    position: IVec3,
+    abortion: Option<Arc<Atomic<AbortState>>>,
   },
   GenerateMesh {
     position: IVec3,
@@ -67,8 +70,11 @@ impl ChunkTaskManager {
             trans_vertices, trans_indices,
           }
         },
-        ChunkTask::LoadChunk { position, seed } => {
-          let (chunk_data, queued) = generate_world(position, seed);
+        ChunkTask::LoadChunk { position, seed, abortion } => {
+          let Some((chunk_data, queued)) = generate_world(position, seed, abortion) else {
+            log::warn!("aborted operation");
+            return
+          };
           ChunkTaskResponse::LoadedChunk { position, chunk_data, queued }
         }
       });

@@ -1,6 +1,8 @@
+use std::sync::Arc;
+use atomic::{Atomic, Ordering};
 use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
-use kubi_shared::networking::messages::ClientToServerMessage;
+use kubi_shared::{networking::messages::ClientToServerMessage, worldgen::AbortState};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
 use crate::{
@@ -15,10 +17,10 @@ use super::{
   ChunkStorage, ChunkMeshStorage,
   chunk::{Chunk, DesiredChunkState, CHUNK_SIZE, ChunkMesh, CurrentChunkState, ChunkData},
   tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask}, 
-  queue::BlockUpdateQueue
+  queue::BlockUpdateQueue,
 };
 
-const MAX_CHUNK_OPS_INGAME: usize = 6;
+const MAX_CHUNK_OPS_INGAME: usize = 8;
 const MAX_CHUNK_OPS: usize = 32;
 
 pub fn update_loaded_world_around_player() -> Workload {
@@ -56,7 +58,7 @@ pub fn update_chunks_if_player_moved(
 
   //Then, mark *ALL* chunks with ToUnload
   for (_, chunk) in &mut vm_world.chunks {
-    chunk.desired_state = DesiredChunkState::ToUnload;
+    chunk.desired_state = DesiredChunkState::Unloaded;
   }
 
   //Then mark chunks that are near to the player
@@ -99,13 +101,27 @@ fn unload_downgrade_chunks(
   //TODO refactor this
   //TODO unsubscibe if in multiplayer
   vm_world.chunks.retain(|_, chunk| {
-    if chunk.desired_state == DesiredChunkState::ToUnload {
+    if chunk.desired_state == DesiredChunkState::Unloaded {
       if let Some(mesh_index) = chunk.mesh_index {
         vm_meshes.remove(mesh_index).unwrap();
+      }
+      if let Some(abortion) = &chunk.abortion {
+        let _ = abortion.compare_exchange(
+          AbortState::Continue, AbortState::Abort,
+          Ordering::Relaxed, Ordering::Relaxed
+        );
       }
       false
     } else {
       match chunk.desired_state {
+        DesiredChunkState::Nothing if matches!(chunk.current_state, CurrentChunkState::Loading) => {
+          if let Some(abortion) = &chunk.abortion {
+            let _ = abortion.compare_exchange(
+              AbortState::Continue, AbortState::Abort,
+              Ordering::Relaxed, Ordering::Relaxed
+            );
+          }
+        },
         DesiredChunkState::Loaded if matches!(chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::CalculatingMesh | CurrentChunkState::RecalculatingMesh) => {
           if let Some(mesh_index) = chunk.mesh_index {
             vm_meshes.remove(mesh_index).unwrap();
@@ -134,6 +150,7 @@ fn start_required_tasks(
     let chunk = world.chunks.get(&position).unwrap();
     match chunk.desired_state {
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
+        let mut abortion = None;
         //start load task
         if let Some(client) = &mut udp_client {
           client.0.send(
@@ -144,14 +161,18 @@ fn start_required_tasks(
             SendMode::Reliable
           );
         } else {
+          let atomic = Arc::new(Atomic::new(AbortState::Continue));
           task_manager.spawn_task(ChunkTask::LoadChunk {
             seed: 0xbeef_face_dead_cafe,
-            position
+            position,
+            abortion: Some(Arc::clone(&atomic)),
           });
+          abortion = Some(atomic);
         }
         //Update chunk state
         let chunk = world.chunks.get_mut(&position).unwrap();
         chunk.current_state = CurrentChunkState::Loading;
+        chunk.abortion = abortion;
         // ===========
         //log::trace!("Started loading chunk {position}");
       },
@@ -173,6 +194,7 @@ fn start_required_tasks(
           chunk.current_state = CurrentChunkState::CalculatingMesh;
         }
         chunk.mesh_dirty = false;
+        chunk.abortion = None; //Can never abort at this point
         // ===========
         //log::trace!("Started generating mesh for chunk {position}");
       }
@@ -195,14 +217,15 @@ fn process_completed_tasks(
       ChunkTaskResponse::LoadedChunk { position, chunk_data, mut queued } => {
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
+          //to compensate, actually push the ops counter back by one
           log::warn!("blocks data discarded: chunk doesn't exist");
-          return
+          continue
         };
 
         //check if chunk still wants it
         if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
           log::warn!("block data discarded: state undesirable: {:?}", chunk.desired_state);
-          return
+          continue
         }
 
         //set the block data
@@ -228,13 +251,13 @@ fn process_completed_tasks(
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
           log::warn!("mesh discarded: chunk doesn't exist");
-          return
+          continue
         };
 
         //check if chunk still wants it
         if chunk.desired_state != DesiredChunkState::Rendered {
           log::warn!("mesh discarded: state undesirable: {:?}", chunk.desired_state);
-          return
+          continue
         }
 
         //apply the mesh

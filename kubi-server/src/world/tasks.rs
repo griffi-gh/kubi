@@ -41,7 +41,9 @@ impl ChunkTaskManager {
     self.pool.spawn(move || {
       sender.send(match task {
         ChunkTask::LoadChunk { position: chunk_position, seed } => {
-          let (blocks, queue) = generate_world(chunk_position, seed);
+          let Some((blocks, queue)) = generate_world(chunk_position, seed, None) else {
+            return
+          };
           ChunkTaskResponse::ChunkLoaded { chunk_position, blocks, queue }
         }
       }).unwrap()

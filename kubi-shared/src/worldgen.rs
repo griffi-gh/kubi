@@ -1,6 +1,8 @@
-use std::sync::atomic::AtomicBool;
-
-use glam::{ivec3, IVec3};
+use std::sync::Arc;
+use atomic::Atomic;
+use bytemuck::{CheckedBitPattern, NoUninit};
+use glam::IVec3;
+use static_assertions::const_assert;
 use crate::{
   block::Block,
   chunk::{BlockData, CHUNK_SIZE},
@@ -8,6 +10,18 @@ use crate::{
 };
 
 mod _01_terrain;
+mod _02_water;
+mod _03_caves;
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Default, NoUninit, CheckedBitPattern)]
+pub enum AbortState {
+  #[default]
+  Continue,
+  Abort,
+  Aborted,
+}
+const_assert!(Atomic::<AbortState>::is_lock_free());
 
 trait WorldGenStep {
   fn initialize(generator: &WorldGenerator) -> Self;
@@ -16,16 +30,29 @@ trait WorldGenStep {
 
 macro_rules! run_steps {
   ($gen: expr, $abort: expr, [$($step:ty),* $(,)?]) => {
-    {
-      let _abort: AtomicBool = $abort.unwrap_or(AtomicBool::new(false));
+    (||{
+      let _abort: ::std::sync::Arc<::atomic::Atomic<$crate::worldgen::AbortState>> =
+        $abort.unwrap_or_else(|| ::std::sync::Arc::new(::atomic::Atomic::new($crate::worldgen::AbortState::Continue)));
+
+      let _chkabt = || _abort.compare_exchange(
+          $crate::worldgen::AbortState::Abort,
+          $crate::worldgen::AbortState::Aborted,
+          ::atomic::Ordering::Relaxed,
+          ::atomic::Ordering::Relaxed
+        ).is_ok();
+
       $({
-        let _ensure_ref: &mut WorldGenerator = $gen;
-        struct _Ensure0<T: WorldGenStep>(T);
+        let _ensure_ref: &mut $crate::worldgen::WorldGenerator = $gen;
+        struct _Ensure0<T: $crate::worldgen::WorldGenStep>(T);
         type _Ensure1 = _Ensure0<$step>;
         let mut step: _Ensure1 = _Ensure0(<$step>::initialize(&*_ensure_ref));
+        if _chkabt() { return false }
         step.0.generate(_ensure_ref);
+        if _chkabt() { return false }
       })*
-    }
+
+      true
+    })()
   };
 }
 
@@ -39,6 +66,32 @@ pub struct WorldGenerator {
 impl WorldGenerator {
   fn offset(&self) -> IVec3 {
     self.chunk_position * CHUNK_SIZE as i32
+  }
+
+  fn query(&self, position: IVec3) -> Block {
+    // let offset = self.offset();
+    // let event_pos = offset + position;
+    // if let Some(block) = self.queue.iter().find(|block| block.position == event_pos) {
+    //   block.block_type
+    // } else {
+    //   self.blocks[position.x as usize][position.y as usize][position.z as usize]
+    // }
+    self.blocks[position.x as usize][position.y as usize][position.z as usize]
+  }
+
+  fn place(&mut self, position: IVec3, block: Block) {
+    // let offset = self.offset();
+    // let event_pos = offset + position;
+    // self.queue.retain(|block: &QueuedBlock| {
+    //   block.position != event_pos
+    // });
+    self.blocks[position.x as usize][position.y as usize][position.z as usize] = block;
+  }
+
+  fn place_if_empty(&mut self, position: IVec3, block: Block) {
+    if self.query(position) == Block::Air {
+      self.place(position, block);
+    }
   }
 
   fn place_or_queue(&mut self, position: IVec3, block: Block) {
@@ -58,6 +111,21 @@ impl WorldGenerator {
     }
   }
 
+  fn global_position(&self, position: IVec3) -> IVec3 {
+    self.offset() + position
+  }
+
+  fn local_height(&self, height: i32) -> i32 {
+    let offset = self.chunk_position * CHUNK_SIZE as i32;
+    (height - offset.y).clamp(0, CHUNK_SIZE as i32)
+  }
+
+  fn local_y_position(&self, y: i32) -> Option<i32> {
+    let offset = self.chunk_position * CHUNK_SIZE as i32;
+    let position = y - offset.y;
+    (0..CHUNK_SIZE as i32).contains(&position).then_some(position)
+  }
+
   pub fn new(chunk_position: IVec3, seed: u64) -> Self {
     Self {
       seed,
@@ -67,14 +135,19 @@ impl WorldGenerator {
     }
   }
 
-  pub fn generate(mut self, abort: Option<AtomicBool>) -> (BlockData, Vec<QueuedBlock>) {
+  /// Generate the chunk.
+  ///
+  /// Will return `None` only if the generation was aborted.
+  pub fn generate(mut self, abort: Option<Arc<Atomic<AbortState>>>) -> Option<(BlockData, Vec<QueuedBlock>)> {
     run_steps!(&mut self, abort, [
-      _01_terrain::TerrainStep
-    ]);
-    (self.blocks, self.queue)
+      _01_terrain::TerrainStep,
+      _02_water::WaterStep,
+      _03_caves::CaveStep,
+    ]).then_some((self.blocks, self.queue))
   }
 }
 
-pub fn generate_world(chunk_position: IVec3, seed: u64) -> (BlockData, Vec<QueuedBlock>) {
-  WorldGenerator::new(chunk_position, seed).generate(None)
+pub fn generate_world(chunk_position: IVec3, seed: u64, abort: Option<Arc<Atomic<AbortState>>>) -> Option<(BlockData, Vec<QueuedBlock>)> {
+  //TODO: pass through None for abort
+  WorldGenerator::new(chunk_position, seed).generate(abort)
 }
