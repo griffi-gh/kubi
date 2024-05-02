@@ -1,9 +1,7 @@
-use std::f32::consts::PI;
-
-use glam::{uvec2, Vec2};
+use glam::uvec2;
 use hui::{
   draw::{ImageHandle, TextureFormat},
-  element::{container::Container, image::Image, transformer::ElementTransformExt, UiElementExt},
+  element::{container::Container, image::Image, UiElementExt},
   layout::Alignment,
   size
 };

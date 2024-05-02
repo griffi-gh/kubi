@@ -1,6 +1,6 @@
 use glam::{IVec3, ivec3};
 use strum::IntoEnumIterator;
-use kubi_shared::block::{Block, BlockTexture, RenderType, Transparency};
+use kubi_shared::block::{Block, RenderType, Transparency};
 use crate::world::chunk::CHUNK_SIZE;
 use crate::rendering::world::ChunkVertex;
 

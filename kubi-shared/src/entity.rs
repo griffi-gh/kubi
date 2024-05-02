@@ -17,19 +17,20 @@ impl Health {
     }
   }
 }
-impl PartialEq for Health {
-  fn eq(&self, other: &Self) -> bool {
-    self.current == other.current
-  }
-}
-impl Eq for Health {}
-impl PartialOrd for Health {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    self.current.partial_cmp(&other.current)
-  }
-}
-impl Ord for Health {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self.current.cmp(&other.current)
-  }
-}
+
+// impl PartialEq for Health {
+//   fn eq(&self, other: &Self) -> bool {
+//     self.current == other.current
+//   }
+// }
+// impl Eq for Health {}
+// impl PartialOrd for Health {
+//   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+//     self.current.partial_cmp(&other.current)
+//   }
+// }
+// impl Ord for Health {
+//   fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+//     self.current.cmp(&other.current)
+//   }
+// }

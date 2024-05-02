@@ -1,7 +1,6 @@
-use bincode::de;
 use fastnoise_lite::{FastNoiseLite, NoiseType};
 use glam::ivec3;
-use crate::{block::Block, chunk::CHUNK_SIZE, worldgen::SeedThingy};
+use crate::{chunk::CHUNK_SIZE, worldgen::SeedThingy};
 use super::_02_water::WATER_LEVEL;
 use crate::worldgen::{
   WorldGenStep, WorldGenerator,

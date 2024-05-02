@@ -1,5 +1,5 @@
 use fastnoise_lite::{FastNoiseLite, FractalType};
-use glam::{ivec3, FloatExt, IVec3};
+use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE};
 use super::super::{SeedThingy, WorldGenStep, WorldGenerator};
 

@@ -1,5 +1,5 @@
 use glam::Mat4;
-use shipyard::{AllStoragesView, AllStoragesViewMut, Component, EntitiesViewMut, EntityId, Get, IntoIter, NonSendSync, Remove, Unique, UniqueView, UniqueViewMut, View, ViewMut};
+use shipyard::{AllStoragesView, AllStoragesViewMut, Component, EntityId, Get, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View, ViewMut};
 use hashbrown::HashMap;
 use uflow::{server::Event, SendMode};
 use std::net::SocketAddr;
@@ -95,7 +95,8 @@ pub fn on_client_disconnect(
 
     for event in &events.0 {
       if let Event::Disconnect(addr) = event {
-        let net_client = server.0.client(addr).unwrap();
+        //XXX: do sth with this:
+        //let net_client = server.0.client(addr).unwrap();
         let Some(&entity_id) = addr_map.0.get(addr) else {
           log::error!("Disconnected client not authenticated, moving on");
           continue;

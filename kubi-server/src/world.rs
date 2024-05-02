@@ -102,7 +102,7 @@ fn process_chunk_requests(
         ).unwrap();
       }
     } else {
-      let mut chunk = Chunk::new(chunk_position);
+      let mut chunk = Chunk::new();
       chunk.state = ChunkState::Loading;
       chunk.subscriptions.insert(message.client_id);
       chunk_manager.chunks.insert(chunk_position, chunk);

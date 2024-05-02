@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, Unique, UniqueView, UniqueViewMut, View};
+use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, Unique, UniqueViewMut, View};
 use uflow::{client::Event as ClientEvent, SendMode};
 use kubi_shared::networking::{
   messages::{ClientToServerMessage, ServerToClientMessage, ServerToClientMessageType},

@@ -1,4 +1,8 @@
-#![allow(clippy::too_many_arguments)] // allowed because systems often need a lot of arguments
+#![allow(
+  clippy::too_many_arguments, // allowed because systems often need a lot of argumentss
+  clippy::enum_variant_names,
+  clippy::type_complexity
+)]
 
 use shipyard::{
   World, Workload, IntoWorkload,
