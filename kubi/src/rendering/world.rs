@@ -1,5 +1,5 @@
 use glam::{ivec3, IVec3, Mat4, Quat, Vec3};
-use shipyard::{NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, track};
+use shipyard::{track, AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
 use glium::{
   draw_parameters::{
     BackfaceCullingMode, Depth, DepthTest, PolygonMode
@@ -34,20 +34,15 @@ pub struct ChunkVertex {
 }
 implement_vertex!(ChunkVertex, position, normal, uv, tex_index);
 
-pub fn draw_world(
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
-  chunks: UniqueView<ChunkStorage>,
-  meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
-  program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
-  texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
-  transform: View<Transform>,
-  camera: View<Camera>,
-  settings: UniqueView<GameSettings>
-) {
-  let (camera, transform) = (&camera, &transform).iter().next().expect("No cameras in the scene");
-  let camera_position = transform.0.to_scale_rotation_translation().2;
+#[derive(Unique)]
+pub struct TransChunkQueue(pub Vec<IVec3>);
 
-  let mut draw_parameters = DrawParameters {
+pub fn init_trans_chunk_queue(storages: AllStoragesView) {
+  storages.add_unique(TransChunkQueue(Vec::with_capacity(512)));
+}
+
+fn draw_params(settings: &GameSettings) -> DrawParameters {
+  DrawParameters {
     depth: Depth {
       test: DepthTest::IfLess,
       write: true,
@@ -57,18 +52,39 @@ pub fn draw_world(
     polygon_mode: PolygonMode::Fill, //Change to Line for wireframe
     backface_culling: BackfaceCullingMode::CullClockwise,
     ..Default::default()
-  };
-  let texture_sampler = Sampler(&texture.0, SamplerBehavior {
+  }
+}
+
+fn texture_sampler<'a, T>(texture: &'a T, settings: &GameSettings) -> Sampler<'a, T> {
+  Sampler(texture, SamplerBehavior {
     minify_filter: MinifySamplerFilter::LinearMipmapLinear,
     magnify_filter: MagnifySamplerFilter::Nearest,
     max_anisotropy: settings.max_anisotropy.unwrap_or_default(),
     wrap_function: (SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp, SamplerWrapFunction::Clamp),
-    ..Default::default()
-  });
+    depth_texture_comparison: None,
+  })
+}
+
+pub fn draw_world(
+  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
+  chunks: UniqueView<ChunkStorage>,
+  meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
+  program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
+  texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
+  transform: View<Transform>,
+  camera: View<Camera>,
+  settings: UniqueView<GameSettings>,
+  mut trans_queue: UniqueViewMut<TransChunkQueue>,
+) {
+  // let (camera, transform) = (&camera, &transform).iter().next().expect("No cameras in the scene");
+  // let camera_position = transform.0.to_scale_rotation_translation().2;
+
+  let camera = camera.iter().next().expect("No cameras in the scene");
   let view = camera.view_matrix.to_cols_array_2d();
   let perspective = camera.perspective_matrix.to_cols_array_2d();
 
-  let mut enqueue_trans = Vec::new();
+  let draw_parameters = draw_params(&settings);
+  let texture_sampler = texture_sampler(&texture.0, &settings);
 
   for (&position, chunk) in &chunks.chunks {
     if let Some(key) = chunk.mesh_index {
@@ -107,21 +123,42 @@ pub fn draw_world(
       }
 
       if mesh.trans_index_buffer.len() > 0 {
-        enqueue_trans.push((chunk, mesh));
+        trans_queue.0.push(position);
       }
     }
   }
 
+  // const HALF_CHUNK_SIZE: IVec3 = IVec3::splat((CHUNK_SIZE >> 1) as i32);
+  // trans_queue.0.sort_by_cached_key(|&pos| -(
+  //   (pos + HALF_CHUNK_SIZE).distance_squared(camera_position.as_ivec3())
+  // ));
+}
+
+pub fn draw_world_trans(
+  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
+  chunks: UniqueView<ChunkStorage>,
+  meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
+  program: NonSendSync<UniqueView<ChunkShaderPrefab>>,
+  texture: NonSendSync<UniqueView<BlockTexturesPrefab>>,
+  camera: View<Camera>,
+  settings: UniqueView<GameSettings>,
+  mut trans_queue: UniqueViewMut<TransChunkQueue>,
+) {
+  let camera = camera.iter().next().expect("No cameras in the scene");
+  let view = camera.view_matrix.to_cols_array_2d();
+  let perspective = camera.perspective_matrix.to_cols_array_2d();
+
+  let mut draw_parameters = draw_params(&settings);
   draw_parameters.blend = Blend::alpha_blending();
   draw_parameters.backface_culling = BackfaceCullingMode::CullingDisabled;
   draw_parameters.smooth = Some(Smooth::Fastest);
 
-  // enqueue_trans.sort_by_key(|k| -(
-  //   (k.0.position + IVec3::splat((CHUNK_SIZE >> 1) as i32)).distance_squared(camera_position.as_ivec3())
-  // ));
+  let texture_sampler = texture_sampler(&texture.0, &settings);
 
-  for (chunk, mesh) in enqueue_trans.drain(..).rev() {
-    let world_position = chunk.position.as_vec3() * CHUNK_SIZE as f32;
+  for position in trans_queue.0.drain(..).rev() {
+    let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+    let mesh_idx = chunks.chunks[&position].mesh_index.expect("No mesh index");
+    let mesh = meshes.get(mesh_idx).expect("Mesh index pointing to nothing");
     target.0.draw(
       &mesh.trans_vertex_buffer,
       &mesh.trans_index_buffer,

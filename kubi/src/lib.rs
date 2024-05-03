@@ -83,7 +83,7 @@ use rendering::{
   init_window_size, 
   update_window_size,
   primitives::init_primitives,
-  world::{draw_world, draw_current_chunk_border},
+  world::{init_trans_chunk_queue, draw_world, draw_world_trans, draw_current_chunk_border},
   selection_box::render_selection_box,
   entities::render_entities, 
   sumberge::render_submerged_view,
@@ -133,6 +133,7 @@ fn startup() -> Workload {
     init_client_physics,
     init_chat_manager,
     init_crosshair_image,
+    init_trans_chunk_queue,
   ).into_sequential_workload()
 }
 
@@ -189,6 +190,7 @@ fn render() -> Workload {
       draw_current_chunk_border,
       render_selection_box,
       render_entities,
+      draw_world_trans,
       render_submerged_view,
     ).into_sequential_workload().run_if(is_ingame),
     kubi_ui_draw,
