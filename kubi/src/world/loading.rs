@@ -110,7 +110,9 @@ fn process_state_changes(
       continue
     }
     // If the chunk is already in the desired state, skip it
-    if chunk.desired_state.matches_current(chunk.current_state) {
+    // (except one annoying edge case where chunk is rendered but dirty, then we need to recalculate the mesh)
+    if chunk.desired_state.matches_current(chunk.current_state) &&
+      !(chunk.desired_state == DesiredChunkState::Rendered && chunk.mesh_dirty) {
       continue
     }
     match chunk.desired_state {
