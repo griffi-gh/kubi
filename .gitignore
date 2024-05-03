@@ -18,3 +18,12 @@ _visualizer.json
 
 /*_log*.txt
 /*.log
+
+# make sure build artifacts and binaries are not committed
+*.d
+*.pdb
+*.exe
+*.dll
+*.so
+*.dylib
+*.rlib
