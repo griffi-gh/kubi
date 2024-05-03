@@ -13,7 +13,7 @@ use kubi_shared::{
 use uflow::{server::RemoteClient, SendMode};
 use lz4_flex::compress_prepend_size as lz4_compress;
 use anyhow::Result;
-use std::{rc::Rc, cell::RefCell};
+use std::{cell::RefCell, os::windows::process, rc::Rc};
 use kubi_shared::networking::client::ClientIdMap;
 use crate::{
   server::{UdpServer, ServerEvents}, 
@@ -168,6 +168,32 @@ fn process_finished_tasks(
   }
 }
 
+fn process_chunk_unsubscribe_events(
+  server: NonSendSync<UniqueView<UdpServer>>,
+  events: UniqueView<ServerEvents>,
+  mut chunk_manager: UniqueViewMut<ChunkManager>,
+  addr_map: UniqueView<ClientAddressMap>,
+  clients: View<Client>
+) {
+  for event in &events.0 {
+    let Some(message) = check_message_auth
+      ::<{ClientToServerMessageType::ChunkUnsubscribe as u8}>
+      (&server, event, &clients, &addr_map) else { continue };
+
+    let ClientToServerMessage::ChunkUnsubscribe { chunk: chunk_position } = message.message else {
+      unreachable!()
+    };
+
+    let Some(chunk) = chunk_manager.chunks.get_mut(&chunk_position) else {
+      log::warn!("tried to unsubscribe from non-existent chunk");
+      continue
+    };
+
+    chunk.subscriptions.remove(&message.client_id);
+    //TODO unload chunk if no more subscribers
+  }
+}
+
 fn process_block_queue_messages(
   server: NonSendSync<UniqueView<UdpServer>>,
   events: UniqueView<ServerEvents>,
@@ -251,6 +277,7 @@ pub fn update_world() -> Workload {
     process_finished_tasks,
     process_block_queue_messages,
     process_block_queue,
+    process_chunk_unsubscribe_events,
     process_chunk_requests,
   ).into_sequential_workload()
 }
