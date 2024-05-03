@@ -11,23 +11,22 @@
 <p>
   <ul>
     <li>multithreaded procedural world generation</li>
-    <li>procedural structures</li>
+    <li>procedural structures and block queue</li>
     <li>multithreaded mesh generation</li>
     <li>cubic chunks (32x32x32)</li>
     <li>low-level OpenGL renderer, targetting OpenGL ES 3.0</li>
     <li>frustum culling</li>
-    <li>multiplayer support <sup><code>[1]</code></sup></li>
-    <li>block placement system</li>
-    <li>basic gui<sup><code>[5]</code></sup></li>
-    <li>cross platform: windows, linux, osx <sup><code>[2]</code></sup>, android <sup><code>[3]</code></sup></li>
-    <li>universal input system: supports keyboard, mouse, gamepad and touch input <sup><code>[4]</code></sup></li>
+    <li>multiplayer networking</li>
+    <li>immediate ui system <sup><code>[1]</code></sup></li>
+    <li>cross platform: windows, linux, osx, android <sup><code>[2]</code></sup></li>
+    <li>universal input system: supports keyboard, mouse, gamepad and touch input <sup><code>[3]</code></sup></li>
+    <li>support for semi-transparet blocks<sup><code>[4]</code></sup></li>
   </ul>
   <h6>
-    <code>[1]</code> - multiplayer is work-in-progress<br>
-    <code>[2]</code> - not tested on macos<br>
-    <code>[3]</code> - android support is experimental<br>
-    <code>[4]</code> - mouse/gamepad input is not supported on android<br>
-  <code>[5]</code> - currently only used on the loading screen 
+    <code>[1]</code> - developed out-of-tree <a href="https://github.com/griffi-gh/hUI">here</a> since 2024<br>
+    <code>[2]</code> - android support is experimental<br>
+    <code>[3]</code> - mouse and gamepad input is not supported on android<br>
+    <code>[4]</code> - work in progress, may cause issues<br>
   </h6>
 </p>
 
@@ -36,24 +35,17 @@
 
 <h2>build for windows/linux</h2>
 
-**build/run**
-
 ```bash
-cargo build --bin kubi
-cargo run --bin kubi
-```
-
-**build in release mode, with nightly optimizations**
-
-```bash
-cargo +nightly build --bin kubi --features nightly --release
+cargo build -p kubi
+cargo run -p kubi
+#or, build with release mode optimizations:
+cargo run -p kubi --release
 ```
 
 <h2>build for android</h2>
 
 please note that android support is highly experimental!\
-gamepad, mouse input is currently borked, and proper touch controls are not available.\
-srgb and blending are broken too, which leads to many rendering issues
+gamepad, mouse input is currently borked, as well as srgb, which leads to dark textures.
 
 prerequisites: Android SDK, NDK, command line tools, platform-tools, latest JDK\
 (make sure that your `PATH`, `ANDROID_HOME` and `ANDROID_NDK_ROOT` variables are configured properly)
@@ -95,7 +87,7 @@ cargo apk run -p kubi --lib --no-default-features
 
 <h2>mutiplayer</h2>
 
-to join a multiplayer server, just pass the ip address as an argument
+to join a multiplayer server, just pass the ip address as the first argument
 
 ```sh
 cargo run -p kubi -- 127.0.0.1:1234
@@ -119,7 +111,7 @@ name = "Kubi Server"          # server name
 <h2>"In-house" libraries</h2>
 
 - [`hui`, `hui-glium`, `hui-winit`](https://github.com/griffi-gh/hui): semi-imm.mode backend-agnostic ui system\
-- [`kubi-logging`](kubi-logging) fancy-ass custom formatter for `env-logger`
+- [`kubi-logging`](kubi-logging) fancy custom formatter for `env-logger`
 
 deprecated:
 
