@@ -1,4 +1,4 @@
-use shipyard::{Unique, UniqueView, UniqueViewMut, Workload, IntoWorkload, AllStoragesView, View, Get, NonSendSync, IntoIter};
+use shipyard::{AllStoragesView, Get, IntoIter, IntoWorkload, NonSendSync, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload};
 use glam::IVec3;
 use hashbrown::HashMap;
 use kubi_shared::{
@@ -265,10 +265,33 @@ fn init_chunk_manager_and_block_queue(
   storages.add_unique(LocalBlockQueue::default());
 }
 
+pub fn preheat_world(
+  mut chunk_manager: UniqueViewMut<ChunkManager>,
+  task_manager: UniqueView<ChunkTaskManager>,
+  config: UniqueView<ConfigTable>,
+) {
+  let r = config.world.preheat_radius as i32;
+  for x in -r..=r {
+    for y in -r..=r {
+      for z in -r..=r {
+        let chunk_position = IVec3::new(x, y, z);
+        let mut chunk = Chunk::new();
+        chunk.state = ChunkState::Loading;
+        chunk_manager.chunks.insert(chunk_position, chunk);
+        task_manager.spawn_task(ChunkTask::LoadChunk {
+          position: chunk_position,
+          seed: config.world.seed,
+        });
+      }
+    }
+  }
+}
+
 pub fn init_world() -> Workload {
   (
-    init_chunk_manager_and_block_queue,
-    init_chunk_task_manager,
+    init_chunk_manager_and_block_queue.before_all(preheat_world),
+    init_chunk_task_manager.before_all(preheat_world),
+    preheat_world,
   ).into_workload()
 }
 

@@ -5,6 +5,7 @@ timeout_ms = 10000
 
 [world]
 seed = 0xfeb_face_dead_cafe
+preheat_radius = 8
 
 [query]
 name = "Kubi Server"

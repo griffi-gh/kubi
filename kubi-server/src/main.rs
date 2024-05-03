@@ -1,4 +1,4 @@
-use shipyard::{World, Workload, IntoWorkload};
+use shipyard::{IntoWorkload, Workload, WorkloadModificator, World};
 use std::{thread, time::Duration};
 
 mod util;
@@ -19,7 +19,7 @@ fn initialize() -> Workload {
     read_config,
     bind_server,
     init_client_maps,
-    init_world,
+    init_world.after_all(read_config),
   ).into_workload()
 }
 

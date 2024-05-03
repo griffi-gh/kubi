@@ -13,6 +13,7 @@ pub struct ConfigTableServer {
 #[derive(Serialize, Deserialize)]
 pub struct ConfigTableWorld {
   pub seed: u64,
+  pub preheat_radius: u32,
 }
 
 #[derive(Serialize, Deserialize)]
