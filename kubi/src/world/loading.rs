@@ -2,7 +2,7 @@ use std::sync::Arc;
 use atomic::{Atomic, Ordering};
 use glam::{IVec3, ivec3};
 use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
-use kubi_shared::{networking::messages::ClientToServerMessage, worldgen::AbortState};
+use kubi_shared::{networking::{channels::Channel, messages::ClientToServerMessage}, worldgen::AbortState};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
 use crate::{
@@ -26,8 +26,7 @@ const MAX_CHUNK_OPS: usize = 32;
 pub fn update_loaded_world_around_player() -> Workload {
   (
     update_chunks_if_player_moved,
-    unload_downgrade_chunks,
-    start_required_tasks,
+    process_state_changes,
     process_completed_tasks,
   ).into_sequential_workload()
 }
@@ -91,64 +90,86 @@ pub fn update_chunks_if_player_moved(
   }
 }
 
-fn unload_downgrade_chunks(
-  mut vm_world: UniqueViewMut<ChunkStorage>,
-  mut vm_meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>
-) {
-  if !vm_world.is_modified() {
-    return
-  }
-  //TODO refactor this
-  //TODO unsubscibe if in multiplayer
-  vm_world.chunks.retain(|_, chunk| {
-    if chunk.desired_state == DesiredChunkState::Unloaded {
-      if let Some(mesh_index) = chunk.mesh_index {
-        vm_meshes.remove(mesh_index).unwrap();
-      }
-      if let Some(abortion) = &chunk.abortion {
-        let _ = abortion.compare_exchange(
-          AbortState::Continue, AbortState::Abort,
-          Ordering::Relaxed, Ordering::Relaxed
-        );
-      }
-      false
-    } else {
-      match chunk.desired_state {
-        DesiredChunkState::Nothing if matches!(chunk.current_state, CurrentChunkState::Loading) => {
-          if let Some(abortion) = &chunk.abortion {
-            let _ = abortion.compare_exchange(
-              AbortState::Continue, AbortState::Abort,
-              Ordering::Relaxed, Ordering::Relaxed
-            );
-          }
-        },
-        DesiredChunkState::Loaded if matches!(chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::CalculatingMesh | CurrentChunkState::RecalculatingMesh) => {
-          if let Some(mesh_index) = chunk.mesh_index {
-            vm_meshes.remove(mesh_index).unwrap();
-          }
-          chunk.mesh_index = None;
-          chunk.current_state = CurrentChunkState::Loaded;
-        },
-        _ => (),
-      }
-      true
-    }
-  })
-}
-
-fn start_required_tasks(
+fn process_state_changes(
   task_manager: UniqueView<ChunkTaskManager>,
   mut udp_client: Option<UniqueViewMut<UdpClient>>,
   mut world: UniqueViewMut<ChunkStorage>,
+  mut vm_meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
 ) {
   if !world.is_modified() {
     return
   }
+
   //HACK: cant iterate over chunks.keys() or chunk directly!
   let hashmap_keys: Vec<IVec3> = world.chunks.keys().copied().collect();
   for position in hashmap_keys {
-    let chunk = world.chunks.get(&position).unwrap();
+    let chunk = world.chunks.get_mut(&position).unwrap();
+
+    //If the chunk is being unloaded, it's essentially dead at this point and we shouldn't bother it
+    if chunk.current_state == CurrentChunkState::Unloading {
+      continue
+    }
+    // If the chunk is already in the desired state, skip it
+    if chunk.desired_state.matches_current(chunk.current_state) {
+      continue
+    }
     match chunk.desired_state {
+      // DesiredChunkState::Unloaded | DesiredChunkState::Nothing:
+      // Loading -> Nothing
+      DesiredChunkState::Unloaded | DesiredChunkState::Nothing if chunk.current_state == CurrentChunkState::Loading => {
+        if let Some(abortion) = &chunk.abortion {
+          let _ = abortion.compare_exchange(
+            AbortState::Continue, AbortState::Abort,
+            Ordering::Relaxed, Ordering::Relaxed
+          );
+        }
+        chunk.abortion = None;
+        chunk.current_state = CurrentChunkState::Nothing;
+      },
+
+      // DesiredChunkState::Unloaded | DesiredChunkState::Nothing:
+      // (Loaded, CalculatingMesh) -> Nothing
+      DesiredChunkState::Unloaded | DesiredChunkState::Nothing if matches!(
+        chunk.current_state,
+        CurrentChunkState::Loaded | CurrentChunkState::CalculatingMesh,
+      ) => {
+        chunk.block_data = None;
+        chunk.current_state = CurrentChunkState::Nothing;
+      },
+
+      // DesiredChunkState::Unloaded | DesiredChunkState::Nothing:
+      // (Rendered | RecalculatingMesh) -> Nothing
+      DesiredChunkState::Unloaded | DesiredChunkState::Nothing if matches!(
+        chunk.current_state,
+        CurrentChunkState::Rendered | CurrentChunkState::RecalculatingMesh,
+      ) => {
+        if let Some(mesh_index) = chunk.mesh_index {
+          vm_meshes.remove(mesh_index).unwrap();
+        }
+        chunk.mesh_index = None;
+        chunk.current_state = CurrentChunkState::Nothing;
+      },
+
+      // DesiredChunkState::Loaded:
+      // CalculatingMesh -> Loaded
+      DesiredChunkState::Loaded if chunk.current_state == CurrentChunkState::CalculatingMesh => {
+        chunk.current_state = CurrentChunkState::Loaded;
+      },
+
+      // DesiredChunkState::Unloaded | DesiredChunkState::Nothing | DesiredChunkState::Loaded:
+      // (Rendered | RecalculatingMesh) -> Loaded
+      DesiredChunkState::Unloaded | DesiredChunkState::Nothing | DesiredChunkState::Loaded if matches!(
+        chunk.current_state, CurrentChunkState::Rendered | CurrentChunkState::RecalculatingMesh
+      ) => {
+        if let Some(mesh_index) = chunk.mesh_index {
+          vm_meshes.remove(mesh_index).unwrap();
+        }
+        chunk.mesh_index = None;
+        chunk.current_state = CurrentChunkState::Loaded;
+      },
+
+      // DesiredChunkState::Loaded | DesiredChunkState::Rendered:
+      // Nothing -> Loading
       DesiredChunkState::Loaded | DesiredChunkState::Rendered if chunk.current_state == CurrentChunkState::Nothing => {
         let mut abortion = None;
         //start load task
@@ -157,7 +178,7 @@ fn start_required_tasks(
             postcard::to_allocvec(&ClientToServerMessage::ChunkSubRequest {
               chunk: position,
             }).unwrap().into_boxed_slice(),
-            0,
+            Channel::SubReq as usize,
             SendMode::Reliable
           );
         } else {
@@ -176,6 +197,10 @@ fn start_required_tasks(
         // ===========
         //log::trace!("Started loading chunk {position}");
       },
+
+      // DesiredChunkState::Rendered:
+      // Loaded -> CalculatingMesh
+      // Rendered (dirty) -> RecalculatingMesh
       DesiredChunkState::Rendered if (chunk.current_state == CurrentChunkState::Loaded || chunk.mesh_dirty) => {
         //get needed data
         let Some(neighbors) = world.neighbors_all(position) else {
@@ -198,9 +223,41 @@ fn start_required_tasks(
         // ===========
         //log::trace!("Started generating mesh for chunk {position}");
       }
-      _ => ()
+
+      _ => {}, //panic!("Illegal state transition: {:?} -> {:?}", chunk.current_state, chunk.desired_state),
     }
   }
+
+  //Now, separately process state change the state from Nothing to Unloading or Unloaded
+  world.chunks.retain(|&position, chunk: &mut Chunk| {
+    if chunk.desired_state == DesiredChunkState::Unloaded {
+      assert!(chunk.current_state == CurrentChunkState::Nothing, "looks like chunk did not get properly downgraded to Nothing before unloading, this is a bug");
+
+      chunk.current_state = CurrentChunkState::Unloading;
+
+      //If in multiplayer, send a message to the server to unsubscribe from the chunk
+      if let Some(client) = &mut udp_client {
+        client.0.send(
+          postcard::to_allocvec(
+            &ClientToServerMessage::ChunkUnsubscribe { chunk: position }
+          ).unwrap().into_boxed_slice(),
+          Channel::SubReq as usize,
+          SendMode::Reliable
+        );
+        // and i think that's it, just kill the chunk right away, the server will take care of the rest
+        //
+        // because uflow's reliable packets are ordered, there should be no need to wait for the server to confirm the unsubscription
+        // because client won't be able to subscribe to it again until the server finishes processing the unsubscription
+        // :ferrisClueless:
+        return false
+      }
+
+      //HACK, since save files are not implemented, just unload immediately
+      return false
+    }
+    true
+  });
+
 }
 
 fn process_completed_tasks(
@@ -215,12 +272,18 @@ fn process_completed_tasks(
   while let Some(res) = task_manager.receive() {
     match res {
       ChunkTaskResponse::LoadedChunk { position, chunk_data, mut queued } => {
+        //If unwanted chunk is already loaded
+        //It would be ~~...unethical~~ impossible to abort the operation at this point
+        //Instead, we'll just throw it away
+
         //check if chunk exists
         let Some(chunk) = world.chunks.get_mut(&position) else {
           //to compensate, actually push the ops counter back by one
           log::warn!("blocks data discarded: chunk doesn't exist");
           continue
         };
+
+        chunk.abortion = None;
 
         //check if chunk still wants it
         if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {

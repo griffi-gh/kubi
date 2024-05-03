@@ -41,9 +41,8 @@ impl ChunkTaskManager {
     self.pool.spawn(move || {
       sender.send(match task {
         ChunkTask::LoadChunk { position: chunk_position, seed } => {
-          let Some((blocks, queue)) = generate_world(chunk_position, seed, None) else {
-            return
-          };
+          //unwrap is fine because abort is not possible
+          let (blocks, queue) = generate_world(chunk_position, seed, None).unwrap();
           ChunkTaskResponse::ChunkLoaded { chunk_position, blocks, queue }
         }
       }).unwrap()

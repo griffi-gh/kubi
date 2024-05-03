@@ -64,7 +64,7 @@ pub fn send_chunk_compressed(
   let ser_message = ser_message.into_boxed_slice();
   client.borrow_mut().send(
     ser_message,
-    Channel::World as usize,
+    Channel::WorldData as usize,
     SendMode::Reliable
   );
   Ok(())
