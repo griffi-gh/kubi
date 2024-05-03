@@ -6,13 +6,9 @@ use winit::{
   window::{WindowBuilder, Fullscreen, Window},
   dpi::PhysicalSize
 };
-use glium::{Display, Surface, Version, Api};
+use glium::{Display, Surface, Version, Api as GlApiTy};
 use glutin::{
-  prelude::*,
-  context::{ContextAttributesBuilder, GlProfile},
-  surface::{WindowSurface, SurfaceAttributesBuilder},
-  display::GetGlDisplay,
-  config::ConfigTemplateBuilder
+  config::{Api, ConfigTemplateBuilder}, context::{ContextAttributesBuilder, GlProfile}, display::GetGlDisplay, prelude::*, surface::{SurfaceAttributesBuilder, WindowSurface}
 };
 use glutin_winit::DisplayBuilder;
 use glam::{Vec3, UVec2};
@@ -96,6 +92,7 @@ impl Renderer {
       .with_window_builder(Some(wb));
 
     let config_template_builder = ConfigTemplateBuilder::new()
+      .with_api(Api::GLES3)
       .prefer_hardware_accelerated(Some(true))
       .with_depth_size(24)
       .with_multisampling(settings.msaa.unwrap_or_default());
@@ -156,7 +153,7 @@ impl Renderer {
     if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
     if display.is_debug() { log::info!("OpenGL context is in debug mode") }
 
-    assert!(display.is_glsl_version_supported(&Version(Api::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
+    assert!(display.is_glsl_version_supported(&Version(GlApiTy::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
 
     Self { window, display }
   }
