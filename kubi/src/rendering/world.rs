@@ -74,9 +74,9 @@ pub fn draw_world(
     if let Some(key) = chunk.mesh_index {
       let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
       let world_position = position.as_vec3() * CHUNK_SIZE as f32;
-      
+
       //Skip mesh if its empty
-      if mesh.index_buffer.len() == 0 {
+      if mesh.index_buffer.len() == 0 && mesh.trans_index_buffer.len() == 0 {
         continue
       }
 
@@ -90,19 +90,21 @@ pub fn draw_world(
       }
 
       //Draw chunk mesh
-      target.0.draw(
-        &mesh.vertex_buffer,
-        &mesh.index_buffer,
-        &program.0,
-        &uniform! {
-          position_offset: world_position.to_array(),
-          view: view,
-          perspective: perspective,
-          tex: texture_sampler,
-          discard_alpha: true,
-        },
-        &draw_parameters
-      ).unwrap();
+      if mesh.index_buffer.len() > 0 {
+        target.0.draw(
+          &mesh.vertex_buffer,
+          &mesh.index_buffer,
+          &program.0,
+          &uniform! {
+            position_offset: world_position.to_array(),
+            view: view,
+            perspective: perspective,
+            tex: texture_sampler,
+            discard_alpha: true,
+          },
+          &draw_parameters
+        ).unwrap();
+      }
 
       if mesh.trans_index_buffer.len() > 0 {
         enqueue_trans.push((chunk, mesh));
