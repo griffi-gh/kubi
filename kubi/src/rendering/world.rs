@@ -1,29 +1,9 @@
-// use glam::{ivec3, IVec3, Mat4, Quat, Vec3};
-// use shipyard::{track, AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
-// use glium::{
-//   draw_parameters::{
-//     BackfaceCullingMode, Depth, DepthTest, PolygonMode
-//   }, implement_vertex, uniform, uniforms::{
-//     MagnifySamplerFilter, MinifySamplerFilter, Sampler, SamplerBehavior, SamplerWrapFunction
-//   }, Blend, DrawParameters, Smooth, Surface
-// };
-// use crate::{
-//   camera::Camera,
-//   player::MainPlayer,
-//   transform::Transform,
-//   prefabs::{
-//     ChunkShaderPrefab,
-//     BlockTexturesPrefab,
-//     ColoredShaderPrefab,
-//   },
-//   world::{
-//     ChunkStorage,
-//     ChunkMeshStorage,
-//     chunk::CHUNK_SIZE,
-//   }, settings::GameSettings,
-// };
-// use super::{RenderTarget, primitives::cube::CubePrimitive};
 use bytemuck::{Pod, Zeroable};
+use glam::IVec3;
+use shipyard::{AllStoragesView, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
+use kubi_shared::transform::Transform;
+use crate::{camera::Camera, settings::GameSettings, world::{ChunkMeshStorage, ChunkStorage}};
+use super::Renderer;
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C, packed)]
@@ -47,12 +27,25 @@ impl ChunkVertex {
   };
 }
 
-// #[derive(Unique)]
-// pub struct TransChunkQueue(pub Vec<IVec3>);
+#[derive(Unique)]
+pub struct TransChunkQueue(pub Vec<IVec3>);
 
-// pub fn init_trans_chunk_queue(storages: AllStoragesView) {
-//   storages.add_unique(TransChunkQueue(Vec::with_capacity(512)));
-// }
+pub fn init_trans_chunk_queue(storages: AllStoragesView) {
+  storages.add_unique(TransChunkQueue(Vec::with_capacity(512)));
+}
+
+pub fn draw_world(
+  (render_pass, renderer): (&mut wgpu::RenderPass, &Renderer),
+  chunks: UniqueView<ChunkStorage>,
+  meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
+  transform: View<Transform>,
+  camera: View<Camera>,
+  settings: UniqueView<GameSettings>,
+  mut trans_queue: UniqueViewMut<TransChunkQueue>,
+) {
+  //TODO
+}
+
 
 // fn draw_params(settings: &GameSettings) -> DrawParameters {
 //   DrawParameters {

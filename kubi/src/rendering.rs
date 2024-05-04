@@ -8,7 +8,7 @@ use winit::{
   dpi::PhysicalSize
 };
 use glam::{Vec3, UVec2};
-use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
+use crate::{events::WindowResizedEvent, settings::{FullscreenMode, GameSettings}, state::is_ingame};
 
 pub mod primitives;
 pub mod world;
@@ -188,7 +188,7 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_texture = renderer.surface().get_current_texture().unwrap();
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-  {
+  if storages.run(is_ingame) {
     let bg_color = storages.borrow::<UniqueView<BackgroundColor>>().unwrap();
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
       label: Some("main0_pass"),
@@ -208,6 +208,10 @@ pub fn render_master(storages: AllStoragesViewMut) {
       depth_stencil_attachment: None,
       ..Default::default()
     });
+
+    let data = (&mut render_pass, &*renderer);
+
+    storages.run_with_data(world::draw_world, data);
 
     // render_pass.set_pipeline(&renderer.pipeline);
     // render_pass.set_bind_group(0, &renderer.bind_group, &[]);
