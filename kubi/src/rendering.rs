@@ -35,8 +35,9 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_texture = renderer.surface().get_current_texture().unwrap();
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
+  //Main in-game render pass
   if storages.run(is_ingame) {
-    let bg_color = storages.borrow::<UniqueView<BackgroundColor>>().unwrap();
+    let bg = storages.borrow::<UniqueView<BackgroundColor>>().unwrap().0;
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
       label: Some("main0_pass"),
       color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -44,9 +45,9 @@ pub fn render_master(storages: AllStoragesViewMut) {
         resolve_target: None,
         ops: wgpu::Operations {
           load: wgpu::LoadOp::Clear(wgpu::Color {
-            r: bg_color.0.x as f64,
-            g: bg_color.0.y as f64,
-            b: bg_color.0.z as f64,
+            r: bg.x as f64,
+            g: bg.y as f64,
+            b: bg.z as f64,
             a: 1.0,
           }),
           store: wgpu::StoreOp::Store,
@@ -59,27 +60,13 @@ pub fn render_master(storages: AllStoragesViewMut) {
     let data = (&mut render_pass, &*renderer);
 
     storages.run_with_data(world::draw_world, data);
-
-    // render_pass.set_pipeline(&renderer.pipeline);
-    // render_pass.set_bind_group(0, &renderer.bind_group, &[]);
-    // render_pass.set_vertex_buffer(0, renderer.vertex_buffer.slice(..));
-    // render_pass.set_index_buffer(renderer.index_buffer.slice(..));
-    // render_pass.draw_indexed(0..renderer.num_indices, 0, 0..1);
   }
 
   renderer.queue().submit(std::iter::once(encoder.finish()));
   surface_texture.present();
 }
 
-// pub fn clear_background(
-//   mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
-//   color: UniqueView<BackgroundColor>,
-// ) {
-//   target.0.clear_color_srgb_and_depth((color.0.x, color.0.y, color.0.z, 1.), 1.);
-// }
-
-//Resize the renderer
-
+/// Resize the renderer when the window is resized
 pub fn resize_renderer(
   mut renderer: UniqueViewMut<Renderer>,
   resize: View<WindowResizedEvent>,
@@ -89,11 +76,8 @@ pub fn resize_renderer(
   }
 }
 
-//not sure if this belongs here
-
-pub fn init_window_size(
-  storages: AllStoragesView,
-) {
+//Deprecated WindowSize thingy
+pub fn init_window_size(storages: AllStoragesView) {
   let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
   storages.add_unique(WindowSize(size))
 }
@@ -107,8 +91,8 @@ pub fn update_window_size(
   }
 }
 
-pub fn if_resized (
-  resize: View<WindowResizedEvent>,
-) -> bool {
-  resize.len() > 0
-}
+// pub fn if_resized (
+//   resize: View<WindowResizedEvent>,
+// ) -> bool {
+//   resize.len() > 0
+// }
