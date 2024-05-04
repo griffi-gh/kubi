@@ -43,17 +43,17 @@ impl AssetPaths for BlockTexture {
 #[repr(transparent)]
 pub struct BlockTexturesPrefab(pub SrgbTexture2dArray);
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ChunkShaderPrefab(pub Program);
+// #[derive(Unique)]
+// #[repr(transparent)]
+// pub struct ChunkShaderPrefab(pub Program);
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct ColoredShaderPrefab(pub Program);
+// #[derive(Unique)]
+// #[repr(transparent)]
+// pub struct ColoredShaderPrefab(pub Program);
 
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct Colored2ShaderPrefab(pub Program);
+// #[derive(Unique)]
+// #[repr(transparent)]
+// pub struct Colored2ShaderPrefab(pub Program);
 
 #[derive(Unique)]
 #[repr(transparent)]
@@ -113,5 +113,5 @@ pub fn load_prefabs(
 
   log::info!("releasing shader compiler");
 
-  renderer.display.release_shader_compiler();
+  //renderer.display.release_shader_compiler();
 }

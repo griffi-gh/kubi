@@ -1,16 +1,9 @@
-use std::num::NonZeroU32;
-use raw_window_handle::HasRawWindowHandle;
 use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
 use winit::{
-  event_loop::EventLoopWindowTarget,
-  window::{WindowBuilder, Fullscreen, Window},
+  event_loop::ActiveEventLoop,
+  window::{WindowAttributes, Fullscreen, Window},
   dpi::PhysicalSize
 };
-use glium::{Display, Surface, Version, Api as GlApiTy};
-use glutin::{
-  config::{Api, ConfigTemplateBuilder}, context::{ContextAttributesBuilder, GlProfile}, display::GetGlDisplay, prelude::*, surface::{SurfaceAttributesBuilder, WindowSurface}
-};
-use glutin_winit::DisplayBuilder;
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
 
@@ -19,10 +12,6 @@ pub mod world;
 pub mod selection_box;
 pub mod entities;
 pub mod sumberge;
-
-#[derive(Unique)]
-#[repr(transparent)]
-pub struct RenderTarget(pub glium::Frame);
 
 #[derive(Unique)]
 #[repr(transparent)]
@@ -35,14 +24,13 @@ pub struct WindowSize(pub UVec2);
 #[derive(Unique)]
 pub struct Renderer {
   pub window: Window,
-  pub display: Display<WindowSurface>,
 }
 
 impl Renderer {
-  pub fn init(event_loop: &EventLoopWindowTarget<()>, settings: &GameSettings) -> Self {
+  pub fn init(event_loop: &ActiveEventLoop, settings: &GameSettings) -> Self {
     log::info!("initializing display");
 
-    let wb = WindowBuilder::new()
+    let wb = WindowAttributes::new()
       .with_title("kubi")
       .with_maximized(true)
       .with_min_inner_size(PhysicalSize::new(640, 480))
@@ -88,74 +76,7 @@ impl Renderer {
         }
       });
 
-    let display_builder = DisplayBuilder::new()
-      .with_window_builder(Some(wb));
-
-    let config_template_builder = ConfigTemplateBuilder::new()
-      .with_api(Api::GLES3)
-      .prefer_hardware_accelerated(Some(true))
-      .with_depth_size(24)
-      .with_multisampling(settings.msaa.unwrap_or_default());
-
-    let (window, gl_config) = display_builder
-      .build(event_loop, config_template_builder, |mut configs| {
-        configs.next().unwrap()
-      })
-      .unwrap();
-
-    let window = window.expect("no window");
-
-    // Now we get the window size to use as the initial size of the Surface
-    let (width, height): (u32, u32) = window.inner_size().into();
-    let attrs = SurfaceAttributesBuilder::<WindowSurface>::new().build(
-      window.raw_window_handle(),
-      NonZeroU32::new(width).unwrap(),
-      NonZeroU32::new(height).unwrap(),
-    );
-
-    // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
-    let surface = unsafe {
-      gl_config.display().create_window_surface(&gl_config, &attrs).unwrap()
-    };
-
-    let context_attributes = ContextAttributesBuilder::new()
-      .with_debug(cfg!(debug_assertions))
-      .with_context_api(glutin::context::ContextApi::Gles(None))
-      .with_profile(GlProfile::Core)
-      .build(Some(window.raw_window_handle()));
-
-    let current_context = unsafe {
-      gl_config.display()
-        .create_context(&gl_config, &context_attributes)
-        .expect("failed to create context")
-    }.make_current(&surface).unwrap();
-
-    let display = Display::from_context_surface(current_context, surface).unwrap();
-
-    //TODO MIGRATION
-    // let cb = ContextBuilder::new()
-    //   //.with_srgb(false)
-    //   .with_depth_buffer(24)
-    //   .with_multisampling(settings.msaa.unwrap_or_default())
-    //   .with_vsync(settings.vsync)
-    //   .with_gl_profile(GlProfile::Core)
-    //   .with_gl(GlRequest::Latest);
-
-    // let display = Display::new(wb, cb)
-    //   .expect("Failed to create a glium Display");
-
-    log::info!("Vendor: {}", display.get_opengl_vendor_string());
-    log::info!("Renderer: {}", display.get_opengl_renderer_string());
-    log::info!("OpenGL: {}", display.get_opengl_version_string());
-    log::info!("Supports GLSL: {:?}", display.get_supported_glsl_version());
-    log::info!("Framebuffer dimensions: {:?}", display.get_framebuffer_dimensions());
-    if display.is_context_loss_possible() { log::warn!("OpenGL context loss possible") }
-    if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
-    if display.is_debug() { log::info!("OpenGL context is in debug mode") }
-
-    assert!(display.is_glsl_version_supported(&Version(GlApiTy::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
-
-    Self { window, display }
+    Self { window }
   }
 }
 

@@ -1,12 +1,12 @@
 use hui::UiInstance;
-use hui_glium::GliumUiRenderer;
+//use hui_glium::GliumUiRenderer;
 use shipyard::{AllStoragesView, Unique, UniqueView, NonSendSync, UniqueViewMut};
 use crate::rendering::{RenderTarget, Renderer, WindowSize};
 
 #[derive(Unique)]
 pub struct UiState {
   pub hui: UiInstance,
-  pub renderer: GliumUiRenderer
+  //pub renderer: GliumUiRenderer
 }
 
 pub fn kubi_ui_init(
@@ -15,7 +15,7 @@ pub fn kubi_ui_init(
   let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
   storages.add_unique_non_send_sync(UiState {
     hui: UiInstance::new(),
-    renderer: GliumUiRenderer::new(&renderer.display),
+    //renderer: GliumUiRenderer::new(&renderer.display),
   });
 }
 
@@ -29,9 +29,9 @@ pub fn kubi_ui_end(
   mut ui: NonSendSync<UniqueViewMut<UiState>>
 ) {
   let ui: &mut UiState = &mut ui;
-  let UiState { hui, renderer, .. } = ui;
+  let UiState { hui, /*renderer,*/ .. } = ui;
   hui.end();
-  renderer.update(hui);
+  //renderer.update(hui);
 }
 
 pub fn kubi_ui_draw(
@@ -39,7 +39,7 @@ pub fn kubi_ui_draw(
   mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
   size: UniqueView<WindowSize>
 ) {
-  ui.renderer.draw(&mut target.0, size.0.as_vec2());
+  //ui.renderer.draw(&mut target.0, size.0.as_vec2());
 }
 
 pub fn hui_process_winit_events(
