@@ -13,8 +13,7 @@ pub struct TreesStep {
 }
 
 impl WorldGenStep for TreesStep {
-  fn initialize(gen: &WorldGenerator) -> Self {
-    let mut seeder = SeedThingy::new(gen.seed.rotate_left(5));
+  fn initialize(_: &WorldGenerator, seeder: &mut SeedThingy) -> Self {
     let mut density_noise = FastNoiseLite::with_seed(seeder.next_seed());
     density_noise.set_noise_type(Some(NoiseType::OpenSimplex2));
     density_noise.set_frequency(Some(0.008));
@@ -30,7 +29,7 @@ impl WorldGenStep for TreesStep {
         let global_xz = gen.global_position(ivec3(x, 0, z));
         let mut density = self.density_noise.get_noise_2d(global_xz.x as f64, global_xz.z as f64) * 0.5 + 0.5;
         density = density.powi(3);
-        if gen.seeded_hash((global_xz.x, global_xz.z, 0xfef)) & 0xff >= (density * 7.).round() as u64 {
+        if gen.seeded_hash((global_xz.x, global_xz.z, 0x060)) & 0xff >= (density * 7.).round() as u64 {
           continue
         }
 

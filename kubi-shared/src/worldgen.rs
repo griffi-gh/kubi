@@ -48,7 +48,7 @@ impl SeedThingy {
   }
 }
 trait WorldGenStep {
-  fn initialize(generator: &WorldGenerator) -> Self;
+  fn initialize(generator: &WorldGenerator, seeder: &mut SeedThingy) -> Self;
   fn generate(&mut self, generator: &mut WorldGenerator);
 }
 
@@ -67,11 +67,12 @@ macro_rules! run_steps {
 
       if _chkabt() { return false }
 
+      let mut _seeder = $crate::worldgen::SeedThingy::new($gen.seed);
       $({
         let _ensure_ref: &mut $crate::worldgen::WorldGenerator = $gen;
         struct _Ensure0<T: $crate::worldgen::WorldGenStep>(T);
         type _Ensure1 = _Ensure0<$step>;
-        let mut step: _Ensure1 = _Ensure0(<$step>::initialize(&*_ensure_ref));
+        let mut step: _Ensure1 = _Ensure0(<$step>::initialize(&*_ensure_ref, &mut _seeder));
         if _chkabt() { return false }
         step.0.generate(_ensure_ref);
         if _chkabt() { return false }

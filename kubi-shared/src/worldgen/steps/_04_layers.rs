@@ -1,5 +1,6 @@
+use fastnoise_lite::FastNoiseLite;
 use glam::ivec3;
-use crate::{block::Block, chunk::CHUNK_SIZE};
+use crate::{block::Block, chunk::CHUNK_SIZE, worldgen::SeedThingy};
 use super::{
   _02_water::WATER_LEVEL,
   super::{WorldGenStep, WorldGenerator}
@@ -8,7 +9,7 @@ use super::{
 pub struct LayersStep;
 
 impl WorldGenStep for LayersStep {
-  fn initialize(_: &WorldGenerator) -> Self { Self }
+  fn initialize(_: &WorldGenerator, _: &mut SeedThingy) -> Self { Self }
 
   fn generate(&mut self, gen: &mut WorldGenerator) {
     for x in 0..CHUNK_SIZE as i32 {
@@ -17,7 +18,7 @@ impl WorldGenStep for LayersStep {
 
         // Dirt layer height, naturally gets thinner as height gets deeper
         let mut dirt_layer_height = (((terrain_height as f32 + 15.) / 20.).clamp(0., 1.) * 8.).round() as i32;
-        dirt_layer_height -= (gen.seeded_hash((x, z, 1)) & 1) as i32; //+ (gen.seeded_hash((x, z, 0xbau8)) & 1) as i32;
+        dirt_layer_height -= (gen.seeded_hash((x, z, 0x040)) & 1) as i32; //+ (gen.seeded_hash((x, z, 0x041)) & 1) as i32;
 
         // Place dirt layer
         for y in gen.local_height(terrain_height - dirt_layer_height)..gen.local_height(terrain_height) {

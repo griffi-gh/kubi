@@ -8,8 +8,7 @@ pub struct TerrainStep {
 }
 
 impl WorldGenStep for TerrainStep {
-  fn initialize(generator: &WorldGenerator) -> Self {
-    let mut seeder = SeedThingy::new(generator.seed);
+  fn initialize(_: &WorldGenerator, seeder: &mut SeedThingy) -> Self {
     let mut noise = FastNoiseLite::with_seed(seeder.next_seed());
     noise.set_fractal_type(Some(FractalType::FBm));
     noise.set_fractal_octaves(Some(4));

@@ -9,9 +9,7 @@ pub struct CaveStep {
 }
 
 impl WorldGenStep for CaveStep {
-  fn initialize(gen: &WorldGenerator) -> Self {
-    let mut seeder = SeedThingy::new(gen.seed);
-
+  fn initialize(_: &WorldGenerator, seeder: &mut SeedThingy) -> Self {
     let mut a = FastNoiseLite::with_seed(seeder.next_seed());
     a.set_fractal_type(Some(FractalType::FBm));
     a.set_fractal_octaves(Some(2));
