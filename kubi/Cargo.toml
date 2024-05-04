@@ -15,6 +15,7 @@ hui = { version = "0.1.0-alpha.4", git = "https://github.com/griffi-gh/hui", rev
 hui-winit = { version = "0.1.0-alpha.4", git = "https://github.com/griffi-gh/hui", rev = "dd5af8b9e2" }
 log = "0.4"
 wgpu = { version = "0.20", features = ["webgl"] }
+pollster = "0.3"
 winit = { version = "0.30", features = ["android-native-activity"] }
 raw-window-handle = "0.6"
 glam = { version = "0.27", features = ["debug-glam-assert", "fast-math"] }
@@ -35,6 +36,7 @@ tinyset = "0.4"
 serde_json = { version = "1.0", optional = true } #only used for `generate_visualizer_data`
 rand = { version = "0.8", features = ["alloc", "small_rng"]}
 atomic = "0.6"
+
 
 [target.'cfg(target_os = "android")'.dependencies]
 android-activity = "^0.5.2"
