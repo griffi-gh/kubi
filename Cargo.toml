@@ -40,6 +40,3 @@ opt-level = 3
 #enabling debug assertions here causes the game to abort
 [profile.dev.package.android-activity]
 debug-assertions = false
-
-[patch.crates-io]
-glium = { git = "https://github.com/glium/glium", rev = "a352c667" }

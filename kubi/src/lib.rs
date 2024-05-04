@@ -79,7 +79,7 @@ use player_controller::{debug_switch_ctl_type, update_player_controllers};
 //   clear_background, entities::render_entities, init_window_size, primitives::init_primitives, resize_renderer, selection_box::render_selection_box, sumberge::render_submerged_view, update_window_size, world::{draw_current_chunk_border, draw_world, draw_world_trans, init_trans_chunk_queue}, BackgroundColor, RenderTarget, Renderer
 // };
 use rendering::{
-  init_window_size, resize_renderer, update_window_size,
+  render_master, init_window_size, resize_renderer, update_window_size,
   BackgroundColor, Renderer
 };
 use block_placement::update_block_placement;
@@ -319,6 +319,8 @@ pub fn kubi_main(
 
         //Run update workflows
         world.run_workload(update).unwrap();
+
+        world.run(render_master);
 
         //Start rendering (maybe use custom views for this?)
         // let target = {

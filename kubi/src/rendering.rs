@@ -100,7 +100,7 @@ impl Renderer {
     let size = window.inner_size();
 
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-      backends: wgpu::Backends::all(),
+      backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::VULKAN | wgpu::Backends::GL,
       ..Default::default()
     });
 
@@ -216,7 +216,8 @@ pub fn render_master(storages: AllStoragesViewMut) {
     // render_pass.draw_indexed(0..renderer.num_indices, 0, 0..1);
   }
 
-  renderer.queue().submit(Some(encoder.finish()));
+  renderer.queue().submit(std::iter::once(encoder.finish()));
+  surface_texture.present();
 }
 
 // pub fn clear_background(
