@@ -343,13 +343,13 @@ fn process_completed_tasks(
 
         let vtx_buffer_trans = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
           label: Some("chunk_trans_vertex_buffer"),
-          contents: todo!(),
+          contents: bytemuck::cast_slice(&trans_vertices),
           usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::VERTEX,
         });
 
         let idx_buffer_trans = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
           label: Some("chunk_trans_index_buffer"),
-          contents: todo!(),
+          contents: bytemuck::cast_slice(&trans_indices),
           usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::INDEX,
         });
 
