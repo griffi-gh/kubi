@@ -7,7 +7,7 @@ use hui::{
     UiElementExt,
   },
   layout::{Alignment, Direction},
-  frame_rect, size,
+  rect_frame, size,
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
@@ -28,7 +28,7 @@ pub fn loading_screen_base(bg_alpha: f32, xui: impl FnOnce(&mut ElementList)) ->
     .with_children(|ui| {
       Container::default()
         .with_size(size!(400, auto))
-        .with_background(frame_rect! {
+        .with_background(rect_frame! {
           color: (0.2, 0.2, 0.2),
           corner_radius: 8.
         })
@@ -63,11 +63,11 @@ fn render_loading_ui(
     ProgressBar::default()
       .with_value(value)
       .with_size(size!(100%, 15))
-      .with_background(frame_rect! {
+      .with_background(rect_frame! {
         color: (0.1, 0.1, 0.1),
         corner_radius: 2.
       })
-      .with_foreground(frame_rect! {
+      .with_foreground(rect_frame! {
         color: (0.4, 0.4, 1.0),
         corner_radius: 2.
       })

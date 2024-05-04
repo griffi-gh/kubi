@@ -2,7 +2,7 @@ use hui::{
   element::{br::Break, container::Container, slider::Slider, text::Text, UiElementExt},
   layout::{Alignment, Direction},
   signal::Signal,
-  frame_rect, size,
+  rect_frame, size,
 };
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
 use winit::keyboard::KeyCode;
@@ -34,7 +34,7 @@ pub fn render_settings_ui(
     .with_align(Alignment::Center)
     .with_children(|ui| {
       Container::default()
-        .with_background(frame_rect! {
+        .with_background(rect_frame! {
           color: (0.2, 0.2, 0.2),
           corner_radius: 8.
         })

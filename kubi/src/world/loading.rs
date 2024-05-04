@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use atomic::{Atomic, Ordering};
 use glam::{IVec3, ivec3};
-use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use kubi_shared::{networking::{channels::Channel, messages::ClientToServerMessage}, worldgen::AbortState};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
@@ -327,21 +326,23 @@ fn process_completed_tasks(
 
         //apply the mesh
         //TODO: Skip if mesh is empty? (i.e. set to None)
-        let mesh = ChunkMesh {
-          vertex_buffer: VertexBuffer::immutable(&renderer.display, &vertices).unwrap(),
-          index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indices).unwrap(),
-          trans_vertex_buffer: VertexBuffer::immutable(&renderer.display, &trans_vertices).unwrap(),
-          trans_index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &trans_indices).unwrap(),
-        };
-        if let Some(index) = chunk.mesh_index {
-          meshes.update(index, mesh).expect("Mesh update failed");
-        } else {
-          let mesh_index = meshes.insert(mesh);
-          chunk.mesh_index = Some(mesh_index);
-        }
+        unimplemented!();
 
-        //update chunk state
-        chunk.current_state = CurrentChunkState::Rendered;
+        // let mesh = ChunkMesh {
+        //   vertex_buffer: VertexBuffer::immutable(&renderer.display, &vertices).unwrap(),
+        //   index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indices).unwrap(),
+        //   trans_vertex_buffer: VertexBuffer::immutable(&renderer.display, &trans_vertices).unwrap(),
+        //   trans_index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &trans_indices).unwrap(),
+        // };
+        // if let Some(index) = chunk.mesh_index {
+        //   meshes.update(index, mesh).expect("Mesh update failed");
+        // } else {
+        //   let mesh_index = meshes.insert(mesh);
+        //   chunk.mesh_index = Some(mesh_index);
+        // }
+
+        // //update chunk state
+        // chunk.current_state = CurrentChunkState::Rendered;
 
         //increase ops counter
         ops += 1;

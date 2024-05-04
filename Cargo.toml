@@ -21,10 +21,13 @@ opt-level = 1
 [profile.dev.package.uflow]
 opt-level = 3
 
-[profile.dev.package.glium]
+[profile.dev.package.wgpu]
 opt-level = 3
 
-[profile.dev.package.bracket-noise]
+[profile.dev.package.wgpu-core]
+opt-level = 3
+
+[profile.dev.package.wgpu-hal]
 opt-level = 3
 
 [profile.dev.package.fastnoise-lite]

@@ -75,18 +75,12 @@ use events::{
 };
 use input::{init_input, process_inputs};
 use player_controller::{debug_switch_ctl_type, update_player_controllers};
+// use rendering::{
+//   clear_background, entities::render_entities, init_window_size, primitives::init_primitives, resize_renderer, selection_box::render_selection_box, sumberge::render_submerged_view, update_window_size, world::{draw_current_chunk_border, draw_world, draw_world_trans, init_trans_chunk_queue}, BackgroundColor, RenderTarget, Renderer
+// };
 use rendering::{
-  Renderer, 
-  RenderTarget, 
-  BackgroundColor, 
-  clear_background,
-  init_window_size, 
-  update_window_size,
-  primitives::init_primitives,
-  world::{init_trans_chunk_queue, draw_world, draw_world_trans, draw_current_chunk_border},
-  selection_box::render_selection_box,
-  entities::render_entities, 
-  sumberge::render_submerged_view,
+  init_window_size, resize_renderer, update_window_size,
+  BackgroundColor, Renderer
 };
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
@@ -95,7 +89,7 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use hui_integration::{kubi_ui_begin, kubi_ui_draw, kubi_ui_end, kubi_ui_init};
+use hui_integration::{kubi_ui_begin, /*kubi_ui_draw,*/ kubi_ui_end, kubi_ui_init};
 use loading_screen::update_loading_screen;
 use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
@@ -121,7 +115,7 @@ fn startup() -> Workload {
     init_window_size,
     kubi_ui_init,
     load_prefabs,
-    init_primitives,
+    //init_primitives,
     insert_lock_state,
     init_state,
     initialize_from_args,
@@ -132,7 +126,7 @@ fn startup() -> Workload {
     init_client_physics,
     init_chat_manager,
     init_crosshair_image,
-    init_trans_chunk_queue,
+    //init_trans_chunk_queue,
   ).into_sequential_workload()
 }
 
@@ -140,6 +134,7 @@ fn update() -> Workload {
   (
     debug_toggle_lock,
     update_window_size,
+    resize_renderer,
     update_cursor_lock_state,
     process_inputs,
     kubi_ui_begin,
@@ -181,20 +176,20 @@ fn update() -> Workload {
   ).into_sequential_workload()
 }
 
-fn render() -> Workload {
-  (
-    clear_background,
-    (
-      draw_world,
-      draw_current_chunk_border,
-      render_selection_box,
-      render_entities,
-      draw_world_trans,
-      render_submerged_view,
-    ).into_sequential_workload().run_if(is_ingame),
-    kubi_ui_draw,
-  ).into_sequential_workload()
-}
+// fn render() -> Workload {
+//   (
+//     clear_background,
+//     (
+//       draw_world,
+//       draw_current_chunk_border,
+//       render_selection_box,
+//       render_entities,
+//       draw_world_trans,
+//       render_submerged_view,
+//     ).into_sequential_workload().run_if(is_ingame),
+//     kubi_ui_draw,
+//   ).into_sequential_workload()
+// }
 
 fn after_frame_end() -> Workload {
   (
@@ -244,7 +239,7 @@ pub fn kubi_main(
   world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
-  world.add_workload(render);
+  //world.add_workload(render);
   world.add_workload(after_frame_end);
 
   //Save _visualizer.json
@@ -326,18 +321,18 @@ pub fn kubi_main(
         world.run_workload(update).unwrap();
 
         //Start rendering (maybe use custom views for this?)
-        let target = {
-          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-          renderer.display.draw()
-        };
-        world.add_unique_non_send_sync(RenderTarget(target));
+        // let target = {
+        //   let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+        //   renderer.display.draw()
+        // };
+        // world.add_unique_non_send_sync(RenderTarget(target));
 
         //Run render workflow
-        world.run_workload(render).unwrap();
+        //world.run_workload(render).unwrap();
 
         //Finish rendering
-        let target = world.remove_unique::<RenderTarget>().unwrap(); 
-        target.0.finish().unwrap();
+        // let target = world.remove_unique::<RenderTarget>().unwrap();
+        // target.0.finish().unwrap();
 
         //After frame end
         world.run_workload(after_frame_end).unwrap();

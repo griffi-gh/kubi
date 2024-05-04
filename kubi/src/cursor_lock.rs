@@ -1,5 +1,5 @@
 use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
-use crate::{events::InputDeviceEvent, rendering::{Renderer, WindowSize}};
+use crate::{events::InputDeviceEvent, rendering::Renderer};
 use winit::{
   dpi::PhysicalPosition, event::{DeviceEvent, ElementState, RawKeyEvent}, keyboard::{KeyCode, PhysicalKey}, window::CursorGrabMode
 };
@@ -16,7 +16,7 @@ pub fn update_cursor_lock_state(
   }
   if lock.is_inserted_or_modified() {
     //TODO MIGRATION
-    let window = &display.window;
+    let window = display.window();
     window.set_cursor_grab(match lock.0 {
       true  => CursorGrabMode::Confined,
       false => CursorGrabMode::None,
@@ -42,7 +42,6 @@ pub fn debug_toggle_lock(
   mut lock: UniqueViewMut<CursorLock>,
   device_events: View<InputDeviceEvent>,
   ren: NonSendSync<UniqueView<Renderer>>,
-  size: UniqueView<WindowSize>,
 ) {
   for evt in device_events.iter() {
     if let DeviceEvent::Key(RawKeyEvent {
@@ -51,8 +50,8 @@ pub fn debug_toggle_lock(
     }) = evt.event {
       lock.0 = !lock.0;
       if !lock.0 {
-        let center = PhysicalPosition::new(size.0.x as f64 / 2., size.0.y as f64 / 2.);
-        let _ = ren.window.set_cursor_position(center);
+        let center = PhysicalPosition::new(ren.size().width as f64 / 2., ren.size().height as f64 / 2.);
+        let _ = ren.window().set_cursor_position(center);
       }
     }
   }

@@ -1,7 +1,7 @@
 use hui::UiInstance;
 //use hui_glium::GliumUiRenderer;
 use shipyard::{AllStoragesView, Unique, UniqueView, NonSendSync, UniqueViewMut};
-use crate::rendering::{RenderTarget, Renderer, WindowSize};
+use crate::rendering::{Renderer, WindowSize};
 
 #[derive(Unique)]
 pub struct UiState {
@@ -34,13 +34,13 @@ pub fn kubi_ui_end(
   //renderer.update(hui);
 }
 
-pub fn kubi_ui_draw(
-  ui: NonSendSync<UniqueView<UiState>>,
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
-  size: UniqueView<WindowSize>
-) {
-  //ui.renderer.draw(&mut target.0, size.0.as_vec2());
-}
+// pub fn kubi_ui_draw(
+//   ui: NonSendSync<UniqueView<UiState>>,
+//   mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
+//   size: UniqueView<WindowSize>
+// ) {
+//   ui.renderer.draw(&mut target.0, size.0.as_vec2());
+// }
 
 pub fn hui_process_winit_events(
   event: &winit::event::Event<()>,

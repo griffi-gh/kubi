@@ -91,7 +91,7 @@ pub fn initial_resize_event(
 ) {
   let (w, h) = {
     let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-    renderer.display.get_framebuffer_dimensions()
+    (renderer.size().width, renderer.size().height)
   };
   storages.add_entity((
     EventComponent, 
