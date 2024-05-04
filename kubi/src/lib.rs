@@ -105,8 +105,7 @@ use chat_ui::render_chat;
 use chat::init_chat_manager;
 use crosshair_ui::{init_crosshair_image, draw_crosshair};
 use settings_ui::render_settings_ui;
-
-use crate::hui_integration::hui_process_winit_events;
+use hui_integration::hui_process_winit_events;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
