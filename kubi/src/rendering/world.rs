@@ -1,7 +1,7 @@
 use bytemuck::{Pod, Zeroable};
-use glam::IVec3;
-use shipyard::{AllStoragesView, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
-use kubi_shared::transform::Transform;
+use glam::{IVec3, Vec3};
+use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
+use kubi_shared::{chunk::CHUNK_SIZE, transform::Transform};
 use crate::{camera::Camera, settings::GameSettings, world::{ChunkMeshStorage, ChunkStorage}};
 use super::Renderer;
 
@@ -43,7 +43,37 @@ pub fn draw_world(
   settings: UniqueView<GameSettings>,
   mut trans_queue: UniqueViewMut<TransChunkQueue>,
 ) {
-  //TODO
+  let camera = camera.iter().next().expect("No cameras in the scene");
+  let camera_matrix = camera.view_matrix * camera.perspective_matrix;
+
+  for (&position, chunk) in &chunks.chunks {
+    if let Some(key) = chunk.mesh_index {
+      let mesh = meshes.get(key).expect("Mesh index pointing to nothing");
+      let world_position = position.as_vec3() * CHUNK_SIZE as f32;
+
+      //Skip if mesh is empty
+      if mesh.main.index.size() == 0 && mesh.trans.index.size() == 0 {
+        continue
+      }
+
+      //Frustum culling
+      let minp = world_position;
+      let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
+      if !camera.frustum.is_box_visible(minp, maxp) {
+        continue
+      }
+
+      //Draw chunk mesh
+      if mesh.main.index.size() > 0 {
+        //TODO
+      }
+
+      //TODO trans chunks
+      // if mesh.trans_index_buffer.len() > 0 {
+      //   trans_queue.0.push(position);
+      // }
+    }
+  }
 }
 
 
