@@ -9,7 +9,7 @@ use crate::{
   settings::GameSettings,
   world::{ChunkMeshStorage, ChunkStorage},
 };
-use super::Renderer;
+use super::{RenderCtx, Renderer};
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C, packed)]
@@ -41,7 +41,7 @@ pub fn init_trans_chunk_queue(storages: AllStoragesView) {
 }
 
 pub fn draw_world(
-  (render_pass, renderer): (&mut wgpu::RenderPass, &Renderer),
+  ctx: &mut RenderCtx,
   textures: UniqueView<TexturePrefabs>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
@@ -52,6 +52,19 @@ pub fn draw_world(
 ) {
   let camera = camera.iter().next().expect("No cameras in the scene");
   let camera_matrix = camera.view_matrix * camera.perspective_matrix;
+
+  let mut render_pass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+    label: Some("draw_world"),
+    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+      view: ctx.surface_view,
+      resolve_target: None,
+      ops: wgpu::Operations {
+        load: wgpu::LoadOp::Load,
+        store: wgpu::StoreOp::Store,
+      },
+    })],
+    ..Default::default()
+  });
 
   for (&position, chunk) in &chunks.chunks {
     if let Some(key) = chunk.mesh_index {
@@ -73,9 +86,10 @@ pub fn draw_world(
       //Draw chunk mesh
       if mesh.main.index.size() > 0 {
         //TODO
-        // render_pass.set_index_buffer(mesh.main.index.slice(..), wgpu::IndexFormat::Uint32);
-        // render_pass.set_vertex_buffer(0, mesh.main.vertex.slice(..));
-        // render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
+        render_pass.set_index_buffer(mesh.main.index.slice(..), wgpu::IndexFormat::Uint32);
+        render_pass.set_vertex_buffer(0, mesh.main.vertex.slice(..));
+        render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
+        render_pass.draw_indexed(0..mesh.main.index_len, 0, 0..1);
       }
 
       //TODO trans chunks

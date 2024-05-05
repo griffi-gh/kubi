@@ -14,11 +14,19 @@ pub mod sumberge;
 
 pub struct BufferPair {
   pub index: wgpu::Buffer,
+  pub index_len: u32,
   pub vertex: wgpu::Buffer,
+  pub vertex_len: u32,
 }
 
 #[derive(Unique)]
 pub struct BackgroundColor(pub Vec3);
+
+pub struct RenderCtx<'a> {
+  pub renderer: &'a Renderer,
+  pub encoder: &'a mut wgpu::CommandEncoder,
+  pub surface_view: &'a wgpu::TextureView,
+}
 
 pub fn render_master(storages: AllStoragesViewMut) {
   let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
@@ -29,11 +37,10 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_texture = renderer.surface().get_current_texture().unwrap();
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-  //Main in-game render pass
-  if storages.run(is_ingame) {
+  {
     let bg = storages.borrow::<UniqueView<BackgroundColor>>().unwrap().0;
-    let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-      label: Some("main0_pass"),
+    let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+      label: Some("rpass_background"),
       color_attachments: &[Some(wgpu::RenderPassColorAttachment {
         view: &surface_view,
         resolve_target: None,
@@ -50,10 +57,16 @@ pub fn render_master(storages: AllStoragesViewMut) {
       depth_stencil_attachment: None,
       ..Default::default()
     });
+  }
 
-    let data = (&mut render_pass, &*renderer);
+  let mut data = RenderCtx {
+    renderer: &renderer,
+    encoder: &mut encoder,
+    surface_view: &surface_view,
+  };
 
-    storages.run_with_data(world::draw_world, data);
+  if storages.run(is_ingame) {
+    storages.run_with_data(world::draw_world, &mut data);
   }
 
   renderer.queue().submit(std::iter::once(encoder.finish()));
