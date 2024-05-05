@@ -1,5 +1,6 @@
 use pollster::FutureExt;
 use shipyard::Unique;
+use winapi::shared::cfg;
 use winit::{
   event_loop::ActiveEventLoop,
   window::{Fullscreen, Window},
@@ -77,6 +78,14 @@ impl Renderer {
 
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
       backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::VULKAN | wgpu::Backends::GL,
+      //Disable validation layer
+      flags: wgpu::InstanceFlags::default() & !wgpu::InstanceFlags::VALIDATION,
+      //we're using vulkan on windows
+      // #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+      // dx12_shader_compiler: wgpu::Dx12Compiler::Dxc {
+      //   dxil_path: Some("./dxil.dll".into()),
+      //   dxc_path: Some("./dxcompiler.dll".into()),
+      // },
       ..Default::default()
     });
 

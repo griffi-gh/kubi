@@ -36,8 +36,10 @@ impl AssetPaths for BlockTexture {
 }
 
 #[derive(Unique)]
-#[repr(transparent)]
-pub struct BlockDiffuseTexture(pub wgpu::Texture);
+pub struct Textures {
+  pub block_diffuse_texture: wgpu::Texture,
+  pub block_diffuse_bind_group: wgpu::BindGroup,
+}
 
 #[derive(Unique)]
 #[repr(transparent)]
@@ -50,13 +52,63 @@ pub fn load_prefabs(
   assman: UniqueView<AssetManager>
 ) {
   log::info!("Loading textures...");
-  storages.add_unique_non_send_sync(BlockDiffuseTexture(
-    load_texture2darray_prefab::<BlockTexture>(
-      &renderer,
-      &assman,
-      "blocks".into(),
-    )
-  ));
+  let block_diffuse_texture = load_texture2darray_prefab::<BlockTexture>(
+    &renderer,
+    &assman,
+    "blocks".into(),
+  );
+
+  log::info!("Creating bing groups");
+  let block_diffuse_view = block_diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
+  let block_diffuse_sampler = renderer.device().create_sampler(&wgpu::SamplerDescriptor {
+    address_mode_u: wgpu::AddressMode::ClampToEdge,
+    address_mode_v: wgpu::AddressMode::ClampToEdge,
+    address_mode_w: wgpu::AddressMode::ClampToEdge,
+    mag_filter: wgpu::FilterMode::Nearest,
+    min_filter: wgpu::FilterMode::Nearest, //TODO min_filter Linear, requires filtering sampler
+    mipmap_filter: wgpu::FilterMode::Nearest,
+    ..Default::default()
+  });
+  let block_diffuse_bind_group_layout = renderer.device()
+    .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+      label: Some("block_diffuse_bind_group_layout"),
+      entries: &[
+        wgpu::BindGroupLayoutEntry {
+          binding: 0,
+          visibility: wgpu::ShaderStages::FRAGMENT,
+          ty: wgpu::BindingType::Texture {
+            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            view_dimension: wgpu::TextureViewDimension::D2Array,
+            multisampled: false,
+          },
+          count: None,
+        },
+        wgpu::BindGroupLayoutEntry {
+          binding: 1,
+          visibility: wgpu::ShaderStages::FRAGMENT,
+          ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
+          count: None,
+        }
+      ]
+    });
+  let block_diffuse_bind_group = renderer.device().create_bind_group(&wgpu::BindGroupDescriptor {
+    label: Some("block_diffuse_bind_group"),
+    layout: &block_diffuse_bind_group_layout,
+    entries: &[
+      wgpu::BindGroupEntry {
+        binding: 0,
+        resource: wgpu::BindingResource::TextureView(&block_diffuse_view),
+      },
+      wgpu::BindGroupEntry {
+        binding: 1,
+        resource: wgpu::BindingResource::Sampler(&block_diffuse_sampler),
+      }
+    ]
+  });
+  storages.add_unique_non_send_sync(Textures {
+    block_diffuse_texture,
+    block_diffuse_bind_group,
+  });
 
   log::info!("Loading the UI stuff...");
   {
