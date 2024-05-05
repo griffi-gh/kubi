@@ -2,7 +2,13 @@ use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Vec3};
 use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
 use kubi_shared::{chunk::CHUNK_SIZE, transform::Transform};
-use crate::{camera::Camera, settings::GameSettings, world::{ChunkMeshStorage, ChunkStorage}};
+use wgpu::util::RenderEncoder;
+use crate::{
+  camera::Camera,
+  prefabs::TexturePrefabs,
+  settings::GameSettings,
+  world::{ChunkMeshStorage, ChunkStorage},
+};
 use super::Renderer;
 
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -36,6 +42,7 @@ pub fn init_trans_chunk_queue(storages: AllStoragesView) {
 
 pub fn draw_world(
   (render_pass, renderer): (&mut wgpu::RenderPass, &Renderer),
+  textures: UniqueView<TexturePrefabs>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
   transform: View<Transform>,
@@ -66,6 +73,7 @@ pub fn draw_world(
       //Draw chunk mesh
       if mesh.main.index.size() > 0 {
         //TODO
+        render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
       }
 
       //TODO trans chunks
