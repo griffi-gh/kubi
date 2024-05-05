@@ -3,28 +3,22 @@ use winit::dpi::PhysicalSize;
 use glam::{Vec3, UVec2};
 use crate::{events::WindowResizedEvent, state::is_ingame};
 
-pub mod renderer;
+mod renderer;
+pub use renderer::Renderer;
+
 pub mod primitives;
 pub mod world;
 pub mod selection_box;
 pub mod entities;
 pub mod sumberge;
 
-pub use renderer::Renderer;
 pub struct BufferPair {
   pub index: wgpu::Buffer,
   pub vertex: wgpu::Buffer,
 }
 
 #[derive(Unique)]
-#[repr(transparent)]
 pub struct BackgroundColor(pub Vec3);
-
-#[derive(Unique, Clone, Copy)]
-#[repr(transparent)]
-#[deprecated = "use Renderer.size instead"]
-#[allow(deprecated)]
-pub struct WindowSize(pub UVec2);
 
 pub fn render_master(storages: AllStoragesViewMut) {
   let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
@@ -77,6 +71,13 @@ pub fn resize_renderer(
 }
 
 //Deprecated WindowSize thingy
+
+#[derive(Unique, Clone, Copy)]
+#[repr(transparent)]
+#[deprecated = "use Renderer.size instead"]
+#[allow(deprecated)]
+pub struct WindowSize(pub UVec2);
+
 pub fn init_window_size(storages: AllStoragesView) {
   let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
   storages.add_unique(WindowSize(size))
