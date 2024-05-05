@@ -1,6 +1,6 @@
+use std::sync::Arc;
 use pollster::FutureExt;
 use shipyard::Unique;
-use winapi::shared::cfg;
 use winit::{
   event_loop::ActiveEventLoop,
   window::{Fullscreen, Window},
@@ -10,6 +10,7 @@ use crate::settings::{GameSettings, FullscreenMode};
 
 #[derive(Unique)]
 pub struct Renderer {
+  window: Arc<Window>,
   instance: wgpu::Instance,
   surface: wgpu::Surface<'static>,
   device: wgpu::Device,
@@ -17,9 +18,6 @@ pub struct Renderer {
   surface_config: wgpu::SurfaceConfiguration,
   size: PhysicalSize<u32>,
   // pub depth_texture: wgpu::Texture,
-
-  //must be last due to drop order
-  window: Window,
 }
 
 impl Renderer {
@@ -72,7 +70,7 @@ impl Renderer {
           None
         }
       });
-    let window = event_loop.create_window(window_attributes).unwrap();
+    let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
     let size = window.inner_size();
 
@@ -91,10 +89,11 @@ impl Renderer {
 
     // Create a surface with `create_surface_unsafe` to get a surface with 'static lifetime
     // It should never outlive the window it's created from
-    let surface = unsafe {
-      let target = wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap();
-      instance.create_surface_unsafe(target).unwrap()
-    };
+    // let surface = unsafe {
+    //   let target = wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap();
+    //   instance.create_surface_unsafe(target).unwrap()
+    // };
+    let surface = instance.create_surface(Arc::clone(&window)).unwrap();
 
     let adapter = instance.request_adapter(
       &wgpu::RequestAdapterOptions {
