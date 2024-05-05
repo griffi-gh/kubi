@@ -73,7 +73,9 @@ pub fn draw_world(
       //Draw chunk mesh
       if mesh.main.index.size() > 0 {
         //TODO
-        render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
+        // render_pass.set_index_buffer(mesh.main.index.slice(..), wgpu::IndexFormat::Uint32);
+        // render_pass.set_vertex_buffer(0, mesh.main.vertex.slice(..));
+        // render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
       }
 
       //TODO trans chunks
