@@ -1,11 +1,12 @@
-use shipyard::{Unique, UniqueView};
+use shipyard::UniqueView;
 use crate::{
   prefabs::TexturePrefabs,
-  rendering::{camera::CameraUniformBuffer, world::ChunkVertex, Renderer}
+  rendering::{camera::CameraUniformBuffer, depth::DepthTexture, world::ChunkVertex, Renderer}
 };
 
 pub fn init_world_pipeline(
   ren: UniqueView<Renderer>,
+  depth: UniqueView<DepthTexture>,
   textures: UniqueView<TexturePrefabs>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
 ) -> wgpu::RenderPipeline {
@@ -52,7 +53,13 @@ pub fn init_world_pipeline(
       polygon_mode: wgpu::PolygonMode::Fill,
       conservative: false,
     },
-    depth_stencil: None,
+    depth_stencil: Some(wgpu::DepthStencilState {
+      format: depth.depth_texture.format(),
+      depth_write_enabled: true,
+      depth_compare: wgpu::CompareFunction::Less,
+      stencil: wgpu::StencilState::default(),
+      bias: wgpu::DepthBiasState::default(),
+    }),
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
   })

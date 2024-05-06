@@ -7,7 +7,7 @@ use crate::{
   settings::GameSettings,
   world::{ChunkMeshStorage, ChunkStorage},
 };
-use super::{camera::{self, CameraUniformBuffer}, RenderCtx};
+use super::{camera::{self, CameraUniformBuffer}, depth::DepthTexture, RenderCtx};
 
 mod pipeline;
 mod vertex;
@@ -29,12 +29,13 @@ pub fn init_world_render_state(storages: AllStoragesView) {
 pub fn draw_world(
   ctx: &mut RenderCtx,
   mut state: UniqueViewMut<WorldRenderState>,
+  camera_ubo: UniqueView<CameraUniformBuffer>,
+  depth: UniqueView<DepthTexture>,
   textures: UniqueView<TexturePrefabs>,
   camera: View<Camera>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
-  camera_ubo: UniqueView<CameraUniformBuffer>,
-  settings: UniqueView<GameSettings>,
+  //settings: UniqueView<GameSettings>,
 ) {
   let camera = camera.iter().next().expect("No cameras in the scene");
 
@@ -48,6 +49,14 @@ pub fn draw_world(
         store: wgpu::StoreOp::Store,
       },
     })],
+    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+      view: &depth.depth_view,
+      depth_ops: Some(wgpu::Operations {
+        load: wgpu::LoadOp::Clear(1.0),
+        store: wgpu::StoreOp::Store,
+      }),
+      stencil_ops: None,
+    }),
     ..Default::default()
   });
 
