@@ -10,6 +10,8 @@ use self::camera::update_camera_unform_buffer;
 
 pub mod world;
 pub mod camera;
+pub mod depth;
+
 //pub mod primitives;
 //pub mod selection_box;
 //pub mod entities;
@@ -107,9 +109,6 @@ pub fn render_master(storages: AllStoragesViewMut) {
   };
 
   if storages.run(is_ingame) {
-    //XXX: probably should be in pre_update or sth
-    storages.run(update_camera_unform_buffer);
-
     //TODO init world render state on demand
     storages.run_with_data(world::draw_world, &mut data);
   }
