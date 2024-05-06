@@ -15,7 +15,7 @@ use crate::{
   hui_integration::UiState,
   input::RawKbmInputState,
   networking::ServerAddress,
-  rendering::WindowSize,
+  rendering::Renderer,
   state::{GameState, NextState},
   world::ChunkStorage,
 };
@@ -43,7 +43,7 @@ fn render_loading_ui(
   addr: Option<UniqueView<ServerAddress>>,
   world: UniqueView<ChunkStorage>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  size: UniqueView<WindowSize>
+  ren: UniqueView<Renderer>,
 ) {
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
     acc + chunk.desired_state.matches_current(chunk.current_state) as usize
@@ -83,7 +83,7 @@ fn render_loading_ui(
           .add_child(ui)
       })
       .add_child(ui);
-  }).add_root(&mut ui.hui, size.0.as_vec2());
+  }).add_root(&mut ui.hui, ren.size_vec2());
 }
 
 fn switch_to_ingame_if_loaded(

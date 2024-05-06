@@ -75,15 +75,10 @@ use events::{
 };
 use input::{init_input, process_inputs};
 use player_controller::{debug_switch_ctl_type, update_player_controllers};
-// use rendering::{
-//   clear_background, entities::render_entities, init_window_size, primitives::init_primitives, resize_renderer, selection_box::render_selection_box, sumberge::render_submerged_view, update_window_size, world::{draw_current_chunk_border, draw_world, draw_world_trans, init_trans_chunk_queue}, BackgroundColor, RenderTarget, Renderer
-// };
 use rendering::{
   init_render_states,
-  init_window_size,
   render_master,
   resize_renderer,
-  update_window_size,
   BackgroundColor, Renderer,
 };
 use block_placement::update_block_placement;
@@ -116,7 +111,6 @@ fn startup() -> Workload {
   (
     init_fixed_timestamp_storage,
     initial_resize_event,
-    init_window_size,
     kubi_ui_init,
     load_prefabs,
     init_render_states,
@@ -136,7 +130,6 @@ fn startup() -> Workload {
 fn update() -> Workload {
   (
     debug_toggle_lock,
-    update_window_size,
     resize_renderer,
     update_cursor_lock_state,
     process_inputs,

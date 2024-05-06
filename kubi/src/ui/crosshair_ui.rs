@@ -6,7 +6,7 @@ use hui::{
   size
 };
 use shipyard::{AllStoragesViewMut, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
-use crate::{hui_integration::UiState, player::MainPlayer, rendering::WindowSize, settings::GameSettings, world::raycast::LookingAtBlock};
+use crate::{hui_integration::UiState, player::MainPlayer, rendering::Renderer, settings::GameSettings, world::raycast::LookingAtBlock};
 
 const CROSSHAIR_SIZE: usize = 9;
 const CROSSHAIR: &[u8] = &[
@@ -45,7 +45,7 @@ pub fn init_crosshair_image(storages: AllStoragesViewMut) {
 pub fn draw_crosshair(
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
   crosshair: UniqueView<CrosshairImage>,
-  size: UniqueView<WindowSize>,
+  ren: UniqueView<Renderer>,
   player: View<MainPlayer>,
   raycast: View<LookingAtBlock>,
   settings: UniqueView<GameSettings>,
@@ -57,6 +57,9 @@ pub fn draw_crosshair(
     }
   }
 
+  let size = ren.size_uvec2();
+  let size_rounded = uvec2(size.x & !1, size.y & !1).as_vec2();
+
   Container::default()
     .with_size(size!(100%))
     .with_align(Alignment::Center)
@@ -66,5 +69,5 @@ pub fn draw_crosshair(
         .with_size(size!((CROSSHAIR_SIZE * 2)))
         .add_child(ui);
     })
-    .add_root(&mut ui.hui, uvec2(size.0.x & !1, size.0.y & !1).as_vec2());
+    .add_root(&mut ui.hui, size_rounded);
 }

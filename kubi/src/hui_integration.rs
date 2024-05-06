@@ -1,7 +1,7 @@
 use hui::UiInstance;
 //use hui_glium::GliumUiRenderer;
 use shipyard::{AllStoragesView, Unique, UniqueView, NonSendSync, UniqueViewMut};
-use crate::rendering::{Renderer, WindowSize};
+use crate::rendering::Renderer;
 
 #[derive(Unique)]
 pub struct UiState {

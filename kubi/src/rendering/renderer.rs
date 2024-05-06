@@ -143,6 +143,14 @@ impl Renderer {
     self.size
   }
 
+  pub fn size_uvec2(&self) -> glam::UVec2 {
+    glam::UVec2::new(self.size.width, self.size.height)
+  }
+
+  pub fn size_vec2(&self) -> glam::Vec2 {
+    glam::Vec2::new(self.size.width as f32, self.size.height as f32)
+  }
+
   pub fn window(&self) -> &Window {
     &self.window
   }

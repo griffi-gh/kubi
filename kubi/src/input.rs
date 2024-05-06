@@ -10,7 +10,7 @@ use nohash_hasher::BuildNoHashHasher;
 use shipyard::{AllStoragesView, Unique, View, IntoIter, UniqueViewMut, Workload, IntoWorkload, UniqueView, NonSendSync};
 use crate::{
   events::{InputDeviceEvent, TouchEvent},
-  rendering::WindowSize
+  rendering::Renderer,
 };
 
 #[derive(Unique, Clone, Copy, Default, Debug)]
@@ -211,10 +211,10 @@ fn update_input_state_gamepad (
 
 fn update_input_state_touch (
   touch_state: UniqueView<RawTouchState>,
-  win_size: UniqueView<WindowSize>,
+  renderer: UniqueView<Renderer>,
   mut inputs: UniqueViewMut<Inputs>,
 ) {
-  let w = win_size.0.as_dvec2();
+  let w = renderer.size_uvec2().as_dvec2();
 
   //Movement
   if let Some(finger) = touch_state.query_area(

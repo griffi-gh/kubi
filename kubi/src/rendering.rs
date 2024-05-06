@@ -129,25 +129,25 @@ pub fn resize_renderer(
 
 //Deprecated WindowSize thingy
 
-#[derive(Unique, Clone, Copy)]
-#[repr(transparent)]
-#[deprecated = "use Renderer.size instead"]
-#[allow(deprecated)]
-pub struct WindowSize(pub UVec2);
+// #[derive(Unique, Clone, Copy)]
+// #[repr(transparent)]
+// #[deprecated = "use Renderer.size instead"]
+// #[allow(deprecated)]
+// pub struct WindowSize(pub UVec2);
 
-pub fn init_window_size(storages: AllStoragesView) {
-  let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
-  storages.add_unique(WindowSize(size))
-}
+// pub fn init_window_size(storages: AllStoragesView) {
+//   let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
+//   storages.add_unique(WindowSize(size))
+// }
 
-pub fn update_window_size(
-  mut win_size: UniqueViewMut<WindowSize>,
-  resize: View<WindowResizedEvent>,
-) {
-  if let Some(resize) = resize.iter().next() {
-    win_size.0 = resize.0;
-  }
-}
+// pub fn update_window_size(
+//   mut win_size: UniqueViewMut<WindowSize>,
+//   resize: View<WindowResizedEvent>,
+// ) {
+//   if let Some(resize) = resize.iter().next() {
+//     win_size.0 = resize.0;
+//   }
+// }
 
 // pub fn if_resized (
 //   resize: View<WindowResizedEvent>,
