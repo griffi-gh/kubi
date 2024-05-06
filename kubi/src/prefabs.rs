@@ -70,7 +70,7 @@ pub fn load_prefabs(
     address_mode_v: wgpu::AddressMode::ClampToEdge,
     address_mode_w: wgpu::AddressMode::ClampToEdge,
     mag_filter: wgpu::FilterMode::Nearest,
-    min_filter: wgpu::FilterMode::Nearest, //TODO min_filter Linear, requires filtering sampler
+    min_filter: wgpu::FilterMode::Linear,
     mipmap_filter: wgpu::FilterMode::Nearest,
     ..Default::default()
   });
@@ -82,7 +82,7 @@ pub fn load_prefabs(
           binding: 0,
           visibility: wgpu::ShaderStages::FRAGMENT,
           ty: wgpu::BindingType::Texture {
-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            sample_type: wgpu::TextureSampleType::Float { filterable: true },
             view_dimension: wgpu::TextureViewDimension::D2Array,
             multisampled: false,
           },
@@ -91,7 +91,7 @@ pub fn load_prefabs(
         wgpu::BindGroupLayoutEntry {
           binding: 1,
           visibility: wgpu::ShaderStages::FRAGMENT,
-          ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
+          ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
           count: None,
         }
       ]
