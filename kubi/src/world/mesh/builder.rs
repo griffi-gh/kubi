@@ -79,10 +79,10 @@ const CROSS_FACE_INDICES: [u32; 12] = [
 
 
 const UV_COORDS: [[f32; 2]; 4] = [
-  [0., 0.],
   [0., 1.],
-  [1., 0.],
+  [0., 0.],
   [1., 1.],
+  [1., 0.],
 ];
 
 #[derive(Default)]
