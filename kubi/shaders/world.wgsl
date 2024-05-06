@@ -9,15 +9,14 @@ struct VertexInput {
   @location(0) position: vec3<f32>,
   @location(1) normal: vec3<f32>,
   @location(2) uv: vec2<f32>,
-  @location(3) @interpolate(flat) tex_index: u32,
+  @location(3) tex_index: u32,
 }
 
 struct VertexOutput {
   @builtin(position) clip_position: vec4<f32>,
   @location(0) uv: vec2<f32>,
   @location(1) normal: vec3<f32>,
-  @location(2) color: vec4<f32>,
-  @location(3) @interpolate(flat) tex_index: u32,
+  @location(2) @interpolate(flat) tex_index: u32,
 };
 
 @vertex
@@ -26,6 +25,8 @@ fn vs_main(
 ) -> VertexOutput {
   var out: VertexOutput;
   out.uv = in.uv;
+  out.normal = in.normal;
+  out.tex_index = in.tex_index;
   out.clip_position = camera.view_proj * vec4<f32>(in.position, 1.0);
   return out;
 }

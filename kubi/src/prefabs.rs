@@ -60,8 +60,12 @@ pub fn load_prefabs(
   );
 
   log::info!("Creating bing groups");
-  let block_diffuse_view = block_diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
+  let block_diffuse_view = block_diffuse_texture.create_view(&wgpu::TextureViewDescriptor {
+    label: Some("block_texture_view"),
+    ..Default::default()
+  });
   let block_diffuse_sampler = renderer.device().create_sampler(&wgpu::SamplerDescriptor {
+    label: Some("block_diffuse_sampler"),
     address_mode_u: wgpu::AddressMode::ClampToEdge,
     address_mode_v: wgpu::AddressMode::ClampToEdge,
     address_mode_w: wgpu::AddressMode::ClampToEdge,

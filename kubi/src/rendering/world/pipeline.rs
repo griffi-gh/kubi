@@ -47,7 +47,7 @@ pub fn init_world_pipeline(
       topology: wgpu::PrimitiveTopology::TriangleList,
       strip_index_format: None,
       cull_mode: Some(wgpu::Face::Back),
-      front_face: wgpu::FrontFace::Cw,
+      front_face: wgpu::FrontFace::Ccw,
       unclipped_depth: false,
       polygon_mode: wgpu::PolygonMode::Fill,
       conservative: false,
