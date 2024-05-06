@@ -4,6 +4,7 @@ use glam::Vec3;
 use crate::{events::WindowResizedEvent, state::is_ingame};
 
 mod renderer;
+mod primitives;
 pub use renderer::Renderer;
 
 pub mod background;
@@ -27,11 +28,14 @@ pub struct RenderCtx<'a> {
   pub surface_view: &'a wgpu::TextureView,
 }
 
+//TODO run init_world_render_state only once ingame?
+
 pub fn init_rendering() -> Workload {
   (
     depth::init_depth_texture,
     camera::init_camera_uniform_buffer,
-    world::init_world_render_state, //TODO run only once ingame
+    world::init_world_render_state, //requires depth and camera buffers
+    primitives::init_primitives,
   ).into_sequential_workload()
 }
 
@@ -82,30 +86,6 @@ pub fn resize_renderer(
   }
 }
 
-//Deprecated WindowSize thingy
-
-// #[derive(Unique, Clone, Copy)]
-// #[repr(transparent)]
-// #[deprecated = "use Renderer.size instead"]
-// #[allow(deprecated)]
-// pub struct WindowSize(pub UVec2);
-
-// pub fn init_window_size(storages: AllStoragesView) {
-//   let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
-//   storages.add_unique(WindowSize(size))
-// }
-
-// pub fn update_window_size(
-//   mut win_size: UniqueViewMut<WindowSize>,
-//   resize: View<WindowResizedEvent>,
-// ) {
-//   if let Some(resize) = resize.iter().next() {
-//     win_size.0 = resize.0;
-//   }
-// }
-
-// pub fn if_resized (
-//   resize: View<WindowResizedEvent>,
-// ) -> bool {
+// pub fn if_resized (resize: View<WindowResizedEvent>,) -> bool {
 //   resize.len() > 0
 // }

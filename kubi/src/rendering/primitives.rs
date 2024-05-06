@@ -1,30 +1,24 @@
-// use shipyard::{Workload, IntoWorkload};
-// use glium::implement_vertex;
+use bytemuck::{Pod, Zeroable};
+use shipyard::{IntoWorkload, Workload};
 
-// pub mod cube;
-// pub mod rect;
-// pub mod stri;
+mod cube;
 
-// use cube::init_cube_primitive;
-// use rect::init_rect_primitive;
-// use stri::init_stri_primitive;
+pub fn init_primitives() -> Workload {
+  (
+    cube::init_cube_primitive,
+  ).into_workload()
+}
 
-// #[derive(Clone, Copy, Default)]
-// pub struct PositionOnlyVertex {
-//   pub position: [f32; 3],
-// }
-// implement_vertex!(PositionOnlyVertex, position);
+#[derive(Clone, Copy, Default, Pod, Zeroable)]
+#[repr(C, packed)]
+pub struct PrimitiveVertex {
+  pub position: [f32; 3],
+}
 
-// #[derive(Clone, Copy, Default)]
-// pub struct PositionOnlyVertex2d {
-//   pub position: [f32; 2],
-// }
-// implement_vertex!(PositionOnlyVertex2d, position);
-
-// pub fn init_primitives() -> Workload {
-//   (
-//     init_cube_primitive,
-//     init_rect_primitive,
-//     init_stri_primitive,
-//   ).into_workload()
-// }
+impl PrimitiveVertex {
+  pub const LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
+    array_stride: std::mem::size_of::<PrimitiveVertex>() as wgpu::BufferAddress,
+    step_mode: wgpu::VertexStepMode::Vertex,
+    attributes: &wgpu::vertex_attr_array![0 => Float32x3],
+  };
+}
