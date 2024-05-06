@@ -41,7 +41,7 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
           EventComponent,
           InputDeviceEvent {
             device_id: *device_id,
-            event: DeviceEvent::Key(RawKeyEvent {
+            event: DeviceEvent::Key(winit::event::RawKeyEvent {
               physical_key: event.physical_key,
               state: event.state,
             })
