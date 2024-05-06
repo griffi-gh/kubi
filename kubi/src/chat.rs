@@ -1,5 +1,5 @@
 use kubi_shared::networking::client::ClientId;
-use shipyard::{AllStoragesView, Unique, UniqueViewMut};
+use shipyard::{AllStoragesView, Unique};
 
 pub enum ChatMessage {
   PlayerMessage {

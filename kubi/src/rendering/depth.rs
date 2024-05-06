@@ -1,7 +1,9 @@
 use glam::{uvec2, UVec2};
+use shipyard::{AllStoragesView, Unique, UniqueView, UniqueViewMut};
 
 use super::Renderer;
 
+#[derive(Unique)]
 pub struct DepthTexture {
   pub depth_texture: wgpu::Texture,
   pub depth_view: wgpu::TextureView,
@@ -55,13 +57,16 @@ impl DepthTexture {
   }
 }
 
-pub fn init_depth_texture(renderer: &Renderer) -> DepthTexture {
-  DepthTexture::init(renderer)
+pub fn init_depth_texture(
+  storages: AllStoragesView,
+) {
+  let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
+  storages.add_unique(DepthTexture::init(&renderer));
 }
 
 pub fn resize_depth_texture(
-  renderer: &Renderer,
-  depth_texture: &mut DepthTexture,
+  mut depth_texture: UniqueViewMut<DepthTexture>,
+  renderer: UniqueView<Renderer>,
 ) {
-  depth_texture.resize(renderer);
+  depth_texture.resize(&renderer);
 }

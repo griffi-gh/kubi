@@ -1,52 +1,16 @@
-use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, IntoWorkload, Unique, UniqueView, UniqueViewMut, View, Workload};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
 use winit::dpi::PhysicalSize;
-use glam::{mat4, vec4, Mat4, UVec2, Vec3};
+use glam::Vec3;
 use crate::{events::WindowResizedEvent, state::is_ingame};
 
 mod renderer;
 pub use renderer::Renderer;
 
-use self::camera::update_camera_unform_buffer;
+use self::{camera::CameraUniformBuffer, world::WorldRenderState};
 
 pub mod world;
 pub mod camera;
 pub mod depth;
-
-//pub mod primitives;
-//pub mod selection_box;
-//pub mod entities;
-//pub mod sumberge;
-
-// pub const WGPU_COORDINATE_SYSTEM: Mat4 = mat4(
-//   vec4(1.0, 0.0, 0.0, 0.0),
-//   vec4(0.0, 1.0, 0.0, 0.0),
-//   vec4(0.0, 0.0, 0.5, 0.5),
-//   vec4(0.0, 0.0, 0.0, 1.0),
-// );
-
-// #[repr(C)]
-// #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-// struct TrasnformUniformData {
-//  pub transform: [[f32; 4]; 4],
-// }
-
-// impl TrasnformUniformData {
-//   pub const LAYOUT: &wgpu::Layou
-// }
-
-// impl From<Mat4> for TrasnformUniformData {
-//   fn from(mat: Mat4) -> Self {
-//     Self {
-//       transform: mat.to_cols_array_2d(),
-//     }
-//   }
-// }
-
-// impl From<Transform> for TrasnformUniformData {
-//   fn from(value: Transform) -> Self {
-//     value.0.into()
-//   }
-// }
 
 pub struct BufferPair {
   pub index: wgpu::Buffer,
@@ -64,10 +28,24 @@ pub struct RenderCtx<'a> {
   pub surface_view: &'a wgpu::TextureView,
 }
 
-pub fn init_render_states() -> Workload {
+pub fn init_rendering() -> Workload {
   (
+    depth::init_depth_texture,
     camera::init_camera_uniform_buffer,
-    world::init_world_render_state,
+    world::init_world_render_state, //TODO run only once ingame
+  ).into_sequential_workload()
+}
+
+pub fn update_rendering_early() -> Workload {
+  (
+    resize_renderer,
+    depth::resize_depth_texture,
+  ).into_sequential_workload()
+}
+
+pub fn update_rendering_late() -> Workload {
+  (
+    camera::update_camera_uniform_buffer,
   ).into_workload()
 }
 
@@ -109,7 +87,6 @@ pub fn render_master(storages: AllStoragesViewMut) {
   };
 
   if storages.run(is_ingame) {
-    //TODO init world render state on demand
     storages.run_with_data(world::draw_world, &mut data);
   }
 

@@ -86,18 +86,18 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
   }
 }
 
-pub fn initial_resize_event(
-  mut storages: AllStoragesViewMut,
-) {
-  let (w, h) = {
-    let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-    (renderer.size().width, renderer.size().height)
-  };
-  storages.add_entity((
-    EventComponent, 
-    WindowResizedEvent(UVec2::new(w, h))
-  ));
-}
+// pub fn initial_resize_event(
+//   mut storages: AllStoragesViewMut,
+// ) {
+//   let (w, h) = {
+//     let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+//     (renderer.size().width, renderer.size().height)
+//   };
+//   storages.add_entity((
+//     EventComponent,
+//     WindowResizedEvent(UVec2::new(w, h))
+//   ));
+// }
 
 pub fn clear_events(
   mut all_storages: AllStoragesViewMut,

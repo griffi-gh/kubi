@@ -13,7 +13,7 @@
 use shipyard::{
   World, Workload, IntoWorkload,
   UniqueView, UniqueViewMut,
-  NonSendSync, WorkloadModificator,
+  WorkloadModificator,
   SystemModificator
 };
 use winit::{
@@ -58,29 +58,19 @@ pub(crate) mod chat;
 
 use world::{
   init_game_world,
-  loading::update_loaded_world_around_player, 
+  loading::update_loaded_world_around_player,
   raycast::update_raycasts,
-  queue::apply_queued_blocks, 
+  queue::apply_queued_blocks,
   tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
 use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
-use events::{
-  clear_events, 
-  process_winit_events, 
-  initial_resize_event,
-  player_actions::generate_move_events, 
-};
+use events::{clear_events, process_winit_events, player_actions::generate_move_events};
 use input::{init_input, process_inputs};
 use player_controller::{debug_switch_ctl_type, update_player_controllers};
-use rendering::{
-  init_render_states,
-  render_master,
-  resize_renderer,
-  BackgroundColor, Renderer,
-};
+use rendering::{BackgroundColor, Renderer, init_rendering, render_master, update_rendering_early, update_rendering_late};
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{debug_toggle_lock, insert_lock_state, lock_cursor_now, update_cursor_lock_state};
@@ -110,10 +100,9 @@ fn pre_startup() -> Workload {
 fn startup() -> Workload {
   (
     init_fixed_timestamp_storage,
-    initial_resize_event,
     kubi_ui_init,
     load_prefabs,
-    init_render_states,
+    init_rendering,
     insert_lock_state,
     init_state,
     initialize_from_args,
@@ -129,8 +118,8 @@ fn startup() -> Workload {
 
 fn update() -> Workload {
   (
+    update_rendering_early,
     debug_toggle_lock,
-    resize_renderer,
     update_cursor_lock_state,
     process_inputs,
     kubi_ui_begin,
@@ -169,6 +158,7 @@ fn update() -> Workload {
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
+    update_rendering_late,
   ).into_sequential_workload()
 }
 
@@ -187,7 +177,7 @@ fn update() -> Workload {
 //   ).into_sequential_workload()
 // }
 
-fn after_frame_end() -> Workload {
+fn after_render() -> Workload {
   (
     clear_events,
   ).into_sequential_workload()
@@ -236,7 +226,7 @@ pub fn kubi_main(
   world.add_workload(startup);
   world.add_workload(update);
   //world.add_workload(render);
-  world.add_workload(after_frame_end);
+  world.add_workload(after_render);
 
   //Save _visualizer.json
   #[cfg(feature = "generate_visualizer_data")]
@@ -333,7 +323,7 @@ pub fn kubi_main(
         // target.0.finish().unwrap();
 
         //After frame end
-        world.run_workload(after_frame_end).unwrap();
+        world.run_workload(after_render).unwrap();
 
         //Process control flow changes
         if world.borrow::<UniqueView<RequestExit>>().unwrap().0 {

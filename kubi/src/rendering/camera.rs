@@ -72,7 +72,7 @@ pub fn init_camera_uniform_buffer(storages: AllStoragesView) {
   storages.add_unique(CameraUniformBuffer::init_default(&renderer));
 }
 
-pub fn update_camera_unform_buffer(
+pub fn update_camera_uniform_buffer(
   renderer: UniqueView<Renderer>,
   camera_uniform_buffer: UniqueView<CameraUniformBuffer>,
   camera: View<Camera>,
