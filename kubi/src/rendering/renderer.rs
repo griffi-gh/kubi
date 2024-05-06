@@ -75,7 +75,7 @@ impl Renderer {
     let size = window.inner_size();
 
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-      backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::VULKAN | wgpu::Backends::GL,
+      backends: wgpu::Backends::all(),
       //Disable validation layer
       flags: wgpu::InstanceFlags::default() & !wgpu::InstanceFlags::VALIDATION,
       //we're using vulkan on windows
