@@ -7,7 +7,7 @@ use crate::{
   settings::GameSettings,
   world::{ChunkMeshStorage, ChunkStorage},
 };
-use super::{camera::CameraUniformBuffer, RenderCtx, WGPU_COORDINATE_SYSTEM};
+use super::{camera::CameraUniformBuffer, RenderCtx};
 
 mod pipeline;
 mod vertex;
@@ -32,14 +32,9 @@ pub fn draw_world(
   textures: UniqueView<TexturePrefabs>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
-  //transform: View<Transform>,
-  camera: View<Camera>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
   settings: UniqueView<GameSettings>,
 ) {
-  let camera = camera.iter().next().expect("No cameras in the scene");
-  let matrix = WGPU_COORDINATE_SYSTEM * camera.view_matrix * camera.perspective_matrix;
-
   let mut render_pass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("draw_world"),
     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -68,11 +63,11 @@ pub fn draw_world(
       }
 
       //Frustum culling
-      let minp = world_position;
-      let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
-      if !camera.frustum.is_box_visible(minp, maxp) {
-        continue
-      }
+      // let minp = world_position;
+      // let maxp = world_position + Vec3::splat(CHUNK_SIZE as f32);
+      // if !camera.frustum.is_box_visible(minp, maxp) {
+      //   continue
+      // }
 
       //Draw chunk mesh
       if mesh.main.index.size() > 0 {

@@ -3,13 +3,12 @@ use kubi_shared::transform::Transform;
 use shipyard::{AllStoragesView, IntoIter, Unique, UniqueView, View};
 use wgpu::util::DeviceExt;
 use crate::camera::{self, Camera};
-
-use super::{Renderer, WGPU_COORDINATE_SYSTEM};
+use super::Renderer;
 
 #[derive(Debug, Clone, Copy, Default, Pod, Zeroable)]
 #[repr(C, packed)]
 pub struct CameraUniformData {
-  pub view_proj: [[f32; 4]; 4],
+  pub view_proj: [f32; 4 * 4],
 }
 
 
@@ -79,6 +78,6 @@ pub fn update_camera_unform_buffer(
   camera: View<Camera>,
 ) {
   let Some(camera) = camera.iter().next() else { return };
-  let proj = camera.view_matrix * camera.perspective_matrix * WGPU_COORDINATE_SYSTEM;
-  camera_uniform_buffer.update(&renderer, CameraUniformData { view_proj: proj.to_cols_array_2d() });
+  let proj = camera.perspective_matrix * camera.view_matrix;
+  camera_uniform_buffer.update(&renderer, CameraUniformData { view_proj: proj.to_cols_array() });
 }

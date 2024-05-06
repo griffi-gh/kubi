@@ -21,7 +21,7 @@ fn update_perspective_matrix(
   size: UniqueView<WindowSize>,
 ) {
   for mut camera in (&mut vm_camera).iter() {
-    camera.perspective_matrix = Mat4::perspective_rh_gl(
+    camera.perspective_matrix = Mat4::perspective_rh(
       camera.fov, 
       size.0.x as f32 / size.0.y as f32, 
       camera.z_near,

@@ -15,12 +15,12 @@ pub mod camera;
 //pub mod entities;
 //pub mod sumberge;
 
-pub const WGPU_COORDINATE_SYSTEM: Mat4 = mat4(
-  vec4(1.0, 0.0, 0.0, 0.0),
-  vec4(0.0, 1.0, 0.0, 0.0),
-  vec4(0.0, 0.0, 0.5, 0.5),
-  vec4(0.0, 0.0, 0.0, 1.0),
-);
+// pub const WGPU_COORDINATE_SYSTEM: Mat4 = mat4(
+//   vec4(1.0, 0.0, 0.0, 0.0),
+//   vec4(0.0, 1.0, 0.0, 0.0),
+//   vec4(0.0, 0.0, 0.5, 0.5),
+//   vec4(0.0, 0.0, 0.0, 1.0),
+// );
 
 // #[repr(C)]
 // #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
