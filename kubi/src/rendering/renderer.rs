@@ -107,7 +107,7 @@ impl Renderer {
       &wgpu::DeviceDescriptor {
         label: None,
         required_features: wgpu::Features::empty(),
-        required_limits: wgpu::Limits::downlevel_defaults(),
+        required_limits: wgpu::Limits::default(),
       },
       None,
     ).block_on().unwrap();
