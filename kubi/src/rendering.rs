@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
 use winit::dpi::PhysicalSize;
 use glam::Vec3;
 use crate::{events::WindowResizedEvent, state::is_ingame};
@@ -6,8 +6,7 @@ use crate::{events::WindowResizedEvent, state::is_ingame};
 mod renderer;
 pub use renderer::Renderer;
 
-use self::{camera::CameraUniformBuffer, world::WorldRenderState};
-
+pub mod background;
 pub mod world;
 pub mod camera;
 pub mod depth;
@@ -58,39 +57,18 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_texture = renderer.surface().get_current_texture().unwrap();
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-  {
-    let bg = storages.borrow::<UniqueView<BackgroundColor>>().unwrap().0;
-    let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-      label: Some("rpass_background"),
-      color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-        view: &surface_view,
-        resolve_target: None,
-        ops: wgpu::Operations {
-          load: wgpu::LoadOp::Clear(wgpu::Color {
-            r: bg.x as f64,
-            g: bg.y as f64,
-            b: bg.z as f64,
-            a: 1.0,
-          }),
-          store: wgpu::StoreOp::Store,
-        },
-      })],
-      depth_stencil_attachment: None,
-      ..Default::default()
-    });
-  }
-
   let mut data = RenderCtx {
     renderer: &renderer,
     encoder: &mut encoder,
     surface_view: &surface_view,
   };
 
+  storages.run_with_data(background::clear_bg, &mut data);
   if storages.run(is_ingame) {
     storages.run_with_data(world::draw_world, &mut data);
   }
 
-  renderer.queue().submit(std::iter::once(encoder.finish()));
+  renderer.queue().submit([encoder.finish()]);
   surface_texture.present();
 }
 
