@@ -38,6 +38,7 @@ impl AssetPaths for BlockTexture {
 #[derive(Unique)]
 pub struct TexturePrefabs {
   pub block_diffuse_texture: wgpu::Texture,
+  pub block_diffuse_bind_group_layout: wgpu::BindGroupLayout,
   pub block_diffuse_bind_group: wgpu::BindGroup,
 }
 
@@ -107,6 +108,7 @@ pub fn load_prefabs(
   });
   storages.add_unique_non_send_sync(TexturePrefabs {
     block_diffuse_texture,
+    block_diffuse_bind_group_layout,
     block_diffuse_bind_group,
   });
 

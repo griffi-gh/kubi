@@ -1,16 +1,50 @@
-use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, Unique, UniqueView, UniqueViewMut, View};
+use shipyard::{AllStoragesView, AllStoragesViewMut, IntoIter, IntoWorkload, Unique, UniqueView, UniqueViewMut, View, Workload};
 use winit::dpi::PhysicalSize;
-use glam::{Vec3, UVec2};
+use glam::{mat4, vec4, Mat4, UVec2, Vec3};
 use crate::{events::WindowResizedEvent, state::is_ingame};
 
 mod renderer;
 pub use renderer::Renderer;
 
-pub mod primitives;
+use self::camera::update_camera_unform_buffer;
+
 pub mod world;
-pub mod selection_box;
-pub mod entities;
-pub mod sumberge;
+pub mod camera;
+//pub mod primitives;
+//pub mod selection_box;
+//pub mod entities;
+//pub mod sumberge;
+
+pub const WGPU_COORDINATE_SYSTEM: Mat4 = mat4(
+  vec4(1.0, 0.0, 0.0, 0.0),
+  vec4(0.0, 1.0, 0.0, 0.0),
+  vec4(0.0, 0.0, 0.5, 0.5),
+  vec4(0.0, 0.0, 0.0, 1.0),
+);
+
+// #[repr(C)]
+// #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+// struct TrasnformUniformData {
+//  pub transform: [[f32; 4]; 4],
+// }
+
+// impl TrasnformUniformData {
+//   pub const LAYOUT: &wgpu::Layou
+// }
+
+// impl From<Mat4> for TrasnformUniformData {
+//   fn from(mat: Mat4) -> Self {
+//     Self {
+//       transform: mat.to_cols_array_2d(),
+//     }
+//   }
+// }
+
+// impl From<Transform> for TrasnformUniformData {
+//   fn from(value: Transform) -> Self {
+//     value.0.into()
+//   }
+// }
 
 pub struct BufferPair {
   pub index: wgpu::Buffer,
@@ -26,6 +60,13 @@ pub struct RenderCtx<'a> {
   pub renderer: &'a Renderer,
   pub encoder: &'a mut wgpu::CommandEncoder,
   pub surface_view: &'a wgpu::TextureView,
+}
+
+pub fn init_render_states() -> Workload {
+  (
+    camera::init_camera_uniform_buffer,
+    world::init_world_render_state,
+  ).into_workload()
 }
 
 pub fn render_master(storages: AllStoragesViewMut) {
@@ -66,6 +107,10 @@ pub fn render_master(storages: AllStoragesViewMut) {
   };
 
   if storages.run(is_ingame) {
+    //XXX: probably should be in pre_update or sth
+    storages.run(update_camera_unform_buffer);
+
+    //TODO init world render state on demand
     storages.run_with_data(world::draw_world, &mut data);
   }
 

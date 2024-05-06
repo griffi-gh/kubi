@@ -9,7 +9,7 @@ pub fn init() {
   use env_logger::{fmt::Color, Builder, Env};
 
   let env = Env::default()
-    .filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn,wgpu=warn,wgpu_core=warn,wgpu_hal=warn,hui=info,hui-winit=info,hui-glium=info,hui-wgpu=info");
+    .filter_or("RUST_LOG", "trace,gilrs=warn,rusty_xinput=warn,wgpu=warn,wgpu_core=warn,wgpu_hal=warn,hui=info,hui-winit=info,hui-glium=info,hui-wgpu=info,naga=warn");
   Builder::from_env(env)
     .format(|buf, record| {
       let mut level_style = buf.style();

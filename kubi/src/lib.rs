@@ -79,8 +79,11 @@ use player_controller::{debug_switch_ctl_type, update_player_controllers};
 //   clear_background, entities::render_entities, init_window_size, primitives::init_primitives, resize_renderer, selection_box::render_selection_box, sumberge::render_submerged_view, update_window_size, world::{draw_current_chunk_border, draw_world, draw_world_trans, init_trans_chunk_queue}, BackgroundColor, RenderTarget, Renderer
 // };
 use rendering::{
-  init_window_size, render_master, resize_renderer, update_window_size,
-  world::{init_trans_chunk_queue, TransChunkQueue},
+  init_render_states,
+  init_window_size,
+  render_master,
+  resize_renderer,
+  update_window_size,
   BackgroundColor, Renderer,
 };
 use block_placement::update_block_placement;
@@ -116,7 +119,7 @@ fn startup() -> Workload {
     init_window_size,
     kubi_ui_init,
     load_prefabs,
-    //init_primitives,
+    init_render_states,
     insert_lock_state,
     init_state,
     initialize_from_args,
@@ -139,7 +142,6 @@ fn update() -> Workload {
     process_inputs,
     kubi_ui_begin,
     (
-      init_trans_chunk_queue.run_if_missing_unique::<TransChunkQueue>(),
       init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
       (
         spawn_player.run_if_storage_empty::<MainPlayer>(),

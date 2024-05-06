@@ -63,7 +63,7 @@ impl ChunkTaskManager {
           let (
             (vertices, indices),
             (trans_vertices, trans_indices),
-          ) = generate_mesh(data);
+          ) = generate_mesh(position, data);
           ChunkTaskResponse::GeneratedMesh {
             position,
             vertices, indices,

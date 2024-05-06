@@ -1,57 +1,44 @@
-use bytemuck::{Pod, Zeroable};
 use glam::{IVec3, Vec3};
 use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
 use kubi_shared::{chunk::CHUNK_SIZE, transform::Transform};
-use wgpu::util::RenderEncoder;
 use crate::{
   camera::Camera,
   prefabs::TexturePrefabs,
   settings::GameSettings,
   world::{ChunkMeshStorage, ChunkStorage},
 };
-use super::{RenderCtx, Renderer};
+use super::{camera::CameraUniformBuffer, RenderCtx, WGPU_COORDINATE_SYSTEM};
 
-#[derive(Clone, Copy, Pod, Zeroable)]
-#[repr(C, packed)]
-pub struct ChunkVertex {
-  pub position: [f32; 3],
-  pub normal: [f32; 3],
-  pub uv: [f32; 2],
-  pub tex_index: u8,
-}
-
-impl ChunkVertex {
-  pub const LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
-    array_stride: std::mem::size_of::<ChunkVertex>() as wgpu::BufferAddress,
-    step_mode: wgpu::VertexStepMode::Vertex,
-    attributes: &wgpu::vertex_attr_array![
-      0 => Float32x3,
-      1 => Float32x3,
-      2 => Float32x2,
-      3 => Uint32,
-    ],
-  };
-}
+mod pipeline;
+mod vertex;
+pub use vertex::ChunkVertex;
 
 #[derive(Unique)]
-pub struct TransChunkQueue(pub Vec<IVec3>);
+pub struct WorldRenderState {
+  pub pipeline: wgpu::RenderPipeline,
+  pub trans_chunk_queue: Vec<IVec3>,
+}
 
-pub fn init_trans_chunk_queue(storages: AllStoragesView) {
-  storages.add_unique(TransChunkQueue(Vec::with_capacity(512)));
+pub fn init_world_render_state(storages: AllStoragesView) {
+  storages.add_unique(WorldRenderState {
+    pipeline: storages.run(pipeline::init_world_pipeline),
+    trans_chunk_queue: Vec::with_capacity(512),
+  })
 }
 
 pub fn draw_world(
   ctx: &mut RenderCtx,
+  mut state: UniqueViewMut<WorldRenderState>,
   textures: UniqueView<TexturePrefabs>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,
-  transform: View<Transform>,
+  //transform: View<Transform>,
   camera: View<Camera>,
+  camera_ubo: UniqueView<CameraUniformBuffer>,
   settings: UniqueView<GameSettings>,
-  mut trans_queue: UniqueViewMut<TransChunkQueue>,
 ) {
   let camera = camera.iter().next().expect("No cameras in the scene");
-  let camera_matrix = camera.view_matrix * camera.perspective_matrix;
+  let matrix = WGPU_COORDINATE_SYSTEM * camera.view_matrix * camera.perspective_matrix;
 
   let mut render_pass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("draw_world"),
@@ -65,6 +52,10 @@ pub fn draw_world(
     })],
     ..Default::default()
   });
+
+  render_pass.set_pipeline(&state.pipeline);
+  render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
+  render_pass.set_bind_group(1, &camera_ubo.camera_bind_group, &[]);
 
   for (&position, chunk) in &chunks.chunks {
     if let Some(key) = chunk.mesh_index {
@@ -85,10 +76,8 @@ pub fn draw_world(
 
       //Draw chunk mesh
       if mesh.main.index.size() > 0 {
-        //TODO
         render_pass.set_index_buffer(mesh.main.index.slice(..), wgpu::IndexFormat::Uint32);
         render_pass.set_vertex_buffer(0, mesh.main.vertex.slice(..));
-        render_pass.set_bind_group(0, &textures.block_diffuse_bind_group, &[]);
         render_pass.draw_indexed(0..mesh.main.index_len, 0, 0..1);
       }
 
