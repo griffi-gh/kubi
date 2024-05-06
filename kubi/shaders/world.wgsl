@@ -28,7 +28,7 @@ fn vs_main(
   out.normal = in.normal;
   out.tex_index = in.tex_index;
   out.clip_position = camera.view_proj * vec4<f32>(in.position, 1.0);
-  out
+  return out;
 }
 
 @group(0) @binding(0)
@@ -41,7 +41,7 @@ var s_diffuse: sampler;
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
   let color: vec4 = textureSample(t_diffuse, s_diffuse, in.uv, in.tex_index);
   if (color.a == 0.) {
-    discard
+    discard;
   }
-  color
+  return color;
 }
