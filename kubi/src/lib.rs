@@ -266,7 +266,7 @@ pub fn kubi_main(
         let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
         world.add_unique_non_send_sync(Renderer::init(window_target, &settings));
       }
-      world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+      world.add_unique(BackgroundColor(vec3(0.21, 0.21, 1.)));
 
       //Run startup systems
       world.run_workload(startup).unwrap();
