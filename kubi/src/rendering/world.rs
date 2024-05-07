@@ -6,7 +6,7 @@ use crate::{
   prefabs::TexturePrefabs,
   world::{ChunkMeshStorage, ChunkStorage},
 };
-use super::{camera::CameraUniformBuffer, depth::DepthTexture, RenderCtx};
+use super::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, RenderCtx};
 
 mod pipeline;
 mod vertex;
@@ -39,7 +39,7 @@ pub fn draw_world(
   let camera = camera.iter().next().expect("No cameras in the scene");
 
   let mut render_pass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-    label: Some("draw_world"),
+    label: Some("rpass_draw_world"),
     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
       view: ctx.surface_view,
       resolve_target: None,

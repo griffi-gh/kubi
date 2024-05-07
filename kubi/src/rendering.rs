@@ -1,15 +1,16 @@
-use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
 use winit::dpi::PhysicalSize;
 use glam::Vec3;
 use crate::{events::WindowResizedEvent, state::is_ingame};
 
 mod renderer;
 mod primitives;
+mod selection_box;
 pub use renderer::Renderer;
 
 pub mod background;
 pub mod world;
-pub mod camera;
+pub mod camera_uniform;
 pub mod depth;
 
 pub struct BufferPair {
@@ -28,14 +29,15 @@ pub struct RenderCtx<'a> {
   pub surface_view: &'a wgpu::TextureView,
 }
 
-//TODO run init_world_render_state only once ingame?
+//TODO run init_world_render_state, init_selection_box_state, etc. only once ingame?
 
 pub fn init_rendering() -> Workload {
   (
     depth::init_depth_texture,
-    camera::init_camera_uniform_buffer,
-    world::init_world_render_state, //requires depth and camera buffers
+    camera_uniform::init_camera_uniform_buffer,
+    world::init_world_render_state, //req: depth, camera
     primitives::init_primitives,
+    selection_box::init_selection_box_render_state, //req: depth, camera, primitives
   ).into_sequential_workload()
 }
 
@@ -48,7 +50,8 @@ pub fn update_rendering_early() -> Workload {
 
 pub fn update_rendering_late() -> Workload {
   (
-    camera::update_camera_uniform_buffer,
+    camera_uniform::update_camera_uniform_buffer,
+    selection_box::update_selection_box_render_state.run_if(is_ingame),
   ).into_workload()
 }
 
@@ -70,6 +73,7 @@ pub fn render_master(storages: AllStoragesViewMut) {
   storages.run_with_data(background::clear_bg, &mut data);
   if storages.run(is_ingame) {
     storages.run_with_data(world::draw_world, &mut data);
+    storages.run_with_data(selection_box::draw_selection_box, &mut data);
   }
 
   renderer.queue().submit([encoder.finish()]);

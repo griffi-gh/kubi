@@ -11,7 +11,6 @@ pub struct CameraUniformData {
   pub view_proj: [f32; 4 * 4],
 }
 
-
 //TODO if multiple cameras, buffer per camera
 #[derive(Unique)]
 pub struct CameraUniformBuffer {

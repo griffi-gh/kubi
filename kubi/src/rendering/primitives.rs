@@ -2,6 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use shipyard::{IntoWorkload, Workload};
 
 mod cube;
+pub use cube::CubePrimitive;
 
 pub fn init_primitives() -> Workload {
   (

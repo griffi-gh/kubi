@@ -1,7 +1,7 @@
 use shipyard::UniqueView;
 use crate::{
   prefabs::TexturePrefabs,
-  rendering::{camera::CameraUniformBuffer, depth::DepthTexture, world::ChunkVertex, Renderer}
+  rendering::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, world::ChunkVertex, Renderer}
 };
 
 pub fn init_world_pipeline(
@@ -33,7 +33,7 @@ pub fn init_world_pipeline(
       targets: &[Some(wgpu::ColorTargetState {
         format: ren.surface_config().format,
         blend: Some(wgpu::BlendState::REPLACE),
-        write_mask: wgpu::ColorWrites::ALL,
+        write_mask: wgpu::ColorWrites::COLOR,
       })],
     }),
     vertex: wgpu::VertexState {
