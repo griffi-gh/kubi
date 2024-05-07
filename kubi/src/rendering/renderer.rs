@@ -103,11 +103,15 @@ impl Renderer {
       },
     ).block_on().unwrap();
 
+    log::info!("Adapter: {:?}", adapter.get_info());
+    log::info!("Features: {:?}", adapter.features());
+    log::info!("Limits: {:?}", adapter.limits());
+
     let (device, queue) = adapter.request_device(
       &wgpu::DeviceDescriptor {
         label: None,
         required_features: wgpu::Features::empty(),
-        required_limits: wgpu::Limits::default(),
+        required_limits: wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
       },
       None,
     ).block_on().unwrap();

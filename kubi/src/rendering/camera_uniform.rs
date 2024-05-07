@@ -1,8 +1,7 @@
 use bytemuck::{Pod, Zeroable};
-use kubi_shared::transform::Transform;
 use shipyard::{AllStoragesView, IntoIter, Unique, UniqueView, View};
 use wgpu::util::DeviceExt;
-use crate::camera::{self, Camera};
+use crate::camera::Camera;
 use super::Renderer;
 
 #[derive(Debug, Clone, Copy, Default, Pod, Zeroable)]
