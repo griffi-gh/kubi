@@ -77,6 +77,7 @@ pub fn render_master(storages: AllStoragesViewMut) {
     storages.run_with_data(world::draw_world, &mut data);
     storages.run_with_data(selection_box::draw_selection_box, &mut data);
     storages.run_with_data(entities::render_entities, &mut data);
+    storages.run_with_data(world::rpass_submit_trans_bundle, &mut data);
   }
   storages.run_with_data(kubi_ui_draw, &mut data);
 

@@ -45,3 +45,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
   }
   return color;
 }
+
+@fragment
+fn fs_main_trans(in: VertexOutput) -> @location(0) vec4<f32> {
+  return textureSample(t_diffuse, s_diffuse, in.uv, in.tex_index);
+}

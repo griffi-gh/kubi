@@ -33,7 +33,7 @@ pub fn generate_mesh(position: IVec3, data: MeshGenData) -> (
   };
 
   let mut builder = MeshBuilder::new_with_offset((position * CHUNK_SIZE as i32).as_vec3());
-  let mut trans_builder = MeshBuilder::new();
+  let mut trans_builder = MeshBuilder::new_with_offset((position * CHUNK_SIZE as i32).as_vec3());
 
   for x in 0..CHUNK_SIZE as i32 {
     for y in 0..CHUNK_SIZE as i32 {

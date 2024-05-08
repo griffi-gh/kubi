@@ -362,9 +362,9 @@ fn process_completed_tasks(
 
         let trans_buffer_pair = BufferPair {
           vertex: vtx_buffer_trans,
-          vertex_len: vertices.len() as u32,
+          vertex_len: trans_vertices.len() as u32,
           index: idx_buffer_trans,
-          index_len: indices.len() as u32,
+          index_len: trans_indices.len() as u32,
         };
 
         let mesh = ChunkMesh {
