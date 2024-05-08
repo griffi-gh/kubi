@@ -49,7 +49,7 @@ pub fn draw_selection_box(
       view: &depth.depth_view,
       depth_ops: Some(wgpu::Operations {
         load: wgpu::LoadOp::Load,
-        store: wgpu::StoreOp::Discard,
+        store: wgpu::StoreOp::Store,
       }),
       stencil_ops: None,
     }),

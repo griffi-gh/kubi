@@ -3,7 +3,7 @@ use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, View}
 use kubi_shared::chunk::CHUNK_SIZE;
 use crate::{
   camera::Camera,
-  prefabs::TexturePrefabs,
+  prefabs::GpuPrefabs,
   world::{ChunkMeshStorage, ChunkStorage},
 };
 use super::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, RenderCtx};
@@ -30,7 +30,7 @@ pub fn draw_world(
   state: UniqueView<WorldRenderState>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
   depth: UniqueView<DepthTexture>,
-  textures: UniqueView<TexturePrefabs>,
+  textures: UniqueView<GpuPrefabs>,
   camera: View<Camera>,
   chunks: UniqueView<ChunkStorage>,
   meshes: NonSendSync<UniqueView<ChunkMeshStorage>>,

@@ -1242,6 +1242,7 @@ dependencies = [
  "static_assertions",
  "strum",
  "tinyset",
+ "tobj",
  "uflow",
  "wgpu",
  "winapi",
@@ -2418,6 +2419,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2417e47ddd3809ad40222777ac754ee881b3a6401e38cbeeeb3ee1ca5f30aa0"
 dependencies = [
  "rand",
+]
+
+[[package]]
+name = "tobj"
+version = "4.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3bd4ba05f29e4c65b6c0c11a58b6465ffa820bac890d76ad407b4e81d8372e8"
+dependencies = [
+ "ahash",
 ]
 
 [[package]]

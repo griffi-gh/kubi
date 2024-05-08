@@ -6,6 +6,7 @@ use crate::{events::WindowResizedEvent, hui_integration::kubi_ui_draw, state::is
 mod renderer;
 mod primitives;
 mod selection_box;
+mod entities;
 pub use renderer::Renderer;
 
 pub mod background;
@@ -35,8 +36,9 @@ pub fn init_rendering() -> Workload {
   (
     depth::init_depth_texture,
     camera_uniform::init_camera_uniform_buffer,
-    world::init_world_render_state, //req: depth, camera
     primitives::init_primitives,
+    world::init_world_render_state, //req: depth, camera
+    entities::init_entities_render_state, //req: depth, camera
     selection_box::init_selection_box_render_state, //req: depth, camera, primitives
   ).into_sequential_workload()
 }
@@ -65,7 +67,6 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
   let mut data = RenderCtx {
-    //renderer: &renderer,
     encoder: &mut encoder,
     surface_view: &surface_view,
   };
@@ -74,8 +75,8 @@ pub fn render_master(storages: AllStoragesViewMut) {
   if storages.run(is_ingame) {
     storages.run_with_data(world::draw_world, &mut data);
     storages.run_with_data(selection_box::draw_selection_box, &mut data);
+    storages.run_with_data(entities::render_entities, &mut data);
   }
-
   storages.run_with_data(kubi_ui_draw, &mut data);
 
   renderer.queue().submit([encoder.finish()]);

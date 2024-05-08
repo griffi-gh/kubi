@@ -1,13 +1,13 @@
 use shipyard::UniqueView;
 use crate::{
-  prefabs::TexturePrefabs,
+  prefabs::GpuPrefabs,
   rendering::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, world::ChunkVertex, Renderer}
 };
 
 pub fn init_world_pipeline(
   ren: UniqueView<Renderer>,
   depth: UniqueView<DepthTexture>,
-  textures: UniqueView<TexturePrefabs>,
+  textures: UniqueView<GpuPrefabs>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
 ) -> wgpu::RenderPipeline {
   let shader = ren.device().create_shader_module(
