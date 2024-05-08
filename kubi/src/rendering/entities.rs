@@ -6,18 +6,23 @@ use crate::{
 
 use super::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, RenderCtx};
 
+mod instance;
 mod pipeline;
 
 #[derive(Unique)]
 pub struct EntitiesRenderState {
   pub pipeline: wgpu::RenderPipeline,
+  pub instance_buffer: instance::InstanceBuffer,
 }
 
 pub fn init_entities_render_state(storages: AllStoragesView) {
   storages.add_unique(EntitiesRenderState {
     pipeline: storages.run(pipeline::init_entities_pipeline),
+    instance_buffer: storages.run(instance::create_instance_buffer),
   });
 }
+
+pub use instance::update_instance_buffer as update_entities_render_state;
 
 // TODO: entity models
 pub fn render_entities(
@@ -26,11 +31,11 @@ pub fn render_entities(
   depth: UniqueView<DepthTexture>,
   prefabs: UniqueView<GpuPrefabs>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
-  camera: View<Camera>,
-  settings: UniqueView<GameSettings>,
-  entities: View<Entity>,
-  transform: View<Transform>,
 ) {
+  if state.instance_buffer.count == 0 {
+    return
+  }
+
   let mut rpass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("rpass_draw_entities"),
     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -56,14 +61,7 @@ pub fn render_entities(
   rpass.set_bind_group(0, &prefabs.player_model_diffuse_bind_group, &[]);
   rpass.set_bind_group(1, &camera_ubo.camera_bind_group, &[]);
   rpass.set_vertex_buffer(0, prefabs.player_model.vertex.slice(..));
+  rpass.set_vertex_buffer(1, state.instance_buffer.buffer.slice(..));
   rpass.set_index_buffer(prefabs.player_model.index.slice(..), wgpu::IndexFormat::Uint32);
-  rpass.draw_indexed(0..prefabs.player_model.index_len, 0, 0..1);
-
-  // let (camera_id, _camera) = camera.iter().with_id().next().expect("No cameras in the scene");
-
-  // for (entity_id, (_, trans)) in (&entities, &transform).iter().with_id() {
-  //   //skip rendering camera holder (as the entity would block the view)
-  //   if entity_id == camera_id { continue }
-
-  // }
+  rpass.draw_indexed(0..prefabs.player_model.index_len, 0, 0..state.instance_buffer.count);
 }

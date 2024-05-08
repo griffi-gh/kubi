@@ -2,6 +2,8 @@ use shipyard::UniqueView;
 use wgpu::include_wgsl;
 use crate::{prefabs::{GpuPrefabs, ModelVertex}, rendering::{camera_uniform::CameraUniformBuffer, Renderer}};
 
+use super::instance::InstanceData;
+
 pub fn init_entities_pipeline(
   renderer: UniqueView<Renderer>,
   prefabs: UniqueView<GpuPrefabs>,
@@ -27,6 +29,7 @@ pub fn init_entities_pipeline(
       entry_point: "vs_main",
       buffers: &[
         ModelVertex::LAYOUT,
+        InstanceData::LAYOUT,
       ],
     },
     fragment: Some(wgpu::FragmentState {

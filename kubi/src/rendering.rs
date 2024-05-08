@@ -54,6 +54,7 @@ pub fn update_rendering_late() -> Workload {
   (
     camera_uniform::update_camera_uniform_buffer,
     selection_box::update_selection_box_render_state.run_if(is_ingame),
+    entities::update_entities_render_state.run_if(is_ingame),
   ).into_workload()
 }
 
