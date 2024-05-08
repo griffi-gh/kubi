@@ -40,3 +40,8 @@ opt-level = 3
 #enabling debug assertions here causes the game to abort
 [profile.dev.package.android-activity]
 debug-assertions = false
+
+# [patch.'https://github.com/griffi-gh/hui']
+# hui = { path = "X:/Projects/hui/hui" }
+# hui-winit = { path = "X:/Projects/hui/hui-winit" }
+# hui-wgpu = { path = "X:/Projects/hui/hui-wgpu" }

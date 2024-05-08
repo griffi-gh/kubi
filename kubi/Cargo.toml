@@ -11,9 +11,9 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-hui = { git = "https://github.com/griffi-gh/hui", rev = "b6dc8f370b6" }
-hui-wgpu = { git = "https://github.com/griffi-gh/hui", rev = "b6dc8f370b6" }
-hui-winit = { git = "https://github.com/griffi-gh/hui", rev = "b6dc8f370b6", features = ["winit_30"] }
+hui = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
+hui-wgpu = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
+hui-winit = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4", features = ["winit_30"] }
 log = "0.4"
 wgpu = { version = "0.20", features = ["webgl"] }
 pollster = "0.3"
