@@ -43,7 +43,7 @@ pub fn init_entities_pipeline(
       topology: wgpu::PrimitiveTopology::TriangleList,
       strip_index_format: None,
       front_face: wgpu::FrontFace::Ccw,
-      cull_mode: Some(wgpu::Face::Back),
+      cull_mode: None, // Some(wgpu::Face::Back), //XXX: this culls their majestic ears! :(
       polygon_mode: wgpu::PolygonMode::Fill,
       conservative: false,
       unclipped_depth: false,

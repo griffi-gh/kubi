@@ -31,3 +31,6 @@ _visualizer.json
 #but keep the dxcompiler.dll/dxil.dll
 !dxcompiler.dll
 !dxil.dll
+
+# blender backup files
+*.blend1
