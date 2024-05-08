@@ -988,7 +988,7 @@ checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 [[package]]
 name = "hui"
 version = "0.1.0-alpha.5"
-source = "git+https://github.com/griffi-gh/hui?rev=3a50d2d0dde#3a50d2d0dde7044d02860dac9ab059bd353657a2"
+source = "git+https://github.com/griffi-gh/hui?rev=b6dc8f370b6#b6dc8f370b6dac971394e8cb82fdb505b529e964"
 dependencies = [
  "derive_more",
  "derive_setters",
@@ -1008,16 +1008,28 @@ dependencies = [
 [[package]]
 name = "hui-derive"
 version = "0.1.0-alpha.5"
-source = "git+https://github.com/griffi-gh/hui?rev=3a50d2d0dde#3a50d2d0dde7044d02860dac9ab059bd353657a2"
+source = "git+https://github.com/griffi-gh/hui?rev=b6dc8f370b6#b6dc8f370b6dac971394e8cb82fdb505b529e964"
 dependencies = [
  "quote",
  "syn 2.0.60",
 ]
 
 [[package]]
+name = "hui-wgpu"
+version = "0.1.0-alpha.5"
+source = "git+https://github.com/griffi-gh/hui?rev=b6dc8f370b6#b6dc8f370b6dac971394e8cb82fdb505b529e964"
+dependencies = [
+ "bytemuck",
+ "glam",
+ "hui",
+ "log",
+ "wgpu",
+]
+
+[[package]]
 name = "hui-winit"
 version = "0.1.0-alpha.5"
-source = "git+https://github.com/griffi-gh/hui?rev=3a50d2d0dde#3a50d2d0dde7044d02860dac9ab059bd353657a2"
+source = "git+https://github.com/griffi-gh/hui?rev=b6dc8f370b6#b6dc8f370b6dac971394e8cb82fdb505b529e964"
 dependencies = [
  "glam",
  "hui",
@@ -1211,6 +1223,7 @@ dependencies = [
  "glam",
  "hashbrown 0.14.5",
  "hui",
+ "hui-wgpu",
  "hui-winit",
  "image",
  "kubi-logging",

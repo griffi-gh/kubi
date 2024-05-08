@@ -1,7 +1,7 @@
-use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload};
 use winit::dpi::PhysicalSize;
 use glam::Vec3;
-use crate::{events::WindowResizedEvent, state::is_ingame};
+use crate::{events::WindowResizedEvent, hui_integration::kubi_ui_draw, state::is_ingame};
 
 mod renderer;
 mod primitives;
@@ -24,7 +24,7 @@ pub struct BufferPair {
 pub struct BackgroundColor(pub Vec3);
 
 pub struct RenderCtx<'a> {
-  pub renderer: &'a Renderer,
+  //pub renderer: &'a Renderer,
   pub encoder: &'a mut wgpu::CommandEncoder,
   pub surface_view: &'a wgpu::TextureView,
 }
@@ -65,7 +65,7 @@ pub fn render_master(storages: AllStoragesViewMut) {
   let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
   let mut data = RenderCtx {
-    renderer: &renderer,
+    //renderer: &renderer,
     encoder: &mut encoder,
     surface_view: &surface_view,
   };
@@ -75,6 +75,8 @@ pub fn render_master(storages: AllStoragesViewMut) {
     storages.run_with_data(world::draw_world, &mut data);
     storages.run_with_data(selection_box::draw_selection_box, &mut data);
   }
+
+  storages.run_with_data(kubi_ui_draw, &mut data);
 
   renderer.queue().submit([encoder.finish()]);
   surface_texture.present();
