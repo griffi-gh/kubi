@@ -24,7 +24,7 @@ pub fn render_submerged_view(
   state: UniqueView<SmOverlayRenderState>,
   buf: UniqueView<FstriPrimitive>,
 ) {
-  if state.uniform.stored_data.is_none() { return }
+  if !state.uniform.internal_do_render_flag { return }
 
   let mut rpass = ctx.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("smoverlay_render_pass"),

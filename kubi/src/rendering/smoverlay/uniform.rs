@@ -11,7 +11,8 @@ pub struct SmUniformData {
 }
 
 pub struct SmUniform {
-  pub stored_data: Option<SmUniformData>,
+  pub internal_do_render_flag: bool,
+  stored_data: Option<SmUniformData>,
   pub buffer: wgpu::Buffer,
   pub bind_group_layout: wgpu::BindGroupLayout,
   pub bind_group: wgpu::BindGroup,
@@ -53,6 +54,7 @@ pub fn init_sm_uniform(
   });
 
   SmUniform {
+    internal_do_render_flag: false,
     stored_data: None,
     buffer,
     bind_group_layout,
@@ -67,7 +69,7 @@ pub fn update_sm_uniform(
   trans: View<Transform>,
   world: UniqueView<ChunkStorage>,
 ) {
-  state.uniform.stored_data = None;
+  state.uniform.internal_do_render_flag = false;
 
   let (_, plr_trans) = (&plr, &trans).iter().next().expect("Main player MIA");
   let plr_pos = plr_trans.0.to_scale_rotation_translation().2;
@@ -79,6 +81,7 @@ pub fn update_sm_uniform(
     color: color.to_array()
   };
 
+  state.uniform.internal_do_render_flag = true;
   if state.uniform.stored_data == Some(new_data) {
     return
   }
