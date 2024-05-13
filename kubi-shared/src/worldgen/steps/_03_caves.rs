@@ -1,7 +1,10 @@
 use fastnoise_lite::{FastNoiseLite, FractalType};
 use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE};
-use super::super::{SeedThingy, WorldGenStep, WorldGenerator};
+use super::{
+  super::{SeedThingy, WorldGenStep, WorldGenerator},
+  _01_terrain::MAX_TERAIN_HEIGHT,
+};
 
 pub struct CaveStep {
   a: FastNoiseLite,
@@ -22,6 +25,10 @@ impl WorldGenStep for CaveStep {
   }
 
   fn generate(&mut self, gen: &mut WorldGenerator) {
+    // If chunk's lower bound is above max terrain height,
+    // ...we can skip this step as caves cannot exist here
+    if gen.offset().y > MAX_TERAIN_HEIGHT { return }
+
     for x in 0..CHUNK_SIZE as i32 {
       for y in 0..CHUNK_SIZE as i32 {
         for z in 0..CHUNK_SIZE as i32 {
