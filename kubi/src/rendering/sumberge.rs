@@ -1,3 +1,5 @@
+mod pipeline;
+
 // use glium::{uniform, Blend, DrawParameters, Surface};
 // use kubi_shared::transform::Transform;
 // use shipyard::{IntoIter, NonSendSync, UniqueView, UniqueViewMut, View};
