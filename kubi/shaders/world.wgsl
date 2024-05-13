@@ -39,10 +39,20 @@ var s_diffuse: sampler;
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-  let color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.uv, in.tex_index);
+  // not actual lighting; makes it easier to distinguish unlit faces
+  let light: f32 =
+    abs(in.normal.x) + .85 *
+    abs(in.normal.y) + .65 *
+    abs(in.normal.z);
+
+  let color: vec4<f32> =
+    textureSample(t_diffuse, s_diffuse, in.uv, in.tex_index)
+    * vec4<f32>(light, light, light, 1.0);
+
   if (color.a < 0.5) {
     discard;
   }
+
   return color;
 }
 
