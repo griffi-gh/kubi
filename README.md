@@ -14,7 +14,7 @@
     <li>procedural structures and block queue</li>
     <li>multithreaded mesh generation</li>
     <li>cubic chunks (32x32x32)</li>
-    <li>low-level OpenGL renderer, targetting OpenGL ES 3.0</li>
+    <li>low-level wgpu renderer (gles3 before the major rewrite)</li>
     <li>frustum culling</li>
     <li>multiplayer networking</li>
     <li>immediate ui system <sup><code>[1]</code></sup></li>
