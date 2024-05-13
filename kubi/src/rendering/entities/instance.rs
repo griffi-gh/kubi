@@ -34,6 +34,7 @@ pub struct InstanceBuffer {
 pub fn create_instance_buffer(
   renderer: UniqueView<Renderer>,
 ) -> InstanceBuffer {
+  log::info!("entities: create_instance_buffer");
   let buffer = renderer.device().create_buffer(&wgpu::BufferDescriptor {
     label: Some("instance_buffer"),
     size: 255 * std::mem::size_of::<InstanceData>() as u64,

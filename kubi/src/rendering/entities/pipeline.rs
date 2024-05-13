@@ -9,6 +9,8 @@ pub fn init_entities_pipeline(
   prefabs: UniqueView<GpuPrefabs>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
 ) -> wgpu::RenderPipeline {
+  log::info!("init_entities_pipeline");
+
   let module = renderer.device().create_shader_module(include_wgsl!("../../../shaders/entities.wgsl"));
 
   let pipeline_layout = renderer.device().create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

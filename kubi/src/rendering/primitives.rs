@@ -9,6 +9,7 @@ pub use fstri::FstriPrimitive;
 pub fn init_primitives() -> Workload {
   (
     cube::init_cube_primitive,
+    fstri::init_fstri_primitive,
   ).into_workload()
 }
 

@@ -31,6 +31,7 @@ const CUBE_INDICES: &[u16] = &[
 ];
 
 pub fn init_cube_primitive(storages: AllStoragesView) {
+  log::info!("init_cube_primitive");
   let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
   storages.add_unique(CubePrimitive(BufferPair {
     index: renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {

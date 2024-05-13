@@ -21,7 +21,11 @@ pub struct SelectionBoxUniform {
   pub bind_group: wgpu::BindGroup,
 }
 
-pub fn init_selection_box_uniform(renderer: UniqueView<Renderer>) -> SelectionBoxUniform {
+pub fn init_selection_box_uniform(
+  renderer: UniqueView<Renderer>
+) -> SelectionBoxUniform {
+  log::info!("init_selection_box_uniform");
+
   let buffer = renderer.device().create_buffer(&wgpu::BufferDescriptor {
     label: Some("selection_box_uniform"),
     size: std::mem::size_of::<SelectionBoxUniformData>() as u64,

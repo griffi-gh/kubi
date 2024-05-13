@@ -80,6 +80,8 @@ pub fn load_texture2d_prefab(
   assman: &AssetManager,
   path: &Path,
 ) -> wgpu::Texture {
+  log::info!("loading texture2d: {path:?}");
+
   let image = image::load(
     BufReader::new(assman.open_asset(path).expect("Failed to open texture file")),
     image::ImageFormat::Png
@@ -116,6 +118,8 @@ pub fn load_obj_prefab(
   assman: &AssetManager,
   path: &Path,
 ) -> BufferPair {
+  log::info!("loading obj prefab: {path:?}");
+
   let mut reader = BufReader::new(
     assman.open_asset(path).expect("Failed to open texture file")
   );

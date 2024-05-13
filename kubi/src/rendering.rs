@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
 use winit::dpi::PhysicalSize;
 use glam::Vec3;
 use crate::{events::WindowResizedEvent, hui_integration::kubi_ui_draw, state::is_ingame};
@@ -13,6 +13,7 @@ pub mod background;
 pub mod world;
 pub mod camera_uniform;
 pub mod depth;
+pub mod smoverlay;
 
 pub struct BufferPair {
   pub index: wgpu::Buffer,
@@ -40,6 +41,7 @@ pub fn init_rendering() -> Workload {
     world::init_world_render_state, //req: depth, camera
     entities::init_entities_render_state, //req: depth, camera
     selection_box::init_selection_box_render_state, //req: depth, camera, primitives
+    smoverlay::init_smoverlay_render_state, //req: primitives
   ).into_sequential_workload()
 }
 
@@ -53,8 +55,11 @@ pub fn update_rendering_early() -> Workload {
 pub fn update_rendering_late() -> Workload {
   (
     camera_uniform::update_camera_uniform_buffer,
-    selection_box::update_selection_box_render_state.run_if(is_ingame),
-    entities::update_entities_render_state.run_if(is_ingame),
+    (
+      selection_box::update_selection_box_render_state,
+      entities::update_entities_render_state,
+      smoverlay::update_smoverlay_render_state,
+    ).into_workload().run_if(is_ingame),
   ).into_workload()
 }
 
@@ -78,6 +83,7 @@ pub fn render_master(storages: AllStoragesViewMut) {
     storages.run_with_data(selection_box::draw_selection_box, &mut data);
     storages.run_with_data(entities::render_entities, &mut data);
     storages.run_with_data(world::rpass_submit_trans_bundle, &mut data);
+    storages.run_with_data(smoverlay::render_submerged_view, &mut data);
   }
   storages.run_with_data(kubi_ui_draw, &mut data);
 

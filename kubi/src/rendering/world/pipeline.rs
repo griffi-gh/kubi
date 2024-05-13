@@ -10,9 +10,13 @@ pub fn init_world_pipeline(
   textures: UniqueView<GpuPrefabs>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
 ) -> (wgpu::RenderPipeline, wgpu::RenderPipeline) {
+  log::info!("init_world_pipeline: creating shader module");
+
   let shader = ren.device().create_shader_module(
     wgpu::include_wgsl!("../../../shaders/world.wgsl")
   );
+
+  log::info!("init_world_pipeline: creating pipeline layout");
 
   let world_pipeline_layout = ren.device().create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     label: Some("world_pipeline_layout"),
@@ -22,6 +26,8 @@ pub fn init_world_pipeline(
     ],
     push_constant_ranges: &[],
   });
+
+  log::info!("init_world_pipeline: create main pipeline");
 
   let pipeline_main = ren.device().create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     label: Some("world_pipeline"),
@@ -63,6 +69,8 @@ pub fn init_world_pipeline(
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
   });
+
+  log::info!("init_world_pipeline: create trans pipeline");
 
   let pipeline_trans = ren.device().create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     label: Some("world_pipeline_trans"),

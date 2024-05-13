@@ -12,6 +12,8 @@ pub fn init_selection_box_pipeline(
   depth: UniqueView<DepthTexture>,
   camera_ubo: UniqueView<CameraUniformBuffer>,
 ) -> wgpu::RenderPipeline {
+  log::info!("init_selection_box_pipeline");
+
   let shader = ren.device().create_shader_module(
     wgpu::include_wgsl!("../../../shaders/selection_box.wgsl")
   );
