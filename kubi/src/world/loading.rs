@@ -266,7 +266,7 @@ fn process_completed_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut world: UniqueViewMut<ChunkStorage>,
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
-  renderer: NonSendSync<UniqueView<Renderer>>,
+  renderer: UniqueView<Renderer>,
   state: UniqueView<GameState>,
   mut queue: UniqueViewMut<BlockUpdateQueue>,
 ) {

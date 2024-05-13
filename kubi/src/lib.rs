@@ -310,7 +310,7 @@ pub fn kubi_main(
 
         //Start rendering (maybe use custom views for this?)
         // let target = {
-        //   let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+        //   let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
         //   renderer.display.draw()
         // };
         // world.add_unique_non_send_sync(RenderTarget(target));

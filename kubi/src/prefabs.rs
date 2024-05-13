@@ -76,7 +76,7 @@ pub struct UiFontPrefab(pub FontHandle);
 
 pub fn load_prefabs(
   storages: AllStoragesView,
-  renderer: NonSendSync<UniqueView<Renderer>>,
+  renderer: UniqueView<Renderer>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
   assman: UniqueView<AssetManager>
 ) {

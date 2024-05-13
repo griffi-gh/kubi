@@ -1,4 +1,4 @@
-use shipyard::{AllStoragesView, IntoIter, NonSendSync, Unique, UniqueView, UniqueViewMut, View};
+use shipyard::{AllStoragesView, IntoIter, Unique, UniqueView, UniqueViewMut, View};
 use crate::{events::InputDeviceEvent, rendering::Renderer};
 use winit::{
   dpi::PhysicalPosition, event::{DeviceEvent, ElementState, RawKeyEvent}, keyboard::{KeyCode, PhysicalKey}, window::CursorGrabMode
@@ -9,7 +9,7 @@ pub struct CursorLock(pub bool);
 
 pub fn update_cursor_lock_state(
   lock: UniqueView<CursorLock>,
-  display: NonSendSync<UniqueView<Renderer>>
+  display: UniqueView<Renderer>
 ) {
   if cfg!(target_os = "android") {
     return
@@ -41,7 +41,7 @@ pub fn lock_cursor_now(
 pub fn debug_toggle_lock(
   mut lock: UniqueViewMut<CursorLock>,
   device_events: View<InputDeviceEvent>,
-  ren: NonSendSync<UniqueView<Renderer>>,
+  ren: UniqueView<Renderer>,
 ) {
   for evt in device_events.iter() {
     if let DeviceEvent::Key(RawKeyEvent {

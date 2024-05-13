@@ -90,7 +90,7 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
 //   mut storages: AllStoragesViewMut,
 // ) {
 //   let (w, h) = {
-//     let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+//     let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
 //     (renderer.size().width, renderer.size().height)
 //   };
 //   storages.add_entity((

@@ -13,7 +13,7 @@ pub struct UiState {
 pub fn kubi_ui_init(
   storages: AllStoragesView
 ) {
-  let renderer = storages.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
+  let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
   storages.add_unique_non_send_sync(UiState {
     hui: UiInstance::new(),
     renderer: WgpuUiRenderer::new(renderer.device(), renderer.surface_config().format),
