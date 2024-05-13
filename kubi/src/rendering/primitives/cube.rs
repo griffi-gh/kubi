@@ -1,85 +1,50 @@
-use shipyard::{AllStoragesView, NonSendSync, UniqueView, Unique};
-use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
-use crate::rendering::Renderer;
-use super::PositionOnlyVertex;
+use shipyard::{AllStoragesView, Unique, UniqueView};
+use wgpu::util::DeviceExt;
+use crate::rendering::{BufferPair, Renderer};
+use super::PrimitiveVertex;
 
 #[derive(Unique)]
-pub struct CubePrimitive(pub VertexBuffer<PositionOnlyVertex>, pub IndexBuffer<u16>);
+pub struct CubePrimitive(pub BufferPair);
 
-#[derive(Unique)]
-pub struct CenteredCubePrimitive(pub VertexBuffer<PositionOnlyVertex>, pub IndexBuffer<u16>);
+/// Vertices for a centered cube with a side length of 1
+const CUBE_VERTICES: &[PrimitiveVertex] = &[
+  // front
+  PrimitiveVertex { position: [-0.5, -0.5, 0.5] },
+  PrimitiveVertex { position: [ 0.5, -0.5, 0.5] },
+  PrimitiveVertex { position: [ 0.5,  0.5, 0.5] },
+  PrimitiveVertex { position: [-0.5,  0.5, 0.5] },
+  // back
+  PrimitiveVertex { position: [-0.5, -0.5, -0.5] },
+  PrimitiveVertex { position: [ 0.5, -0.5, -0.5] },
+  PrimitiveVertex { position: [ 0.5,  0.5, -0.5] },
+  PrimitiveVertex { position: [-0.5,  0.5, -0.5] },
+];
 
-const CENTERED_CUBE_VERTICES: &[PositionOnlyVertex] = &[
-  // front
-  PositionOnlyVertex { position: [-0.5, -0.5, 0.5] },
-  PositionOnlyVertex { position: [ 0.5, -0.5, 0.5] },
-  PositionOnlyVertex { position: [ 0.5,  0.5, 0.5] },
-  PositionOnlyVertex { position: [-0.5,  0.5, 0.5] },
-  // back
-  PositionOnlyVertex { position: [-0.5, -0.5, -0.5] },
-  PositionOnlyVertex { position: [ 0.5, -0.5, -0.5] },
-  PositionOnlyVertex { position: [ 0.5,  0.5, -0.5] },
-  PositionOnlyVertex { position: [-0.5,  0.5, -0.5] },
-];
-const CUBE_VERTICES: &[PositionOnlyVertex] = &[
-  // front
-  PositionOnlyVertex { position: [0.0, 0.0, 1.0] },
-  PositionOnlyVertex { position: [1.0, 0.0, 1.0] },
-  PositionOnlyVertex { position: [1.0, 1.0, 1.0] },
-  PositionOnlyVertex { position: [0.0, 1.0, 1.0] },
-  // back
-  PositionOnlyVertex { position: [0.0, 0.0, 0.0] },
-  PositionOnlyVertex { position: [1.0, 0.0, 0.0] },
-  PositionOnlyVertex { position: [1.0, 1.0, 0.0] },
-  PositionOnlyVertex { position: [0.0, 1.0, 0.0] },
-];
+/// Indices for a cube primitive
 const CUBE_INDICES: &[u16] = &[
-  // front
-  0, 1, 2,
-  2, 3, 0,
-  // right
-  1, 5, 6,
-  6, 2, 1,
-  // back
-  7, 6, 5,
-  5, 4, 7,
-  // left
-  4, 0, 3,
-  3, 7, 4,
-  // bottom
-  4, 5, 1,
-  1, 0, 4,
-  // top
-  3, 2, 6,
-  6, 7, 3
+  0, 1, 2, 2, 3, 0, // front
+  1, 5, 6, 6, 2, 1, // right
+  7, 6, 5, 5, 4, 7, // back
+  4, 0, 3, 3, 7, 4, // left
+  4, 5, 1, 1, 0, 4, // bottom
+  3, 2, 6, 6, 7, 3, // top
 ];
 
-pub(super) fn init_cube_primitive(
-  storages: AllStoragesView,
-  display: NonSendSync<UniqueView<Renderer>>
-) {
-  {
-    let vert = VertexBuffer::immutable(
-      &display.display,
-      CUBE_VERTICES
-    ).unwrap();
-    let index = IndexBuffer::immutable(
-      &display.display,
-      PrimitiveType::TrianglesList,
-      CUBE_INDICES
-    ).unwrap();
-    storages.add_unique_non_send_sync(CubePrimitive(vert, index));
-  }
-  {
-    let vert = VertexBuffer::immutable(
-      &display.display,
-      CENTERED_CUBE_VERTICES
-    ).unwrap();
-    let index = IndexBuffer::immutable(
-      &display.display,
-      PrimitiveType::TrianglesList,
-      CUBE_INDICES
-    ).unwrap();
-    storages.add_unique_non_send_sync(CenteredCubePrimitive(vert, index));
-  }
+pub fn init_cube_primitive(storages: AllStoragesView) {
+  log::info!("init_cube_primitive");
+  let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
+  storages.add_unique(CubePrimitive(BufferPair {
+    index: renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("cube_index_buffer"),
+      contents: bytemuck::cast_slice(CUBE_INDICES),
+      usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::INDEX,
+    }),
+    index_len: CUBE_INDICES.len() as u32,
+    vertex: renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("cube_vertex_buffer"),
+      contents: bytemuck::cast_slice(CUBE_VERTICES),
+      usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::VERTEX,
+    }),
+    vertex_len: CUBE_VERTICES.len() as u32,
+  }));
 }

@@ -1,4 +1,4 @@
-use glam::{IVec3, ivec3};
+use glam::{ivec3, IVec3, Vec3};
 use strum::IntoEnumIterator;
 use kubi_shared::block::{Block, RenderType, Transparency};
 use crate::world::chunk::CHUNK_SIZE;
@@ -10,7 +10,7 @@ mod builder;
 use data::MeshGenData;
 use builder::{MeshBuilder, CubeFace, DiagonalFace};
 
-pub fn generate_mesh(data: MeshGenData) -> (
+pub fn generate_mesh(position: IVec3, data: MeshGenData) -> (
   (Vec<ChunkVertex>, Vec<u32>),
   (Vec<ChunkVertex>, Vec<u32>),
 ) {
@@ -32,8 +32,8 @@ pub fn generate_mesh(data: MeshGenData) -> (
     }
   };
 
-  let mut builder = MeshBuilder::new();
-  let mut trans_builder = MeshBuilder::new();
+  let mut builder = MeshBuilder::new_with_offset((position * CHUNK_SIZE as i32).as_vec3());
+  let mut trans_builder = MeshBuilder::new_with_offset((position * CHUNK_SIZE as i32).as_vec3());
 
   for x in 0..CHUNK_SIZE as i32 {
     for y in 0..CHUNK_SIZE as i32 {

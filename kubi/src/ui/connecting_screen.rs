@@ -5,7 +5,7 @@ use crate::{
   hui_integration::UiState,
   loading_screen::loading_screen_base,
   networking::{ConnectionRejectionReason, ServerAddress},
-  rendering::WindowSize,
+  rendering::Renderer,
   state::{GameState, NextState}
 };
 
@@ -14,7 +14,7 @@ fn render_connecting_ui(
   rejection: Option<UniqueView<ConnectionRejectionReason>>,
   join_state: UniqueView<ClientJoinState>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  size: UniqueView<WindowSize>,
+  ren: UniqueView<Renderer>,
 ) {
   let text = match (rejection, *join_state) {
     (Some(err), _) => {
@@ -32,7 +32,7 @@ fn render_connecting_ui(
     Text::new(text)
       .with_text_size(16)
       .add_child(ui);
-  }).add_root(&mut ui.hui, size.0.as_vec2())
+  }).add_root(&mut ui.hui, ren.size_vec2())
 }
 
 fn switch_to_loading_if_connected(

@@ -1,5 +1,5 @@
 use strum::EnumIter;
-use glam::{Vec3, vec3, IVec3, ivec3};
+use glam::{ivec3, vec3, IVec3, Vec3};
 use std::f32::consts::FRAC_1_SQRT_2;
 use crate::rendering::world::ChunkVertex;
 
@@ -79,14 +79,15 @@ const CROSS_FACE_INDICES: [u32; 12] = [
 
 
 const UV_COORDS: [[f32; 2]; 4] = [
-  [0., 0.],
   [0., 1.],
-  [1., 0.],
+  [0., 0.],
   [1., 1.],
+  [1., 0.],
 ];
 
 #[derive(Default)]
 pub struct MeshBuilder {
+  offset: Vec3,
   vertex_buffer: Vec<ChunkVertex>,
   index_buffer: Vec<u32>,
   idx_counter: u32,
@@ -94,6 +95,10 @@ pub struct MeshBuilder {
 impl MeshBuilder {
   pub fn new() -> Self {
     Self::default()
+  }
+
+  pub fn new_with_offset(offset: Vec3) -> Self {
+    Self { offset, ..Self::new() }
   }
 
   pub fn add_face(&mut self, face: CubeFace, coord: IVec3, texture: u8) {
@@ -106,10 +111,10 @@ impl MeshBuilder {
     self.vertex_buffer.reserve(4);
     for i in 0..4 {
       self.vertex_buffer.push(ChunkVertex {
-        position: (coord + vert[i]).to_array(),
+        position: (coord + vert[i] + self.offset).to_array(),
         normal: norm.to_array(),
         uv: UV_COORDS[i],
-        tex_index: texture
+        tex_index: texture as u32
       });
     }
 
@@ -129,18 +134,18 @@ impl MeshBuilder {
     self.vertex_buffer.reserve(8);
     for i in 0..4 { //push front vertices
       self.vertex_buffer.push(ChunkVertex {
-        position: (coord.as_vec3() + vertices[i]).to_array(),
+        position: (coord.as_vec3() + vertices[i] + self.offset).to_array(),
         normal: normal_front,
         uv: UV_COORDS[i],
-        tex_index: front_texture
+        tex_index: front_texture as u32
       })
     }
     for i in 0..4 { //push back vertices
       self.vertex_buffer.push(ChunkVertex {
-        position: (coord.as_vec3() + vertices[i]).to_array(),
+        position: (coord.as_vec3() + vertices[i] + self.offset).to_array(),
         normal: normal_back,
         uv: UV_COORDS[i],
-        tex_index: back_texture
+        tex_index: back_texture as u32
       })
     }
 
@@ -151,24 +156,25 @@ impl MeshBuilder {
     self.idx_counter += 8;
   }
 
-  pub fn add_model(&mut self, position: Vec3, vertices: &[ChunkVertex], indices: Option<&[u32]>) {
-    //push vertices
-    self.vertex_buffer.extend(vertices.iter().map(|vertex| {
-      let mut vertex = *vertex;
-      vertex.position[0] += position.x;
-      vertex.position[0] += position.y;
-      vertex.position[0] += position.z;
-      vertex
-    }));
-    //push indices
-    if let Some(indices) = indices {
-      self.index_buffer.extend(indices.iter().map(|x| x + self.idx_counter));
-    } else {
-      self.index_buffer.extend(0..(self.vertex_buffer.len() as u32));
-    }
-    //increment idx counter
-    self.idx_counter += vertices.len() as u32;
-  }
+  //XXX: needs offset supprt
+  // pub fn add_model(&mut self, position: Vec3, vertices: &[ChunkVertex], indices: Option<&[u32]>) {
+  //   //push vertices
+  //   self.vertex_buffer.extend(vertices.iter().map(|vertex| {
+  //     let mut vertex = *vertex;
+  //     vertex.position[0] += position.x;
+  //     vertex.position[0] += position.y;
+  //     vertex.position[0] += position.z;
+  //     vertex
+  //   }));
+  //   //push indices
+  //   if let Some(indices) = indices {
+  //     self.index_buffer.extend(indices.iter().map(|x| x + self.idx_counter));
+  //   } else {
+  //     self.index_buffer.extend(0..(self.vertex_buffer.len() as u32));
+  //   }
+  //   //increment idx counter
+  //   self.idx_counter += vertices.len() as u32;
+  // }
 
   pub fn finish(self) -> (Vec<ChunkVertex>, Vec<u32>) {
     (self.vertex_buffer, self.index_buffer)

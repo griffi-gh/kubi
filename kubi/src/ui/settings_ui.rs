@@ -2,11 +2,11 @@ use hui::{
   element::{br::Break, container::Container, slider::Slider, text::Text, UiElementExt},
   layout::{Alignment, Direction},
   signal::Signal,
-  frame_rect, size,
+  rect_frame, size,
 };
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
 use winit::keyboard::KeyCode;
-use crate::{hui_integration::UiState, input::RawKbmInputState, rendering::WindowSize, settings::GameSettings};
+use crate::{hui_integration::UiState, input::RawKbmInputState, rendering::Renderer, settings::GameSettings};
 
 #[derive(Signal)]
 enum SettingsSignal {
@@ -18,7 +18,7 @@ enum SettingsSignal {
 
 pub fn render_settings_ui(
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  size: UniqueView<WindowSize>,
+  ren: UniqueView<Renderer>,
   mut settings: UniqueViewMut<GameSettings>,
   kbd: UniqueView<RawKbmInputState>,
 ) {
@@ -34,7 +34,7 @@ pub fn render_settings_ui(
     .with_align(Alignment::Center)
     .with_children(|ui| {
       Container::default()
-        .with_background(frame_rect! {
+        .with_background(rect_frame! {
           color: (0.2, 0.2, 0.2),
           corner_radius: 8.
         })
@@ -99,7 +99,7 @@ pub fn render_settings_ui(
         })
         .add_child(ui);
     })
-    .add_root(&mut ui.hui, size.0.as_vec2());
+    .add_root(&mut ui.hui, ren.size_vec2());
 
   ui.hui.process_signals(|signal: SettingsSignal| match signal {
     SettingsSignal::SetRenderDistance(value) => settings.render_distance = value,

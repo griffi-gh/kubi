@@ -11,10 +11,10 @@ pub struct FullscreenSettings {
 
 #[derive(Unique)]
 pub struct GameSettings {
-  pub vsync: bool,
+  // pub vsync: bool,
   pub fullscreen: Option<FullscreenSettings>,
-  pub msaa: Option<u8>,
-  pub max_anisotropy: Option<u16>,
+  // pub msaa: Option<u8>,
+  // pub max_anisotropy: Option<u16>,
   /// there's a 1 chunk border of loaded but invisible around this
   pub render_distance: u8,
   pub mouse_sensitivity: f32,
@@ -24,10 +24,10 @@ pub struct GameSettings {
 impl Default for GameSettings {
   fn default() -> Self {
     Self {
-      vsync: false,
+      // vsync: false,
       fullscreen: None,
-      msaa: Some(4),
-      max_anisotropy: Some(16),
+      // msaa: Some(4),
+      // max_anisotropy: Some(16),
       render_distance: match true {
         cfg!(debug_assertions) => 5,
         cfg!(target_os = "android") => 6,

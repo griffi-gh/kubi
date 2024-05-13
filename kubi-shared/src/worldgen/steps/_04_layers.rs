@@ -1,4 +1,3 @@
-use fastnoise_lite::FastNoiseLite;
 use glam::ivec3;
 use crate::{block::Block, chunk::CHUNK_SIZE, worldgen::SeedThingy};
 use super::{

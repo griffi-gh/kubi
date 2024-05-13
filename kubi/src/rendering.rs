@@ -1,191 +1,106 @@
-use std::num::NonZeroU32;
-use raw_window_handle::HasRawWindowHandle;
-use shipyard::{Unique, NonSendSync, UniqueView, UniqueViewMut, View, IntoIter, AllStoragesView};
-use winit::{
-  event_loop::EventLoopWindowTarget,
-  window::{WindowBuilder, Fullscreen, Window},
-  dpi::PhysicalSize
-};
-use glium::{Display, Surface, Version, Api as GlApiTy};
-use glutin::{
-  config::{Api, ConfigTemplateBuilder}, context::{ContextAttributesBuilder, GlProfile}, display::GetGlDisplay, prelude::*, surface::{SurfaceAttributesBuilder, WindowSurface}
-};
-use glutin_winit::DisplayBuilder;
-use glam::{Vec3, UVec2};
-use crate::{events::WindowResizedEvent, settings::{GameSettings, FullscreenMode}};
+use shipyard::{AllStoragesViewMut, IntoIter, IntoWorkload, SystemModificator, Unique, UniqueView, UniqueViewMut, View, Workload, WorkloadModificator};
+use winit::dpi::PhysicalSize;
+use glam::Vec3;
+use crate::{events::WindowResizedEvent, hui_integration::kubi_ui_draw, state::is_ingame};
 
-pub mod primitives;
+mod renderer;
+mod primitives;
+mod selection_box;
+mod entities;
+pub use renderer::Renderer;
+
+pub mod background;
 pub mod world;
-pub mod selection_box;
-pub mod entities;
-pub mod sumberge;
+pub mod camera_uniform;
+pub mod depth;
+pub mod smoverlay;
+
+pub struct BufferPair {
+  pub index: wgpu::Buffer,
+  pub index_len: u32,
+  pub vertex: wgpu::Buffer,
+  pub vertex_len: u32,
+}
 
 #[derive(Unique)]
-#[repr(transparent)]
-pub struct RenderTarget(pub glium::Frame);
-
-#[derive(Unique)]
-#[repr(transparent)]
 pub struct BackgroundColor(pub Vec3);
 
-#[derive(Unique, Clone, Copy)]
-#[repr(transparent)]
-pub struct WindowSize(pub UVec2);
-
-#[derive(Unique)]
-pub struct Renderer {
-  pub window: Window,
-  pub display: Display<WindowSurface>,
+pub struct RenderCtx<'a> {
+  //pub renderer: &'a Renderer,
+  pub encoder: &'a mut wgpu::CommandEncoder,
+  pub surface_view: &'a wgpu::TextureView,
 }
 
-impl Renderer {
-  pub fn init(event_loop: &EventLoopWindowTarget<()>, settings: &GameSettings) -> Self {
-    log::info!("initializing display");
+//TODO run init_world_render_state, init_selection_box_state, etc. only once ingame?
 
-    let wb = WindowBuilder::new()
-      .with_title("kubi")
-      .with_maximized(true)
-      .with_min_inner_size(PhysicalSize::new(640, 480))
-      .with_fullscreen({
-        //this has no effect on android, so skip this pointless stuff
-        #[cfg(target_os = "android")] {
-          None
-        }
-        #[cfg(not(target_os = "android"))]
-        if let Some(fs_settings) = &settings.fullscreen {
-          let monitor = event_loop.primary_monitor().or_else(|| {
-            event_loop.available_monitors().next()
-          });
-          if let Some(monitor) = monitor {
-            log::info!("monitor: {}", monitor.name().unwrap_or_else(|| "generic".into()));
-            match fs_settings.mode {
-              FullscreenMode::Borderless => {
-                log::info!("starting in borderless fullscreen mode");
-                Some(Fullscreen::Borderless(Some(monitor)))
-              },
-              FullscreenMode::Exclusive => {
-                log::warn!("exclusive fullscreen mode is experimental");
-                log::info!("starting in exclusive fullscreen mode");
-                //TODO: grabbing the first video mode is probably not the best idea...
-                monitor.video_modes().next()
-                  .map(|vmode| {
-                    log::info!("video mode: {}", vmode.to_string());
-                    Some(Fullscreen::Exclusive(vmode))
-                  })
-                  .unwrap_or_else(|| {
-                    log::warn!("no valid video modes found, falling back to windowed mode instead");
-                    None
-                  })
-              }
-            }
-          } else {
-            log::warn!("no monitors found, falling back to windowed mode");
-            None
-          }
-        } else {
-          log::info!("starting in windowed mode");
-          None
-        }
-      });
+pub fn init_rendering() -> Workload {
+  (
+    depth::init_depth_texture,
+    camera_uniform::init_camera_uniform_buffer,
+    primitives::init_primitives,
+    world::init_world_render_state, //req: depth, camera
+    entities::init_entities_render_state, //req: depth, camera
+    selection_box::init_selection_box_render_state, //req: depth, camera, primitives
+    smoverlay::init_smoverlay_render_state, //req: primitives
+  ).into_sequential_workload()
+}
 
-    let display_builder = DisplayBuilder::new()
-      .with_window_builder(Some(wb));
+pub fn update_rendering_early() -> Workload {
+  (
+    resize_renderer,
+    depth::resize_depth_texture,
+  ).into_sequential_workload()
+}
 
-    let config_template_builder = ConfigTemplateBuilder::new()
-      .with_api(Api::GLES3)
-      .prefer_hardware_accelerated(Some(true))
-      .with_depth_size(24)
-      .with_multisampling(settings.msaa.unwrap_or_default());
+pub fn update_rendering_late() -> Workload {
+  (
+    camera_uniform::update_camera_uniform_buffer,
+    (
+      selection_box::update_selection_box_render_state,
+      entities::update_entities_render_state,
+      smoverlay::update_smoverlay_render_state,
+    ).into_workload().run_if(is_ingame),
+  ).into_workload()
+}
 
-    let (window, gl_config) = display_builder
-      .build(event_loop, config_template_builder, |mut configs| {
-        configs.next().unwrap()
-      })
-      .unwrap();
+pub fn render_master(storages: AllStoragesViewMut) {
+  let renderer = storages.borrow::<UniqueView<Renderer>>().unwrap();
 
-    let window = window.expect("no window");
+  let mut encoder = renderer.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    label: Some("main_encoder"),
+  });
+  let surface_texture = renderer.surface().get_current_texture().unwrap();
+  let surface_view = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-    // Now we get the window size to use as the initial size of the Surface
-    let (width, height): (u32, u32) = window.inner_size().into();
-    let attrs = SurfaceAttributesBuilder::<WindowSurface>::new().build(
-      window.raw_window_handle(),
-      NonZeroU32::new(width).unwrap(),
-      NonZeroU32::new(height).unwrap(),
-    );
+  let mut data = RenderCtx {
+    encoder: &mut encoder,
+    surface_view: &surface_view,
+  };
 
-    // Finally we can create a Surface, use it to make a PossiblyCurrentContext and create the glium Display
-    let surface = unsafe {
-      gl_config.display().create_window_surface(&gl_config, &attrs).unwrap()
-    };
+  storages.run_with_data(background::clear_bg, &mut data);
+  if storages.run(is_ingame) {
+    storages.run_with_data(world::draw_world, &mut data);
+    storages.run_with_data(selection_box::draw_selection_box, &mut data);
+    storages.run_with_data(entities::render_entities, &mut data);
+    storages.run_with_data(world::rpass_submit_trans_bundle, &mut data);
+    storages.run_with_data(smoverlay::render_submerged_view, &mut data);
+  }
+  storages.run_with_data(kubi_ui_draw, &mut data);
 
-    let context_attributes = ContextAttributesBuilder::new()
-      .with_debug(cfg!(debug_assertions))
-      .with_context_api(glutin::context::ContextApi::Gles(None))
-      .with_profile(GlProfile::Core)
-      .build(Some(window.raw_window_handle()));
+  renderer.queue().submit([encoder.finish()]);
+  surface_texture.present();
+}
 
-    let current_context = unsafe {
-      gl_config.display()
-        .create_context(&gl_config, &context_attributes)
-        .expect("failed to create context")
-    }.make_current(&surface).unwrap();
-
-    let display = Display::from_context_surface(current_context, surface).unwrap();
-
-    //TODO MIGRATION
-    // let cb = ContextBuilder::new()
-    //   //.with_srgb(false)
-    //   .with_depth_buffer(24)
-    //   .with_multisampling(settings.msaa.unwrap_or_default())
-    //   .with_vsync(settings.vsync)
-    //   .with_gl_profile(GlProfile::Core)
-    //   .with_gl(GlRequest::Latest);
-
-    // let display = Display::new(wb, cb)
-    //   .expect("Failed to create a glium Display");
-
-    log::info!("Vendor: {}", display.get_opengl_vendor_string());
-    log::info!("Renderer: {}", display.get_opengl_renderer_string());
-    log::info!("OpenGL: {}", display.get_opengl_version_string());
-    log::info!("Supports GLSL: {:?}", display.get_supported_glsl_version());
-    log::info!("Framebuffer dimensions: {:?}", display.get_framebuffer_dimensions());
-    if display.is_context_loss_possible() { log::warn!("OpenGL context loss possible") }
-    if display.is_robust() { log::warn!("OpenGL implementation is not robust") }
-    if display.is_debug() { log::info!("OpenGL context is in debug mode") }
-
-    assert!(display.is_glsl_version_supported(&Version(GlApiTy::GlEs, 3, 0)), "GLSL ES 3.0 is not supported");
-
-    Self { window, display }
+/// Resize the renderer when the window is resized
+pub fn resize_renderer(
+  mut renderer: UniqueViewMut<Renderer>,
+  resize: View<WindowResizedEvent>,
+) {
+  if let Some(size) = resize.iter().last() {
+    renderer.resize(PhysicalSize::new(size.0.x, size.0.y));
   }
 }
 
-pub fn clear_background(
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>,
-  color: UniqueView<BackgroundColor>,
-) {
-  target.0.clear_color_srgb_and_depth((color.0.x, color.0.y, color.0.z, 1.), 1.);
-}
-
-//not sure if this belongs here
-
-pub fn init_window_size(
-  storages: AllStoragesView,
-) {
-  let size = storages.borrow::<View<WindowResizedEvent>>().unwrap().iter().next().unwrap().0;
-  storages.add_unique(WindowSize(size))
-}
-
-pub fn update_window_size(
-  mut win_size: UniqueViewMut<WindowSize>,
-  resize: View<WindowResizedEvent>,
-) {
-  if let Some(resize) = resize.iter().next() {
-    win_size.0 = resize.0;
-  }
-}
-
-pub fn if_resized (
-  resize: View<WindowResizedEvent>,
-) -> bool {
-  resize.len() > 0
-}
+// pub fn if_resized (resize: View<WindowResizedEvent>,) -> bool {
+//   resize.len() > 0
+// }

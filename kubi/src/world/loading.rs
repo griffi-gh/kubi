@@ -1,17 +1,17 @@
 use std::sync::Arc;
 use atomic::{Atomic, Ordering};
 use glam::{IVec3, ivec3};
-use glium::{VertexBuffer, IndexBuffer, index::PrimitiveType};
 use kubi_shared::{networking::{channels::Channel, messages::ClientToServerMessage}, worldgen::AbortState};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
+use wgpu::util::DeviceExt;
 use crate::{
-  player::MainPlayer,
-  transform::Transform,
-  settings::GameSettings,
-  rendering::Renderer, 
-  state::GameState, 
   networking::UdpClient,
+  player::MainPlayer,
+  rendering::{world::ChunkVertex, BufferPair, Renderer},
+  settings::GameSettings,
+  state::GameState,
+  transform::Transform,
 };
 use super::{
   ChunkStorage, ChunkMeshStorage,
@@ -266,7 +266,7 @@ fn process_completed_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
   mut world: UniqueViewMut<ChunkStorage>,
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
-  renderer: NonSendSync<UniqueView<Renderer>>,
+  renderer: UniqueView<Renderer>,
   state: UniqueView<GameState>,
   mut queue: UniqueViewMut<BlockUpdateQueue>,
 ) {
@@ -327,12 +327,51 @@ fn process_completed_tasks(
 
         //apply the mesh
         //TODO: Skip if mesh is empty? (i.e. set to None)
-        let mesh = ChunkMesh {
-          vertex_buffer: VertexBuffer::immutable(&renderer.display, &vertices).unwrap(),
-          index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &indices).unwrap(),
-          trans_vertex_buffer: VertexBuffer::immutable(&renderer.display, &trans_vertices).unwrap(),
-          trans_index_buffer: IndexBuffer::immutable(&renderer.display, PrimitiveType::TrianglesList, &trans_indices).unwrap(),
+        //TODO
+
+        let vtx_buffer = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("chunk_vertex_buffer"),
+          contents: bytemuck::cast_slice(&vertices),
+          usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::VERTEX,
+        });
+
+        let idx_buffer = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("chunk_vertex_buffer"),
+          contents: bytemuck::cast_slice(&indices),
+          usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::INDEX,
+        });
+
+        let vtx_buffer_trans = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("chunk_trans_vertex_buffer"),
+          contents: bytemuck::cast_slice(&trans_vertices),
+          usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::VERTEX,
+        });
+
+        let idx_buffer_trans = renderer.device().create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("chunk_trans_index_buffer"),
+          contents: bytemuck::cast_slice(&trans_indices),
+          usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::INDEX,
+        });
+
+        let main_buffer_pair = BufferPair {
+          vertex: vtx_buffer,
+          vertex_len: vertices.len() as u32,
+          index: idx_buffer,
+          index_len: indices.len() as u32,
         };
+
+        let trans_buffer_pair = BufferPair {
+          vertex: vtx_buffer_trans,
+          vertex_len: trans_vertices.len() as u32,
+          index: idx_buffer_trans,
+          index_len: trans_indices.len() as u32,
+        };
+
+        let mesh = ChunkMesh {
+          main: main_buffer_pair,
+          trans: trans_buffer_pair,
+        };
+
         if let Some(index) = chunk.mesh_index {
           meshes.update(index, mesh).expect("Mesh update failed");
         } else {

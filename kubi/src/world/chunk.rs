@@ -1,9 +1,8 @@
 use std::sync::Arc;
 use glam::IVec3;
 use atomic::Atomic;
-use glium::{VertexBuffer, IndexBuffer};
 use kubi_shared::worldgen::AbortState;
-use crate::rendering::world::ChunkVertex;
+use crate::rendering::{world::ChunkVertex, BufferPair};
 
 pub use kubi_shared::chunk::{CHUNK_SIZE, BlockData};
 
@@ -18,10 +17,8 @@ impl ChunkData {
 }
 
 pub struct ChunkMesh {
-  pub vertex_buffer: VertexBuffer<ChunkVertex>,
-  pub index_buffer: IndexBuffer<u32>,
-  pub trans_vertex_buffer: VertexBuffer<ChunkVertex>,
-  pub trans_index_buffer: IndexBuffer<u32>,
+  pub main: BufferPair,
+  pub trans: BufferPair,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

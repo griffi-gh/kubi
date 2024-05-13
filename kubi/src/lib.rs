@@ -13,7 +13,7 @@
 use shipyard::{
   World, Workload, IntoWorkload,
   UniqueView, UniqueViewMut,
-  NonSendSync, WorkloadModificator,
+  WorkloadModificator,
   SystemModificator
 };
 use winit::{
@@ -58,36 +58,19 @@ pub(crate) mod chat;
 
 use world::{
   init_game_world,
-  loading::update_loaded_world_around_player, 
+  loading::update_loaded_world_around_player,
   raycast::update_raycasts,
-  queue::apply_queued_blocks, 
+  queue::apply_queued_blocks,
   tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
 use settings::{load_settings, GameSettings};
 use camera::compute_cameras;
-use events::{
-  clear_events, 
-  process_winit_events, 
-  initial_resize_event,
-  player_actions::generate_move_events, 
-};
+use events::{clear_events, process_winit_events, player_actions::generate_move_events};
 use input::{init_input, process_inputs};
 use player_controller::{debug_switch_ctl_type, update_player_controllers};
-use rendering::{
-  Renderer, 
-  RenderTarget, 
-  BackgroundColor, 
-  clear_background,
-  init_window_size, 
-  update_window_size,
-  primitives::init_primitives,
-  world::{init_trans_chunk_queue, draw_world, draw_world_trans, draw_current_chunk_border},
-  selection_box::render_selection_box,
-  entities::render_entities, 
-  sumberge::render_submerged_view,
-};
+use rendering::{BackgroundColor, Renderer, init_rendering, render_master, update_rendering_early, update_rendering_late};
 use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{debug_toggle_lock, insert_lock_state, lock_cursor_now, update_cursor_lock_state};
@@ -95,7 +78,7 @@ use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
 use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
-use hui_integration::{kubi_ui_begin, kubi_ui_draw, kubi_ui_end, kubi_ui_init};
+use hui_integration::{kubi_ui_begin, /*kubi_ui_draw,*/ kubi_ui_end, kubi_ui_init};
 use loading_screen::update_loading_screen;
 use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
@@ -105,8 +88,7 @@ use chat_ui::render_chat;
 use chat::init_chat_manager;
 use crosshair_ui::{init_crosshair_image, draw_crosshair};
 use settings_ui::render_settings_ui;
-
-use crate::hui_integration::hui_process_winit_events;
+use hui_integration::hui_process_winit_events;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -118,11 +100,9 @@ fn pre_startup() -> Workload {
 fn startup() -> Workload {
   (
     init_fixed_timestamp_storage,
-    initial_resize_event,
-    init_window_size,
     kubi_ui_init,
     load_prefabs,
-    init_primitives,
+    init_rendering,
     insert_lock_state,
     init_state,
     initialize_from_args,
@@ -133,14 +113,13 @@ fn startup() -> Workload {
     init_client_physics,
     init_chat_manager,
     init_crosshair_image,
-    init_trans_chunk_queue,
   ).into_sequential_workload()
 }
 
 fn update() -> Workload {
   (
+    update_rendering_early,
     debug_toggle_lock,
-    update_window_size,
     update_cursor_lock_state,
     process_inputs,
     kubi_ui_begin,
@@ -179,25 +158,26 @@ fn update() -> Workload {
     update_state,
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
+    update_rendering_late,
   ).into_sequential_workload()
 }
 
-fn render() -> Workload {
-  (
-    clear_background,
-    (
-      draw_world,
-      draw_current_chunk_border,
-      render_selection_box,
-      render_entities,
-      draw_world_trans,
-      render_submerged_view,
-    ).into_sequential_workload().run_if(is_ingame),
-    kubi_ui_draw,
-  ).into_sequential_workload()
-}
+// fn render() -> Workload {
+//   (
+//     clear_background,
+//     (
+//       draw_world,
+//       draw_current_chunk_border,
+//       render_selection_box,
+//       render_entities,
+//       draw_world_trans,
+//       render_submerged_view,
+//     ).into_sequential_workload().run_if(is_ingame),
+//     kubi_ui_draw,
+//   ).into_sequential_workload()
+// }
 
-fn after_frame_end() -> Workload {
+fn after_render() -> Workload {
   (
     clear_events,
   ).into_sequential_workload()
@@ -245,8 +225,8 @@ pub fn kubi_main(
   world.add_workload(pre_startup);
   world.add_workload(startup);
   world.add_workload(update);
-  world.add_workload(render);
-  world.add_workload(after_frame_end);
+  //world.add_workload(render);
+  world.add_workload(after_render);
 
   //Save _visualizer.json
   #[cfg(feature = "generate_visualizer_data")]
@@ -286,7 +266,7 @@ pub fn kubi_main(
         let settings = world.borrow::<UniqueView<GameSettings>>().unwrap();
         world.add_unique_non_send_sync(Renderer::init(window_target, &settings));
       }
-      world.add_unique(BackgroundColor(vec3(0.5, 0.5, 1.)));
+      world.add_unique(BackgroundColor(vec3(0.21, 0.21, 1.)));
 
       //Run startup systems
       world.run_workload(startup).unwrap();
@@ -326,22 +306,24 @@ pub fn kubi_main(
         //Run update workflows
         world.run_workload(update).unwrap();
 
+        world.run(render_master);
+
         //Start rendering (maybe use custom views for this?)
-        let target = {
-          let renderer = world.borrow::<NonSendSync<UniqueView<Renderer>>>().unwrap();
-          renderer.display.draw()
-        };
-        world.add_unique_non_send_sync(RenderTarget(target));
+        // let target = {
+        //   let renderer = world.borrow::<UniqueView<Renderer>>().unwrap();
+        //   renderer.display.draw()
+        // };
+        // world.add_unique_non_send_sync(RenderTarget(target));
 
         //Run render workflow
-        world.run_workload(render).unwrap();
+        //world.run_workload(render).unwrap();
 
         //Finish rendering
-        let target = world.remove_unique::<RenderTarget>().unwrap(); 
-        target.0.finish().unwrap();
+        // let target = world.remove_unique::<RenderTarget>().unwrap();
+        // target.0.finish().unwrap();
 
         //After frame end
-        world.run_workload(after_frame_end).unwrap();
+        world.run_workload(after_render).unwrap();
 
         //Process control flow changes
         if world.borrow::<UniqueView<RequestExit>>().unwrap().0 {

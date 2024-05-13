@@ -1,59 +1,65 @@
-use glam::{Mat4, Vec3, Quat};
-use shipyard::{View, IntoIter, NonSendSync, UniqueViewMut, UniqueView};
-use glium::{
-  Surface, 
-  DrawParameters, 
-  BackfaceCullingMode, 
-  Blend, Depth, DepthTest,
-  uniform, 
-};
-use crate::{
-  world::raycast::LookingAtBlock, 
-  camera::Camera, 
-  prefabs::ColoredShaderPrefab
-};
-use super::{
-  RenderTarget, 
-  primitives::cube::CubePrimitive,
-};
+use shipyard::{AllStoragesView, IntoIter, Unique, UniqueView, View};
+use wgpu::RenderPassDescriptor;
+use crate::{player::MainPlayer, world::raycast::LookingAtBlock};
+use super::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, primitives::CubePrimitive, RenderCtx};
 
-const SMOL: f32 = 0.0025;
+mod pipeline;
+mod uniform;
 
-pub fn render_selection_box(
+use uniform::SelectionBoxUniform;
+
+#[derive(Unique)]
+pub struct SboxRenderState {
+  pipeline: wgpu::RenderPipeline,
+  uniform: SelectionBoxUniform,
+}
+
+pub fn init_selection_box_render_state(storages: AllStoragesView) {
+  let uniform = storages.run(uniform::init_selection_box_uniform);
+  let pipeline = storages.run_with_data(pipeline::init_selection_box_pipeline, &uniform);
+  storages.add_unique(SboxRenderState { pipeline, uniform });
+}
+
+pub use uniform::update_selection_box_uniform
+  as update_selection_box_render_state;
+
+pub fn draw_selection_box(
+  ctx: &mut RenderCtx,
+  state: UniqueView<SboxRenderState>,
+  depth: UniqueView<DepthTexture>,
+  cube: UniqueView<CubePrimitive>,
+  camera_ubo: UniqueView<CameraUniformBuffer>,
   lookat: View<LookingAtBlock>,
-  camera: View<Camera>,
-  mut target: NonSendSync<UniqueViewMut<RenderTarget>>, 
-  program: NonSendSync<UniqueView<ColoredShaderPrefab>>,
-  buffers: NonSendSync<UniqueView<CubePrimitive>>,
+  player: View<MainPlayer>,
 ) {
-  let camera = camera.iter().next().unwrap();
-  let Some(lookat) = lookat.iter().next() else { return };
-  let Some(lookat) = lookat.0 else { return };
-
-  //Darken block
-  target.0.draw(
-    &buffers.0,
-    &buffers.1,
-    &program.0,
-    &uniform! {
-      color: [0., 0., 0., 0.5_f32],
-      model: Mat4::from_scale_rotation_translation(
-        Vec3::splat(1. + SMOL * 2.),
-        Quat::default(),
-        lookat.block_position.as_vec3() - Vec3::splat(SMOL)
-      ).to_cols_array_2d(),
-      perspective: camera.perspective_matrix.to_cols_array_2d(),
-      view: camera.view_matrix.to_cols_array_2d(),
-    },
-    &DrawParameters {
-      backface_culling: BackfaceCullingMode::CullClockwise,
-      blend: Blend::alpha_blending(),
-      depth: Depth {
-        //this may be unreliable... unless scale is applied! hacky...
-        test: DepthTest::IfLessOrEqual, 
-        ..Default::default()
+  let Some((LookingAtBlock(Some(_)), _)) = (&lookat, &player).iter().next() else {
+    return
+  };
+  let mut rpass = ctx.encoder.begin_render_pass(&RenderPassDescriptor {
+    label: Some("rpass_selection_box"),
+    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+      view: ctx.surface_view,
+      resolve_target: None,
+      ops: wgpu::Operations {
+        load: wgpu::LoadOp::Load,
+        store: wgpu::StoreOp::Store,
       },
-      ..Default::default()
-    }
-  ).unwrap();
+    })],
+    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+      view: &depth.depth_view,
+      depth_ops: Some(wgpu::Operations {
+        load: wgpu::LoadOp::Load,
+        store: wgpu::StoreOp::Store,
+      }),
+      stencil_ops: None,
+    }),
+    ..Default::default()
+  });
+
+  rpass.set_pipeline(&state.pipeline);
+  rpass.set_bind_group(0, &camera_ubo.camera_bind_group, &[]);
+  rpass.set_bind_group(1, &state.uniform.bind_group, &[]);
+  rpass.set_index_buffer(cube.0.index.slice(..), wgpu::IndexFormat::Uint16);
+  rpass.set_vertex_buffer(0, cube.0.vertex.slice(..));
+  rpass.draw_indexed(0..cube.0.index_len, 0, 0..1);
 }

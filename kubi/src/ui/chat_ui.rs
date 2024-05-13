@@ -1,10 +1,10 @@
 use hui::{color, element::{container::Container, text::Text, UiElementExt}, layout::Alignment, size};
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
-use crate::{chat::{ChatHistory, ChatMessage}, hui_integration::UiState, rendering::WindowSize};
+use crate::{chat::{ChatHistory, ChatMessage}, hui_integration::UiState, rendering::Renderer};
 
 pub fn render_chat(
   mut hui: NonSendSync<UniqueViewMut<UiState>>,
-  size: UniqueView<WindowSize>,
+  ren: UniqueView<Renderer>,
   chat: UniqueView<ChatHistory>,
 ) {
   let messages = chat.get_messages();
@@ -39,5 +39,5 @@ pub fn render_chat(
           .add_child(ui);
       }
     })
-    .add_root(&mut hui.hui, size.0.as_vec2());
+    .add_root(&mut hui.hui, ren.size_vec2());
 }

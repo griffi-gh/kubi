@@ -7,7 +7,7 @@ use hui::{
     UiElementExt,
   },
   layout::{Alignment, Direction},
-  frame_rect, size,
+  rect_frame, size,
 };
 use shipyard::{UniqueView, UniqueViewMut, Workload, NonSendSync, IntoWorkload};
 use winit::keyboard::KeyCode;
@@ -15,7 +15,7 @@ use crate::{
   hui_integration::UiState,
   input::RawKbmInputState,
   networking::ServerAddress,
-  rendering::WindowSize,
+  rendering::Renderer,
   state::{GameState, NextState},
   world::ChunkStorage,
 };
@@ -28,7 +28,7 @@ pub fn loading_screen_base(bg_alpha: f32, xui: impl FnOnce(&mut ElementList)) ->
     .with_children(|ui| {
       Container::default()
         .with_size(size!(400, auto))
-        .with_background(frame_rect! {
+        .with_background(rect_frame! {
           color: (0.2, 0.2, 0.2),
           corner_radius: 8.
         })
@@ -43,7 +43,7 @@ fn render_loading_ui(
   addr: Option<UniqueView<ServerAddress>>,
   world: UniqueView<ChunkStorage>,
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  size: UniqueView<WindowSize>
+  ren: UniqueView<Renderer>,
 ) {
   let loaded = world.chunks.iter().fold(0, |acc, (&_, chunk)| {
     acc + chunk.desired_state.matches_current(chunk.current_state) as usize
@@ -63,11 +63,11 @@ fn render_loading_ui(
     ProgressBar::default()
       .with_value(value)
       .with_size(size!(100%, 15))
-      .with_background(frame_rect! {
+      .with_background(rect_frame! {
         color: (0.1, 0.1, 0.1),
         corner_radius: 2.
       })
-      .with_foreground(frame_rect! {
+      .with_foreground(rect_frame! {
         color: (0.4, 0.4, 1.0),
         corner_radius: 2.
       })
@@ -83,7 +83,7 @@ fn render_loading_ui(
           .add_child(ui)
       })
       .add_child(ui);
-  }).add_root(&mut ui.hui, size.0.as_vec2());
+  }).add_root(&mut ui.hui, ren.size_vec2());
 }
 
 fn switch_to_ingame_if_loaded(

@@ -21,10 +21,13 @@ opt-level = 1
 [profile.dev.package.uflow]
 opt-level = 3
 
-[profile.dev.package.glium]
+[profile.dev.package.wgpu]
 opt-level = 3
 
-[profile.dev.package.bracket-noise]
+[profile.dev.package.wgpu-core]
+opt-level = 3
+
+[profile.dev.package.wgpu-hal]
 opt-level = 3
 
 [profile.dev.package.fastnoise-lite]
@@ -38,5 +41,7 @@ opt-level = 3
 [profile.dev.package.android-activity]
 debug-assertions = false
 
-[patch.crates-io]
-glium = { git = "https://github.com/glium/glium", rev = "a352c667" }
+# [patch.'https://github.com/griffi-gh/hui']
+# hui = { path = "X:/Projects/hui/hui" }
+# hui-winit = { path = "X:/Projects/hui/hui-winit" }
+# hui-wgpu = { path = "X:/Projects/hui/hui-wgpu" }
