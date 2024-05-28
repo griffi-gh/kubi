@@ -21,7 +21,8 @@ pub struct ChunkMesh {
   pub trans: BufferPair,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+//XXX: ord doesnt make much sense here?
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, PartialOrd, Ord)]
 pub enum CurrentChunkState {
   #[default]
   Nothing,
@@ -41,6 +42,7 @@ pub enum DesiredChunkState {
   Rendered,
   Unloaded,
 }
+
 impl DesiredChunkState {
   pub fn matches_current(self, current: CurrentChunkState) -> bool {
     (matches!(self, DesiredChunkState::Nothing)  && matches!(current, CurrentChunkState::Nothing)) ||

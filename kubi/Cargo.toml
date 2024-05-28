@@ -11,6 +11,7 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
+kubi-mod-rt = { path = "../kubi-mod-rt" }
 hui = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
 hui-wgpu = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
 hui-winit = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4", features = ["winit_30"] }

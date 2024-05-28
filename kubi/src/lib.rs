@@ -10,6 +10,7 @@
   rust_2024_compatibility,
 )]
 
+
 use shipyard::{
   World, Workload, IntoWorkload,
   UniqueView, UniqueViewMut,
@@ -55,6 +56,7 @@ pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
 pub(crate) mod client_physics;
 pub(crate) mod chat;
+pub(crate) mod modding;
 
 use world::{
   init_game_world,
@@ -89,6 +91,7 @@ use chat::init_chat_manager;
 use crosshair_ui::{init_crosshair_image, draw_crosshair};
 use settings_ui::render_settings_ui;
 use hui_integration::hui_process_winit_events;
+use modding::init_modding;
 
 /// stuff required to init the renderer and other basic systems
 fn pre_startup() -> Workload {
@@ -113,6 +116,7 @@ fn startup() -> Workload {
     init_client_physics,
     init_chat_manager,
     init_crosshair_image,
+    init_modding,
   ).into_sequential_workload()
 }
 
@@ -159,6 +163,8 @@ fn update() -> Workload {
     exit_on_esc,
     disconnect_on_exit.run_if(is_multiplayer),
     update_rendering_late,
+    //XXX: REMOVE THIS!
+    modding::run_mod_init_stage,
   ).into_sequential_workload()
 }
 

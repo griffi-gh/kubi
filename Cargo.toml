@@ -3,7 +3,7 @@ members = [
   "kubi",
   "kubi-server",
   "kubi-shared",
-  "kubi-logging",
+  "kubi-logging", "kubi-mod-rt",
 ]
 default-members = ["kubi"]
 resolver = "2"

@@ -34,3 +34,6 @@ _visualizer.json
 
 # blender backup files
 *.blend1
+
+# mods
+/mods
