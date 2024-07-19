@@ -4,7 +4,7 @@
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2024-07-19T15:49:02+00:00",
+    "exported_at": "2024-07-19T16:03:54+00:00",
     "name": "kubi-server",
     "author": "prasol258@gmail.com",
     "uuid": "ce529006-1971-4503-8d93-247d7bcba12f",
@@ -23,9 +23,9 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!\/bin\/bash\r\n\r\n# Define the URL and the output zip file name\r\nURL=\"https:\/\/github.com\/griffi-gh\/kubi\/releases\/download\/nightly\/Linux_X64.zip\"\r\nZIP_FILE=\"Linux_X64.zip\"\r\n\r\n# Download the zip file\r\necho \"Downloading $URL...\"\r\ncurl -L -o $ZIP_FILE $URL\r\n\r\n# Check if the download was successful\r\nif [ $? -ne 0 ]; then\r\n    echo \"Failed to download $URL\"\r\n    exit 1\r\nfi\r\n\r\n# Unzip kubi-server, Server.toml into the current directory\r\necho \"Unzipping $ZIP_FILE...\"\r\nunzip -j $ZIP_FILE kubi-server Server.toml -d .\r\n\r\n# Check if the unzip was successful\r\nif [ $? -ne 0 ]; then\r\n    echo \"Failed to unzip $ZIP_FILE\"\r\n    exit 1\r\nfi\r\n\r\n# Cleanup the zip file\r\nrm $ZIP_FILE\r\n\r\n# Set file perms\r\nchmod +x kubi-server\r\n\r\necho \"Done!\"\r\n",
-            "container": "alpine:3.4",
-            "entrypoint": "bash"
+            "script": "#!\/bin\/ash\r\n\r\napk update\r\napk add unzip curl\r\n\r\n# Define the URL and the output zip file name\r\nURL=\"https:\/\/github.com\/griffi-gh\/kubi\/releases\/download\/nightly\/Linux_X64.zip\"\r\nZIP_FILE=\"Linux_X64.zip\"\r\n\r\n# Download the zip file\r\necho \"Downloading $URL\"\r\ncurl -L -o $ZIP_FILE $URL\r\n\r\n# Check if the download was successful\r\nif [ $? -ne 0 ]; then\r\n    echo \"Failed to download $URL\"\r\n    exit 1\r\nfi\r\n\r\n# Unzip kubi-server, Server.toml into the current directory\r\necho \"Unzipping $ZIP_FILE\"\r\nunzip -j $ZIP_FILE \"Linux_X64\/kubi-server\" \"Linux_X64\/Server.toml\" -d .\r\n\r\n# Check if the unzip was successful\r\nif [ $? -ne 0 ]; then\r\n    echo \"Failed to unzip $ZIP_FILE\"\r\n    exit 1\r\nfi\r\n\r\n# Cleanup the zip file\r\nrm $ZIP_FILE\r\n\r\n# Set file perms\r\nchmod +x .\/kubi-server\r\n\r\necho \"Done!\"\r\n",
+            "container": "alpine:latest",
+            "entrypoint": "ash"
         }
     },
     "variables": []
