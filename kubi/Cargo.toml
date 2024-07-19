@@ -26,7 +26,7 @@ strum = { version = "0.26", features = ["derive"] }
 hashbrown = "0.14"
 nohash-hasher = "0.2"
 rayon = "1.10"
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "aacf3b1df5", default-features = false, features = ["std", "proc", "thread_local"] }
+shipyard = { version = "0.7", default-features = false, features = ["std", "proc", "thread_local"] }
 anyhow = "1.0"
 flume = "0.11"
 gilrs = { version = "0.10", default_features = false, features = ["xinput"] }

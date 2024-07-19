@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 glam = { version = "0.27", features = ["debug-glam-assert", "fast-math", "serde"] }
-shipyard = { git = "https://github.com/leudz/shipyard", rev = "aacf3b1df5", default-features = false, features = ["std"] }
+shipyard = { version = "0.7", default-features = false, features = ["std"] }
 strum = { version = "0.26", features = ["derive"] }
 num_enum = "0.7"
 postcard = { version = "1.0", features = ["alloc"] }
@@ -21,7 +21,7 @@ hashbrown = { version = "0.14", features = ["serde"] }
 nohash-hasher = "0.2"
 bytemuck = { version = "1.14", features = ["derive"] }
 static_assertions = "1.1"
-nz = "0.3"
+nz = "0.4"
 atomic = "0.6"
 
 [features]
