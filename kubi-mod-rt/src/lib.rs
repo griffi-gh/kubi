@@ -7,6 +7,16 @@ use serde::Deserialize;
 pub const LUA_GLOBAL_KEY: &str = "kubi";
 pub const MOD_RUNTIME_VERSION: i32 = -1;
 
+pub enum ExternalEvent {
+  //Both server and client
+  Tick { dt: f32 },
+  BlockEvent { x: i32, y: i32, z: i32, block: u8 },
+  ChunkTransitioned { x: i32, y: i32, z: i32, state: u8 },
+  //Client only
+  LocalBlockEvent { x: i32, y: i32, z: i32, block: u8 },
+  LocalPlayerMoved { x: f32, y: f32, z: f32 },
+}
+
 pub trait ContextImpl {
   fn block(&self, x: i32, y: i32, z: i32) -> Option<u8>;
   fn set_block(&mut self, x: i32, y: i32, z: i32, v: u8) -> bool;
@@ -22,21 +32,15 @@ impl<'a, T: ContextImpl> LuaUserData for ContextLuaUserData<'a, T> {
   }
 
   fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
-    // getblock(x: number, y: number, z: number) -> number?
+    // get_block(x: number, y: number, z: number) -> number?
     // Returns the block at the given position, or nil if the chunk is not loaded
-    methods.add_method("getblock", |_lua, this, (x, y, z): (i32, i32, i32)| {
+    methods.add_method("get_block", |_lua, this, (x, y, z): (i32, i32, i32)| {
       Ok(this.0.borrow().block(x, y, z))
     });
 
-    // setblock(x: number, y: number, z: number, v: number)
+    // set_block(x: number, y: number, z: number, v: number)
     // Sets the block at the given position, or errors if the chunk is not loaded
-    methods.add_method("setblock", |_lua, this, (x, y, z, v): (i32, i32, i32, u8)| {
-      // if let Some(block) = this.0.borrow_mut().block_mut(x, y, z) {
-      //   *block = v;
-      //   Ok(true)
-      // } else {
-      //   Err(LuaError::external("attempt to modify unloaded chunk"))
-      // }
+    methods.add_method("set_block", |_lua, this, (x, y, z, v): (i32, i32, i32, u8)| {
       this.0.borrow_mut()
         .set_block(x, y, z, v)
         .then_some(())
@@ -156,5 +160,9 @@ impl ModdingRuntime {
 
   pub fn mods(&self) -> &[ModInstance] {
     &self.mods
+  }
+
+  pub fn shove_event(&self, event: ExternalEvent) {
+    //TODO
   }
 }
