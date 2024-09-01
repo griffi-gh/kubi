@@ -234,6 +234,8 @@ pub fn kubi_main(
       "_visualizer.json",
       serde_json::to_string(&world.workloads_info()).unwrap(),
     ).unwrap();
+    log::info!("visualizer data written to ./_visualizer.json");
+    log::warn!("game will exit now, as it's built with generate_visualizer_data");
     std::process::exit(0);
   }
 
