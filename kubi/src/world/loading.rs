@@ -287,11 +287,14 @@ fn process_state_changes(
 
       if let Some(io) = &io {
         if let Some(block_data) = &chunk.block_data {
-          // log::debug!("issue save command");
-          io.send(IOCommand::SaveChunk {
-            position,
-            data: block_data.blocks.clone(),
-          });
+          // Only save the chunk if it has been modified
+          if chunk.data_modified {
+            // log::debug!("issue save command");
+            io.send(IOCommand::SaveChunk {
+              position,
+              data: block_data.blocks.clone(),
+            });
+          }
         }
       }
 
