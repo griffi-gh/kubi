@@ -1,8 +1,15 @@
-use glam::{vec3, EulerRot, Mat4, Quat, Vec2, Vec2Swizzles, Vec3, Vec3Swizzles};
-use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, Unique, UniqueView, View, ViewMut, Workload};
+use glam::{EulerRot, Mat4, Quat, Vec2, Vec3, Vec3Swizzles};
+use shipyard::{track, Component, Get, IntoIter, IntoWithId, IntoWorkload, UniqueView, View, ViewMut, Workload};
 use winit::keyboard::KeyCode;
 use std::f32::consts::PI;
-use crate::{client_physics::ClPhysicsActor, cursor_lock::CursorLock, delta_time::DeltaTime, input::{Inputs, PrevInputs, RawKbmInputState}, settings::GameSettings, transform::Transform};
+use crate::{
+  client_physics::ClPhysicsActor,
+  cursor_lock::CursorLock,
+  delta_time::DeltaTime,
+  input::{Inputs, PrevInputs, RawKbmInputState},
+  settings::GameSettings,
+  transform::Transform
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlayerControllerType {

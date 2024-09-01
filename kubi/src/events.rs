@@ -1,7 +1,6 @@
 use glam::UVec2;
-use shipyard::{World, Component, AllStoragesViewMut, SparseSet, NonSendSync, UniqueView};
+use shipyard::{World, Component, AllStoragesViewMut, SparseSet};
 use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch};
-use crate::rendering::Renderer;
 
 pub mod player_actions;
 
