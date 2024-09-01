@@ -1,6 +1,6 @@
 use glam::UVec2;
 use shipyard::{World, Component, AllStoragesViewMut, SparseSet};
-use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch};
+use winit::event::{Event, DeviceEvent, DeviceId, WindowEvent, Touch, MouseButton};
 
 pub mod player_actions;
 
@@ -52,6 +52,28 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
         ));
       }
 
+      #[cfg(not(feature = "raw-evt-button"))]
+      WindowEvent::MouseInput { device_id, state, button } => {
+        // HACK: translate MouseInput events to raw device events
+        world.add_entity((
+          EventComponent,
+          InputDeviceEvent {
+            device_id: *device_id,
+            event: DeviceEvent::Button {
+              button: match button {
+                MouseButton::Left => 0,
+                MouseButton::Right => 1,
+                MouseButton::Middle => 2,
+                MouseButton::Back => 3,
+                MouseButton::Forward => 4,
+                MouseButton::Other(id) => *id as u32,
+              },
+              state: *state
+            }
+          }
+        ));
+      }
+
       WindowEvent::Touch(touch) => {
         // if matches!(touch.phase, TouchPhase::Started | TouchPhase::Cancelled | TouchPhase::Ended) {
         //   println!("TOUCH ==================== {:#?}", touch);
@@ -70,6 +92,7 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
     #[cfg(any(
       feature = "raw-evt-keyboard",
       feature = "raw-evt-mouse",
+      feature = "raw-evt-button",
     ))]
     Event::DeviceEvent { device_id, event } => {
       // Filter out events we don't care about
@@ -78,7 +101,10 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
         DeviceEvent::Key(_) => (),
 
         #[cfg(feature = "raw-evt-mouse")]
-        DeviceEvent::MouseMotion { .. } | DeviceEvent::Button { .. } => (),
+        DeviceEvent::MouseMotion { .. } => (),
+
+        #[cfg(feature = "raw-evt-button")]
+        DeviceEvent::Button { .. } => (),
 
         _ => return,
       };

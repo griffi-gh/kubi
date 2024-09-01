@@ -50,7 +50,8 @@ winapi = { version = "0.3", features = ["wincon"] }
 [features]
 default = ["raw-evt-mouse"]
 raw-evt-keyboard = [] # use raw input for keyboard. works on x11 and windows, breaks keyboard on android and wayland
-raw-evt-mouse = [] # required for mouse input
+raw-evt-mouse = [] # use raw input for mouse movement events. *required* for mouse input
+raw-evt-button = [] # use raw input for mouse button events. used to be the default, but breaks on wayland.
 c-ffi = [] # generate a C-ffi-compatible `kubi_extern_main` entry point (useful if building as a shared library)
 generate_visualizer_data = ["dep:serde_json", "shipyard/serde1"]
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
