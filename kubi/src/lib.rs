@@ -229,11 +229,13 @@ pub fn kubi_main(
   world.add_workload(after_render);
 
   //Save _visualizer.json
-  #[cfg(feature = "generate_visualizer_data")]
-  std::fs::write(
-    "_visualizer.json",
-    serde_json::to_string(&world.workloads_info()).unwrap(),
-  ).unwrap();
+  #[cfg(feature = "generate_visualizer_data")] {
+    std::fs::write(
+      "_visualizer.json",
+      serde_json::to_string(&world.workloads_info()).unwrap(),
+    ).unwrap();
+    std::process::exit(0);
+  }
 
   //Run pre-startup procedure
   world.run_workload(pre_startup).unwrap();
