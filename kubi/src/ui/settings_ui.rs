@@ -31,9 +31,11 @@ fn checkbox(
   value: bool,
   signal: impl Fn(bool) -> SettingsSignal + 'static,
 ) {
-  const WIDTH: f32 = 50.;
-  const HEIGHT: f32 = WIDTH / 2.;
+  const WIDTH_PX: f32 = 50.;
+  const HEIGHT_PX: f32 = WIDTH_PX / 2.;
+  const HANDLE_PX: f32 = HEIGHT_PX;
   const TRACK_HEIGHT_RATIO: f32 = 0.75;
+  const TRACK_HEIGHT_PX: f32 = HEIGHT_PX * TRACK_HEIGHT_RATIO;
 
   Container::default()
     .with_direction(Direction::Horizontal)
@@ -43,20 +45,20 @@ fn checkbox(
       Text::new(text)
         .add_child(ui);
       Slider::new(value as u32 as f32)
-        .with_size(size!(WIDTH, HEIGHT))
+        .with_size(size!(WIDTH_PX, HEIGHT_PX))
         .with_track_height(TRACK_HEIGHT_RATIO)
         .with_track(rect_frame! {
           color: (0.5, 0.5, 0.5),
-          corner_radius: TRACK_HEIGHT_RATIO * HEIGHT * 0.5,
+          corner_radius: TRACK_HEIGHT_PX * 0.5,
         })
         .with_track_active(rect_frame! {
           color: (0., 0., 0.75),
-          corner_radius: TRACK_HEIGHT_RATIO * HEIGHT * 0.5,
+          corner_radius: TRACK_HEIGHT_PX * 0.5,
         })
-        .with_handle_size((25., 1.))
+        .with_handle_size((HANDLE_PX, 1.))
         .with_handle(rect_frame! {
           color: (0., 0., 1.),
-          corner_radius: HEIGHT * 0.5,
+          corner_radius: HANDLE_PX * 0.5,
         })
         .on_change(move |f| signal(f >= 0.5))
         .add_child(ui);
