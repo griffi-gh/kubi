@@ -11,7 +11,7 @@ pub struct FullscreenSettings {
 
 #[derive(Unique)]
 pub struct GameSettings {
-  // pub vsync: bool,
+  pub vsync: bool,
   pub fullscreen: Option<FullscreenSettings>,
   // pub msaa: Option<u8>,
   // pub max_anisotropy: Option<u16>,
@@ -24,7 +24,7 @@ pub struct GameSettings {
 impl Default for GameSettings {
   fn default() -> Self {
     Self {
-      // vsync: false,
+      vsync: true,
       fullscreen: None,
       // msaa: Some(4),
       // max_anisotropy: Some(16),

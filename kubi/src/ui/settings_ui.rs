@@ -1,24 +1,74 @@
 use hui::{
-  element::{br::Break, container::Container, slider::Slider, text::Text, UiElementExt},
+  element::{br::Break, container::Container, slider::Slider, text::Text, ElementList, UiElementExt},
   layout::{Alignment, Direction},
   signal::Signal,
-  rect_frame, size,
+  rect_frame,
+  size,
 };
 use shipyard::{NonSendSync, UniqueView, UniqueViewMut};
 use winit::keyboard::KeyCode;
-use crate::{hui_integration::UiState, input::RawKbmInputState, rendering::Renderer, settings::GameSettings};
+use crate::{
+  hui_integration::UiState,
+  input::RawKbmInputState,
+  rendering::Renderer,
+  settings::GameSettings
+};
 
 #[derive(Signal)]
 enum SettingsSignal {
   SetRenderDistance(u8),
   SetEnableDynamicCrosshair(bool),
+  SetEnableVsync(bool),
   SetEnableDebugChunkBorder(bool),
   SetMouseSensitivity(f32),
 }
 
+// hUI doesn't have a checkbox element yet
+// so we'll have to use sliders for now
+fn checkbox(
+  ui: &mut ElementList,
+  text: &'static str,
+  value: bool,
+  signal: impl Fn(bool) -> SettingsSignal + 'static,
+) {
+  const WIDTH: f32 = 50.;
+  const HEIGHT: f32 = WIDTH / 2.;
+  const TRACK_HEIGHT_RATIO: f32 = 0.75;
+
+  Container::default()
+    .with_direction(Direction::Horizontal)
+    .with_align(Alignment::Center)
+    .with_gap(5.)
+    .with_children(|ui| {
+      Text::new(text)
+        .add_child(ui);
+      Slider::new(value as u32 as f32)
+        .with_size(size!(WIDTH, HEIGHT))
+        .with_track_height(TRACK_HEIGHT_RATIO)
+        .with_track(rect_frame! {
+          color: (0.5, 0.5, 0.5),
+          corner_radius: TRACK_HEIGHT_RATIO * HEIGHT * 0.5,
+        })
+        .with_track_active(rect_frame! {
+          color: (0., 0., 0.75),
+          corner_radius: TRACK_HEIGHT_RATIO * HEIGHT * 0.5,
+        })
+        .with_handle_size((25., 1.))
+        .with_handle(rect_frame! {
+          color: (0., 0., 1.),
+          corner_radius: HEIGHT * 0.5,
+        })
+        .on_change(move |f| signal(f >= 0.5))
+        .add_child(ui);
+      Text::new(if value { "On" } else { "Off" })
+        .add_child(ui);
+    })
+    .add_child(ui);
+}
+
 pub fn render_settings_ui(
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
-  ren: UniqueView<Renderer>,
+  mut ren: UniqueViewMut<Renderer>,
   mut settings: UniqueViewMut<GameSettings>,
   kbd: UniqueView<RawKbmInputState>,
 ) {
@@ -64,28 +114,28 @@ pub fn render_settings_ui(
             .add_child(ui);
           Break.add_child(ui);
 
-          Text::new("Dynamic Crosshair")
-            .add_child(ui);
-          Slider::new(settings.dynamic_crosshair as u32 as f32)
-            .with_size(size!(50, auto))
-            .with_track_height(1.)
-            .with_handle_size((25., 1.))
-            .on_change(|f| SettingsSignal::SetEnableDynamicCrosshair(f >= 0.5))
-            .add_child(ui);
-          Text::new(if settings.dynamic_crosshair { "On" } else { "Off" })
-            .add_child(ui);
+          checkbox(
+            ui,
+            "Vsync",
+            settings.vsync,
+            SettingsSignal::SetEnableVsync
+          );
           Break.add_child(ui);
 
-          Text::new("Enable debug chunk border")
-            .add_child(ui);
-          Slider::new(settings.debug_draw_current_chunk_border as u32 as f32)
-            .with_size(size!(50, (Slider::DEFAULT_HEIGHT)))
-            .with_track_height(1.)
-            .with_handle_size((25., 1.))
-            .on_change(|f| SettingsSignal::SetEnableDebugChunkBorder(f >= 0.5))
-            .add_child(ui);
-          Text::new(if settings.debug_draw_current_chunk_border { "On" } else { "Off" })
-            .add_child(ui);
+          checkbox(
+            ui,
+            "Dynamic Crosshair",
+            settings.dynamic_crosshair,
+            SettingsSignal::SetEnableDynamicCrosshair
+          );
+          Break.add_child(ui);
+
+          checkbox(
+            ui,
+            "Debug Chunk Border",
+            settings.debug_draw_current_chunk_border,
+            SettingsSignal::SetEnableDebugChunkBorder
+          );
           Break.add_child(ui);
 
           Text::new("Mouse Sensitivity")
@@ -104,6 +154,10 @@ pub fn render_settings_ui(
   ui.hui.process_signals(|signal: SettingsSignal| match signal {
     SettingsSignal::SetRenderDistance(value) => settings.render_distance = value,
     SettingsSignal::SetEnableDynamicCrosshair(value) => settings.dynamic_crosshair = value,
+    SettingsSignal::SetEnableVsync(value) => {
+      settings.vsync = value;
+      ren.reload_settings(&settings);
+    },
     SettingsSignal::SetEnableDebugChunkBorder(value) => settings.debug_draw_current_chunk_border = value && cfg!(not(target_os = "android")),
     SettingsSignal::SetMouseSensitivity(value) => settings.mouse_sensitivity = value,
   });

@@ -8,6 +8,13 @@ use winit::{
 };
 use crate::settings::{GameSettings, FullscreenMode};
 
+const fn get_vsync_mode(vsync: bool) -> wgpu::PresentMode {
+  match vsync {
+    true => wgpu::PresentMode::AutoVsync,
+    false => wgpu::PresentMode::AutoNoVsync,
+  }
+}
+
 #[derive(Unique)]
 pub struct Renderer {
   window: Arc<Window>,
@@ -116,10 +123,24 @@ impl Renderer {
       None,
     ).block_on().unwrap();
 
-    let surface_config = surface.get_default_config(&adapter, size.width, size.height).unwrap();
+    let mut surface_config = surface.get_default_config(&adapter, size.width, size.height).unwrap();
+    surface_config.present_mode = get_vsync_mode(settings.vsync);
     surface.configure(&device, &surface_config);
 
     Self { window, instance, surface, device, queue, surface_config, size }
+  }
+
+  pub fn reload_settings(&mut self, settings: &GameSettings) {
+    // TODO update fullscreen mode
+
+    let mut should_reconfigure = false;
+
+    should_reconfigure |= get_vsync_mode(settings.vsync) != self.surface_config.present_mode;
+    self.surface_config.present_mode = get_vsync_mode(settings.vsync);
+
+    if should_reconfigure {
+      self.reconfigure();
+    }
   }
 
   pub fn resize(&mut self, size: PhysicalSize<u32>) {
@@ -135,7 +156,7 @@ impl Renderer {
     self.size = size;
     self.surface_config.width = size.width;
     self.surface_config.height = size.height;
-    self.surface.configure(&self.device, &self.surface_config);
+    self.reconfigure();
   }
 
   pub fn reconfigure(&self) {
