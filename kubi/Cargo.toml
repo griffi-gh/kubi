@@ -48,8 +48,9 @@ ndk = "0.9"
 winapi = { version = "0.3", features = ["wincon"] }
 
 [features]
-default = ["raw-evt"]
-raw-evt = [] #required for mouse input, but breaks keyboard on android
+default = ["raw-evt-mouse"]
+raw-evt-keyboard = [] # use raw input for keyboard. works on x11 and windows, breaks keyboard on android and wayland
+raw-evt-mouse = [] # required for mouse input
 generate_visualizer_data = ["dep:serde_json", "shipyard/serde1"]
 safe_lz4 = ["lz4_flex/safe-encode", "lz4_flex/safe-decode"]
 parallel = ["shipyard/parallel"] # causes some serious issues!

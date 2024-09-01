@@ -34,8 +34,12 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
         ));
       },
 
-      #[cfg(not(feature = "raw-evt"))]
+      #[cfg(not(feature = "raw-evt-keyboard"))]
       WindowEvent::KeyboardInput { device_id, event, .. } => {
+        // HACK: translate KeyboardInput events to raw device events
+        if event.repeat {
+          return;
+        }
         world.add_entity((
           EventComponent,
           InputDeviceEvent {
@@ -63,8 +67,21 @@ pub fn process_winit_events(world: &mut World, event: &Event<()>) {
       _ => ()
     },
 
-    #[cfg(feature = "raw-evt")]
+    #[cfg(any(
+      feature = "raw-evt-keyboard",
+      feature = "raw-evt-mouse",
+    ))]
     Event::DeviceEvent { device_id, event } => {
+      // Filter out events we don't care about
+      match event {
+        #[cfg(feature = "raw-evt-keyboard")]
+        DeviceEvent::Key(_) => (),
+
+        #[cfg(feature = "raw-evt-mouse")]
+        DeviceEvent::MouseMotion { .. } | DeviceEvent::Button { .. } => (),
+
+        _ => return,
+      };
       world.add_entity((
         EventComponent,
         InputDeviceEvent {
