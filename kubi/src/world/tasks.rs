@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use atomic::Atomic;
-use flume::{Sender, Receiver};
+use flume::{Receiver, Sender, TryIter};
 use glam::IVec3;
 use kubi_shared::{queue::QueuedBlock, worldgen::AbortState};
 use shipyard::Unique;
@@ -89,7 +89,12 @@ impl ChunkTaskManager {
     });
   }
 
+  #[deprecated(note = "use poll instead")]
   pub fn receive(&self) -> Option<ChunkTaskResponse> {
     self.channel.1.try_recv().ok()
+  }
+
+  pub fn poll(&self) -> TryIter<ChunkTaskResponse> {
+    self.channel.1.try_iter()
   }
 }

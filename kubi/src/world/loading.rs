@@ -1,7 +1,11 @@
 use std::sync::Arc;
 use atomic::{Atomic, Ordering};
 use glam::{IVec3, ivec3};
-use kubi_shared::{networking::{channels::Channel, messages::ClientToServerMessage}, worldgen::AbortState};
+use kubi_shared::{
+  data::io_thread::{IOCommand, IOResponse, IOThreadManager},
+  networking::{channels::Channel, messages::ClientToServerMessage},
+  worldgen::AbortState,
+};
 use shipyard::{View, UniqueView, UniqueViewMut, IntoIter, Workload, IntoWorkload, NonSendSync, track};
 use uflow::SendMode;
 use wgpu::util::DeviceExt;
@@ -19,6 +23,8 @@ use super::{
   tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
   queue::BlockUpdateQueue,
 };
+
+const WORLD_SEED: u64 = 0xbeef_face_dead_cafe;
 
 const MAX_CHUNK_OPS_INGAME: usize = 8;
 const MAX_CHUNK_OPS: usize = 32;
@@ -92,6 +98,7 @@ pub fn update_chunks_if_player_moved(
 
 fn process_state_changes(
   task_manager: UniqueView<ChunkTaskManager>,
+  io: Option<UniqueView<IOThreadManager>>,
   mut udp_client: Option<UniqueViewMut<UdpClient>>,
   mut world: UniqueViewMut<ChunkStorage>,
   mut vm_meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
@@ -135,7 +142,7 @@ fn process_state_changes(
         chunk.current_state,
         CurrentChunkState::Loaded | CurrentChunkState::CalculatingMesh,
       ) => {
-        chunk.block_data = None;
+        // chunk.block_data = None; //HACK when downgrading, keep the data so we can save it
         chunk.current_state = CurrentChunkState::Nothing;
       },
 
@@ -184,18 +191,33 @@ fn process_state_changes(
             SendMode::Reliable
           );
         } else {
-          let atomic = Arc::new(Atomic::new(AbortState::Continue));
-          task_manager.spawn_task(ChunkTask::ChunkWorldgen {
-            seed: 0xbeef_face_dead_cafe,
-            position,
-            abortion: Some(Arc::clone(&atomic)),
-          });
-          abortion = Some(atomic);
+
+          // ============================================================
+          // TODO IMPORTANT: DO NOT WAIT FOR THE IO THREAD TO RESPOND, THIS WILL CAUSE A TERRIBLE BOTTLENECK
+          // find a way to check the world save header from the main thread instead!
+          // ============================================================
+
+          if let Some(io) = &io {
+            // Try to load the chunk from the save file
+            // In case that fails, we will run worldgen once the IO thread responds
+            io.send(IOCommand::LoadChunk { position });
+          } else {
+            // If there's no IO thread, we'll just run worldgen right away
+            let atomic = Arc::new(Atomic::new(AbortState::Continue));
+            task_manager.spawn_task(ChunkTask::ChunkWorldgen {
+              seed: WORLD_SEED,
+              position,
+              abortion: Some(Arc::clone(&atomic)),
+            });
+            abortion = Some(atomic);
+          }
         }
+
         //Update chunk state
         let chunk = world.chunks.get_mut(&position).unwrap();
         chunk.current_state = CurrentChunkState::Loading;
         chunk.abortion = abortion;
+
         // ===========
         //log::trace!("Started loading chunk {position}");
       },
@@ -254,7 +276,22 @@ fn process_state_changes(
         return false
       }
 
-      //HACK, since save files are not implemented, just unload immediately
+      // If in singleplayer and have an open save file, we need to save the chunk to the disk
+
+      // ==========================================================
+      //TODO IMPORTANT: WAIT FOR CHUNK TO FINISH SAVING FIRST BEFORE TRANSITIONING TO UNLOADED
+      // OTHERWISE WE WILL LOSE THE SAVE DATA IF THE USER COMES BACK TO THE CHUNK TOO QUICKLY
+      // ==========================================================
+      if let Some(io) = &io {
+        if let Some(block_data) = &chunk.block_data {
+          // log::debug!("issue save command");
+          io.send(IOCommand::SaveChunk {
+            position,
+            data: block_data.blocks.clone(),
+          });
+        }
+      }
+
       return false
     }
     true
@@ -264,6 +301,7 @@ fn process_state_changes(
 
 fn process_completed_tasks(
   task_manager: UniqueView<ChunkTaskManager>,
+  io: Option<UniqueView<IOThreadManager>>,
   mut world: UniqueViewMut<ChunkStorage>,
   mut meshes: NonSendSync<UniqueViewMut<ChunkMeshStorage>>,
   renderer: UniqueView<Renderer>,
@@ -271,9 +309,68 @@ fn process_completed_tasks(
   mut queue: UniqueViewMut<BlockUpdateQueue>,
 ) {
   let mut ops: usize = 0;
-  while let Some(res) = task_manager.receive() {
+
+  //TODO reduce code duplication between loaded/generated chunks
+
+  // Process IO first
+  if let Some(io) = &io {
+    for response in io.poll() {
+      let IOResponse::ChunkLoaded { position, data } = response else {
+        //TODO this is bad
+        panic!("Unexpected IO response: {:?}", response);
+      };
+
+      //check if chunk exists
+      let Some(chunk) = world.chunks.get_mut(&position) else {
+        log::warn!("LOADED blocks data discarded: chunk doesn't exist");
+        continue
+      };
+
+      //we cannot have abortion here but just in case, reset it
+      chunk.abortion = None;
+
+      //check if chunk still wants it
+      if !matches!(chunk.desired_state, DesiredChunkState::Loaded | DesiredChunkState::Rendered) {
+        log::warn!("LOADED block data discarded: state undesirable: {:?}", chunk.desired_state);
+        continue
+      }
+
+      // check if we actually got the data
+      if let Some(data) = data {
+        // If we did get the data, yay :3
+        chunk.block_data = Some(ChunkData {
+          blocks: data
+        });
+        chunk.current_state = CurrentChunkState::Loaded;
+        ops += 1;
+      } else {
+        // If we didn't get the data, we need to run worldgen
+        //TODO: this is a terrible bottleneck
+        let atomic = Arc::new(Atomic::new(AbortState::Continue));
+        task_manager.spawn_task(ChunkTask::ChunkWorldgen {
+          seed: WORLD_SEED,
+          position,
+          abortion: Some(Arc::clone(&atomic)),
+        });
+        chunk.abortion = Some(atomic);
+      }
+    }
+
+    //return early if we've reached the limit
+    if ops >= match *state {
+      GameState::InGame => MAX_CHUNK_OPS_INGAME,
+      _ => MAX_CHUNK_OPS,
+    } { return }
+    // XXX: this will completely skip polling the task manager if we've reached the limit
+    //      this is probably fine, but it might be worth revisiting later
+  }
+
+  for res in task_manager.poll() {
     match res {
       ChunkTaskResponse::ChunkWorldgenDone { position, chunk_data, mut queued } => {
+        //TODO this can fuck shit up really badly if io op gets overwritten by worldgen chunk
+        //TODO only accept if loading stage, not loaded
+
         //If unwanted chunk is already loaded
         //It would be ~~...unethical~~ impossible to abort the operation at this point
         //Instead, we'll just throw it away

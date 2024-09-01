@@ -21,7 +21,7 @@ pub enum IOCommand {
   Kys,
 }
 
-
+#[derive(Debug)]
 pub enum IOResponse {
   /// A chunk has been loaded from the disk
   /// Or not, in which case the data will be None
@@ -69,7 +69,10 @@ impl IOThreadContext {
         }
         IOCommand::Kys => {
           // Process all pending write commands
-          while let IOCommand::SaveChunk { position, data } = self.rx.recv().unwrap() {
+          for cmd in self.rx.try_iter() {
+            let IOCommand::SaveChunk { position, data } = cmd else {
+              continue;
+            };
             self.save.save_chunk(position, &data).unwrap();
           }
           self.tx.send(IOResponse::Terminated).unwrap();
@@ -119,22 +122,28 @@ impl IOSingleThread {
 
   /// Signal the IO thread to process the remaining requests and wait for it to terminate
   pub fn stop_sync(&self) {
+    log::debug!("Stopping IO thread (sync)");
+
     // Tell the thread to terminate and wait for it to finish
     self.tx.send(IOCommand::Kys).unwrap();
     while !matches!(self.rx.recv().unwrap(), IOResponse::Terminated) {}
 
     // HACK "we have .join at home"
     while !self.handle.is_finished() {}
+
+    log::debug!("IO thread stopped"); //almost lol
   }
 
   /// Same as stop_sync but doesn't wait for the IO thread to terminate
   pub fn stop_async(&self) {
+    log::debug!("Stopping IO thread (async)");
     self.tx.send(IOCommand::Kys).unwrap();
   }
 }
 
 impl Drop for IOSingleThread {
   fn drop(&mut self) {
+    log::trace!("IOSingleThread dropped, about to sync unsaved data...");
     self.stop_sync();
   }
 }
