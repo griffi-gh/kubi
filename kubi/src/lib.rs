@@ -189,7 +189,7 @@ fn attach_console() {
   unsafe { AttachConsole(ATTACH_PARENT_PROCESS); }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 #[cfg(target_os = "android")]
 pub fn android_main(app: android_activity::AndroidApp) {
   use android_activity::WindowManagerFlags;
@@ -197,7 +197,7 @@ pub fn android_main(app: android_activity::AndroidApp) {
   kubi_main(app)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn kubi_main(
   #[cfg(target_os = "android")]
   app: android_activity::AndroidApp

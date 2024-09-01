@@ -36,3 +36,5 @@ _visualizer.json
 *.blend1
 
 /mods
+
+.direnv
