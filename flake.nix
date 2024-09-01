@@ -20,7 +20,9 @@
       fenix,
       ...
     }: yafas.allSystems nixpkgs ({ pkgs, system }: {
-      devShells.default = pkgs.mkShell rec {
+      devShells.default = pkgs.mkShell.override {
+        stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
+      } rec {
         buildInputs = with pkgs; [
           (fenix.packages.${system}.complete.withComponents [
             "cargo"
@@ -48,6 +50,7 @@
           udev
         ];
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
+        RUSTFLAGS = "-Zthreads=8";
       };
     }
   );
