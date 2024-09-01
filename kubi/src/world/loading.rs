@@ -8,7 +8,7 @@ use wgpu::util::DeviceExt;
 use crate::{
   networking::UdpClient,
   player::MainPlayer,
-  rendering::{world::ChunkVertex, BufferPair, Renderer},
+  rendering::{BufferPair, Renderer},
   settings::GameSettings,
   state::GameState,
   transform::Transform,
@@ -16,7 +16,7 @@ use crate::{
 use super::{
   ChunkStorage, ChunkMeshStorage,
   chunk::{Chunk, DesiredChunkState, CHUNK_SIZE, ChunkMesh, CurrentChunkState, ChunkData},
-  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask}, 
+  tasks::{ChunkTaskManager, ChunkTaskResponse, ChunkTask},
   queue::BlockUpdateQueue,
 };
 
@@ -185,7 +185,7 @@ fn process_state_changes(
           );
         } else {
           let atomic = Arc::new(Atomic::new(AbortState::Continue));
-          task_manager.spawn_task(ChunkTask::LoadChunk {
+          task_manager.spawn_task(ChunkTask::ChunkWorldgen {
             seed: 0xbeef_face_dead_cafe,
             position,
             abortion: Some(Arc::clone(&atomic)),
@@ -273,7 +273,7 @@ fn process_completed_tasks(
   let mut ops: usize = 0;
   while let Some(res) = task_manager.receive() {
     match res {
-      ChunkTaskResponse::LoadedChunk { position, chunk_data, mut queued } => {
+      ChunkTaskResponse::ChunkWorldgenDone { position, chunk_data, mut queued } => {
         //If unwanted chunk is already loaded
         //It would be ~~...unethical~~ impossible to abort the operation at this point
         //Instead, we'll just throw it away
@@ -308,7 +308,7 @@ fn process_completed_tasks(
         //increase ops counter
         ops += 1;
       },
-      ChunkTaskResponse::GeneratedMesh {
+      ChunkTaskResponse::GenerateMeshDone {
         position,
         vertices, indices,
         trans_vertices, trans_indices,

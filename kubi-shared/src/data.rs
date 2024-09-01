@@ -17,6 +17,8 @@ use crate::{
   chunk::{CHUNK_SIZE, BlockDataRef, BlockData}
 };
 
+pub mod io_thread;
+
 const SECTOR_SIZE: usize = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE * size_of::<Block>();
 const RESERVED_SIZE: usize = 1048576; //~1mb (16 sectors assuming 32x32x32 world of 1byte blocks)
 const RESERVED_SECTOR_COUNT: usize = RESERVED_SIZE / SECTOR_SIZE;
