@@ -189,16 +189,30 @@ fn attach_console() {
   unsafe { AttachConsole(ATTACH_PARENT_PROCESS); }
 }
 
-#[unsafe(no_mangle)]
 #[cfg(target_os = "android")]
+#[unsafe(no_mangle)]
 pub fn android_main(app: android_activity::AndroidApp) {
   use android_activity::WindowManagerFlags;
   app.set_window_flags(WindowManagerFlags::FULLSCREEN, WindowManagerFlags::empty());
-  kubi_main(app)
+  kubi_main_impl(app);
 }
 
+#[cfg(feature = "c-ffi")]
+#[cfg(not(target_os = "android"))]
 #[unsafe(no_mangle)]
-pub fn kubi_main(
+pub extern "C" fn kubi_main() {
+  // cant let unwinds cross the ffi boundary!
+  // also, hopefully this code should never panic either...
+  let panic = std::panic::catch_unwind(|| {
+    kubi_main_impl();
+  });
+  if panic.is_err() {
+    println!("!!! PANIC CAUGHT ON FFI BOUNDARY !!!");
+  };
+  std::mem::forget(panic); // forget the result, as dropping it will cause unwinding!
+}
+
+pub fn kubi_main_impl(
   #[cfg(target_os = "android")]
   app: android_activity::AndroidApp
 ) {
