@@ -116,6 +116,9 @@ impl WorldSaveFile {
       header_modified = true;
       self.allocate_sector()
     });
+    if header_modified {
+      self.header.chunk_map.insert(position, sector);
+    }
 
     let offset = sector as u64 * SECTOR_SIZE as u64;
 

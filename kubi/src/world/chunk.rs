@@ -57,6 +57,7 @@ pub struct Chunk {
   pub desired_state: DesiredChunkState,
   pub abortion: Option<Arc<Atomic<AbortState>>>,
   pub mesh_dirty: bool,
+  pub data_modified: bool,
 }
 
 impl Chunk {
@@ -69,6 +70,7 @@ impl Chunk {
       desired_state: Default::default(),
       abortion: None,
       mesh_dirty: false,
+      data_modified: false,
     }
   }
 }

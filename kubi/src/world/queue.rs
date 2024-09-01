@@ -27,6 +27,7 @@ pub fn apply_queued_blocks(
       let (chunk_pos, block_pos) = ChunkStorage::to_chunk_coords(event.position);
       let chunk = world.chunks.get_mut(&chunk_pos).expect("This error should never happen, if it does then something is super fucked up and the whole project needs to be burnt down.");
       chunk.mesh_dirty = true;
+      chunk.data_modified = true;
       //If block pos is close to the border, some neighbors may be dirty!
       const DIRECTIONS: [IVec3; 6] = [
         ivec3(1,  0,  0),

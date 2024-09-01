@@ -2,8 +2,11 @@ use glam::IVec3;
 use flume::{Receiver, Sender, TryIter};
 use shipyard::Unique;
 use crate::chunk::BlockData;
-
 use super::WorldSaveFile;
+
+// Maximum amount of chunks to save in a single batch before checking if there are any pending read requests
+// may be broken, so currently disabled
+const MAX_SAVE_BATCH_SIZE: usize = usize::MAX;
 
 pub enum IOCommand {
   SaveChunk {
@@ -39,6 +42,7 @@ struct IOThreadContext {
   tx: Sender<IOResponse>,
   rx: Receiver<IOCommand>,
   save: WorldSaveFile,
+  save_queue: Vec<(IVec3, BlockData)>,
 }
 
 //TODO: Implement proper error handling (I/O errors are rlly common)
@@ -54,29 +58,77 @@ impl IOThreadContext {
     save: WorldSaveFile,
   ) -> Self {
     // save.load_data().unwrap();
-    Self { tx, rx, save }
+    let save_queue = Vec::new();
+    Self { tx, rx, save, save_queue }
   }
 
   pub fn run(mut self) {
     loop {
-      match self.rx.recv().unwrap() {
-        IOCommand::SaveChunk { position, data } => {
-          self.save.save_chunk(position, &data).unwrap();
+      // because were waiting for the next command, we can't process the save_queue
+      // which breaks batching, so we need to check if there are any pending save requests
+      // and if there are, use non-blocking recv to give them a chance to be processed
+      'rx: while let Some(command) = {
+        if self.save_queue.len() > 0 {
+          self.rx.try_recv().ok()
+        } else {
+          self.rx.recv().ok()
         }
-        IOCommand::LoadChunk { position } => {
-          let data = self.save.load_chunk(position).unwrap();
-          self.tx.send(IOResponse::ChunkLoaded { position, data }).unwrap();
-        }
-        IOCommand::Kys => {
-          // Process all pending write commands
-          for cmd in self.rx.try_iter() {
-            let IOCommand::SaveChunk { position, data } = cmd else {
-              continue;
-            };
-            self.save.save_chunk(position, &data).unwrap();
+      } {
+        match command {
+          IOCommand::SaveChunk { position, data } => {
+            // if chunk already has a save request, overwrite it
+            for (pos, old_data) in self.save_queue.iter_mut() {
+              if *pos == position {
+                *old_data = data;
+                continue 'rx;
+              }
+            }
+            // if not, save to the queue
+            self.save_queue.push((position, data));
+            //log::trace!("amt of unsaved chunks: {}", self.save_queue.len());
           }
-          self.tx.send(IOResponse::Terminated).unwrap();
-          return;
+          IOCommand::LoadChunk { position } => {
+            // HOLD ON
+            // first check if the chunk is already in the save queue
+            // if it is, send it and continue
+            // (NOT doing this WILL result in data loss if the user returns to the chunk too quickly)
+            for (pos, data) in self.save_queue.iter() {
+              if *pos == position {
+                self.tx.send(IOResponse::ChunkLoaded { position, data: Some(data.clone()) }).unwrap();
+                continue 'rx;
+              }
+            }
+            let data = self.save.load_chunk(position).unwrap();
+            self.tx.send(IOResponse::ChunkLoaded { position, data }).unwrap();
+          }
+          IOCommand::Kys => {
+            // Process all pending write commands
+            log::info!("info: queue has {} chunks", self.save_queue.len());
+            let mut saved_amount = 0;
+            for (pos, data) in self.save_queue.drain(..) {
+              self.save.save_chunk(pos, &data).unwrap();
+              saved_amount += 1;
+            }
+            log::debug!("now, moving on to the rx queue...");
+            for cmd in self.rx.try_iter() {
+              let IOCommand::SaveChunk { position, data } = cmd else {
+                continue;
+              };
+              self.save.save_chunk(position, &data).unwrap();
+              saved_amount += 1;
+            }
+            log::info!("saved {} chunks on exit", saved_amount);
+            self.tx.send(IOResponse::Terminated).unwrap();
+            return;
+          }
+        }
+      }
+      // between every betch of requests, check if there are any pending save requests
+      if self.save_queue.len() > 0 {
+        let will_drain = MAX_SAVE_BATCH_SIZE.min(self.save_queue.len());
+        log::info!("saving {}/{} chunks with batch size {}...", will_drain, self.save_queue.len(), MAX_SAVE_BATCH_SIZE);
+        for (pos, data) in self.save_queue.drain(..will_drain) {
+          self.save.save_chunk(pos, &data).unwrap();
         }
       }
     }

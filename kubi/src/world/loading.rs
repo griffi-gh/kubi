@@ -282,6 +282,9 @@ fn process_state_changes(
       //TODO IMPORTANT: WAIT FOR CHUNK TO FINISH SAVING FIRST BEFORE TRANSITIONING TO UNLOADED
       // OTHERWISE WE WILL LOSE THE SAVE DATA IF THE USER COMES BACK TO THE CHUNK TOO QUICKLY
       // ==========================================================
+      //XXX: CHECK IF WE REALLY NEED THIS OR IF WE CAN JUST KILL THE CHUNK RIGHT AWAY
+      //CHANGES TO CHUNK SAVING LOGIC SHOULD HAVE MADE THE ABOVE COMMENT OBSOLETE
+
       if let Some(io) = &io {
         if let Some(block_data) = &chunk.block_data {
           // log::debug!("issue save command");
