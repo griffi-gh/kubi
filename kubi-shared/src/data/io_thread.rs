@@ -2,7 +2,7 @@ use glam::IVec3;
 use flume::{Receiver, Sender, TryIter};
 use shipyard::Unique;
 use crate::chunk::BlockData;
-use super::WorldSaveFile;
+use super::{SharedHeader, WorldSaveFile};
 
 // Maximum amount of chunks to save in a single batch before checking if there are any pending read requests
 // may be broken, so currently disabled
@@ -139,6 +139,7 @@ pub struct IOSingleThread {
   tx: Sender<IOCommand>,
   rx: Receiver<IOResponse>,
   handle: std::thread::JoinHandle<()>,
+  header: SharedHeader,
 }
 
 impl IOSingleThread {
@@ -146,6 +147,9 @@ impl IOSingleThread {
     // Create channels
     let (command_tx, command_rx) = flume::unbounded();
     let (response_tx, response_rx) = flume::unbounded();
+
+    // Grab a handle to the header
+    let header = save.get_shared_header();
 
     // Spawn the thread
     let builder = std::thread::Builder::new()
@@ -158,7 +162,8 @@ impl IOSingleThread {
     IOSingleThread {
       tx: command_tx,
       rx: response_rx,
-      handle
+      handle,
+      header,
     }
   }
 
@@ -191,6 +196,10 @@ impl IOSingleThread {
     log::debug!("Stopping IO thread (async)");
     self.tx.send(IOCommand::Kys).unwrap();
   }
+
+  pub fn chunk_exists(&self, position: IVec3) -> bool {
+    self.header.read().unwrap().chunk_map.contains_key(&position)
+  }
 }
 
 impl Drop for IOSingleThread {
@@ -220,6 +229,10 @@ impl IOThreadManager {
 
   pub fn poll(&self) -> TryIter<IOResponse> {
     self.thread.poll()
+  }
+
+  pub fn chunk_exists(&self, position: IVec3) -> bool {
+    self.thread.chunk_exists(position)
   }
 }
 

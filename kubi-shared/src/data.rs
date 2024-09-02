@@ -49,19 +49,19 @@ impl Default for WorldSaveDataHeader {
   }
 }
 
+pub type SharedHeader = Arc<RwLock<WorldSaveDataHeader>>;
+
 #[derive(Unique)]
 pub struct WorldSaveFile {
   pub file: File,
-  pub header: WorldSaveDataHeader,
+  pub header: SharedHeader,
 }
-
-pub type SharedSaveFile = Arc<RwLock<WorldSaveFile>>;
 
 impl WorldSaveFile {
   pub fn new(file: File) -> Self {
     WorldSaveFile {
       file,
-      header: WorldSaveDataHeader::default()
+      header: Arc::new(RwLock::new(WorldSaveDataHeader::default())),
     }
   }
 
@@ -78,7 +78,7 @@ impl WorldSaveFile {
     }
 
     let limit = (RESERVED_SIZE - SUBHEADER_SIZE) as u64;
-    self.header = bincode::deserialize_from((&self.file).take(limit))?;
+    *self.header.write().unwrap() = bincode::deserialize_from((&self.file).take(limit))?;
 
     Ok(())
   }
@@ -90,7 +90,7 @@ impl WorldSaveFile {
     //XXX: this can cause the header to destroy chunk data (if it's WAY too long)
     //     read has checks against this, but write doesn't
     //     1mb is pretty generous tho, so it's not a *big* deal
-    bincode::serialize_into(&self.file, &self.header)?;
+    bincode::serialize_into(&self.file, &*self.header.read().unwrap())?;
     Ok(())
   }
 
@@ -104,21 +104,27 @@ impl WorldSaveFile {
     Ok(())
   }
 
-  fn allocate_sector(&mut self) -> u32 {
-    let value = self.header.sector_count + 1;
-    self.header.sector_count += 1;
-    value
-  }
+  // fn allocate_sector(&mut self) -> u32 {
+  //   let mut lock = self.header.write().unwrap();
+  //   let value = lock.sector_count + 1;
+  //   lock.sector_count += 1;
+  //   value
+  // }
 
   pub fn save_chunk(&mut self, position: IVec3, data: &BlockDataRef) -> Result<()> {
+    let mut header_lock = self.header.write().unwrap();
+
     let mut header_modified = false;
-    let sector = self.header.chunk_map.get(&position).copied().unwrap_or_else(|| {
+    let sector = header_lock.chunk_map.get(&position).copied().unwrap_or_else(|| {
       header_modified = true;
-      self.allocate_sector()
+      let sector = header_lock.sector_count;
+      header_lock.sector_count += 1;
+      header_lock.chunk_map.insert(position, sector);
+      sector
+      // self.allocate_sector()
     });
-    if header_modified {
-      self.header.chunk_map.insert(position, sector);
-    }
+
+    drop(header_lock);
 
     let offset = sector as u64 * SECTOR_SIZE as u64;
 
@@ -141,11 +147,11 @@ impl WorldSaveFile {
   }
 
   pub fn chunk_exists(&self, position: IVec3) -> bool {
-    self.header.chunk_map.contains_key(&position)
+    self.header.read().unwrap().chunk_map.contains_key(&position)
   }
 
   pub fn load_chunk(&mut self, position: IVec3) -> Result<Option<BlockData>> {
-    let Some(&sector) = self.header.chunk_map.get(&position) else {
+    let Some(&sector) = self.header.read().unwrap().chunk_map.get(&position) else {
       return Ok(None);
     };
 
@@ -170,5 +176,9 @@ impl WorldSaveFile {
     let data: BlockData = unsafe { std::mem::transmute(buffer) };
 
     Ok(Some(data))
+  }
+
+  pub fn get_shared_header(&self) -> SharedHeader {
+    Arc::clone(&self.header)
   }
 }

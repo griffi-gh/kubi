@@ -192,17 +192,22 @@ fn process_state_changes(
           );
         } else {
 
-          // ============================================================
-          // TODO IMPORTANT: DO NOT WAIT FOR THE IO THREAD TO RESPOND, THIS WILL CAUSE A TERRIBLE BOTTLENECK
-          // find a way to check the world save header from the main thread instead!
-          // ============================================================
+          // If the chunk exists in the save file (and save file is there in the first place),
+          // ... we'll try to load it
+          // Otherwise, we'll run worldgen
+
+          let mut should_run_worldgen = true;
 
           if let Some(io) = &io {
-            // Try to load the chunk from the save file
-            // In case that fails, we will run worldgen once the IO thread responds
-            io.send(IOCommand::LoadChunk { position });
-          } else {
-            // If there's no IO thread, we'll just run worldgen right away
+            if io.chunk_exists(position) {
+              // Try to load the chunk from the save file
+              // In case that fails, we will run worldgen once the IO thread responds
+              io.send(IOCommand::LoadChunk { position });
+              should_run_worldgen = false;
+            }
+          }
+
+          if should_run_worldgen {
             let atomic = Arc::new(Atomic::new(AbortState::Continue));
             task_manager.spawn_task(ChunkTask::ChunkWorldgen {
               seed: WORLD_SEED,
@@ -348,10 +353,9 @@ fn process_completed_tasks(
           blocks: data
         });
         chunk.current_state = CurrentChunkState::Loaded;
-        ops += 1;
       } else {
         // If we didn't get the data, we need to run worldgen
-        //TODO: this is a terrible bottleneck
+        // XXX: will this ever happen? we should always have the data in the save file
         let atomic = Arc::new(Atomic::new(AbortState::Continue));
         task_manager.spawn_task(ChunkTask::ChunkWorldgen {
           seed: WORLD_SEED,
@@ -360,6 +364,8 @@ fn process_completed_tasks(
         });
         chunk.abortion = Some(atomic);
       }
+
+      ops += 1;
     }
 
     //return early if we've reached the limit
@@ -493,5 +499,22 @@ fn process_completed_tasks(
       GameState::InGame => MAX_CHUNK_OPS_INGAME,
       _ => MAX_CHUNK_OPS,
     } { break }
+  }
+}
+
+/// Save all modified chunks to the disk
+pub fn save_on_exit(
+  io: UniqueView<IOThreadManager>,
+  world: UniqueView<ChunkStorage>,
+) {
+  for (&position, chunk) in &world.chunks {
+    if let Some(block_data) = &chunk.block_data {
+      if chunk.data_modified {
+        io.send(IOCommand::SaveChunk {
+          position,
+          data: block_data.blocks.clone(),
+        });
+      }
+    }
   }
 }
