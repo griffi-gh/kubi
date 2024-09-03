@@ -172,6 +172,11 @@ impl IOSingleThread {
     self.tx.send(cmd).unwrap();
   }
 
+  /// Poll the IO thread for a single response (non-blocking)
+  pub fn poll_single(&self) -> Option<IOResponse> {
+    self.rx.try_recv().ok()
+  }
+
   /// Poll the IO thread for responses (non-blocking)
   pub fn poll(&self) -> TryIter<IOResponse> {
     self.rx.try_iter()
@@ -225,6 +230,10 @@ impl IOThreadManager {
 
   pub fn send(&self, cmd: IOCommand) {
     self.thread.send(cmd);
+  }
+
+  pub fn poll_single(&self) -> Option<IOResponse> {
+    self.thread.poll_single()
   }
 
   pub fn poll(&self) -> TryIter<IOResponse> {

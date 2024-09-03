@@ -5,23 +5,7 @@ use crate::{
   networking::{GameType, ServerAddress},
   state::{GameState, NextState}
 };
-use kubi_shared::data::{io_thread::IOThreadManager, WorldSaveFile};
-
-fn open_local_save_file(path: &Path) -> Result<WorldSaveFile> {
-  let mut save_file = WorldSaveFile::new({
-    OpenOptions::new()
-      .read(true)
-      .write(true)
-      .create(true)
-      .open(path)?
-  });
-  if save_file.file.metadata().unwrap().len() == 0 {
-    save_file.initialize()?;
-  } else {
-    save_file.load_data()?;
-  }
-  Ok(save_file)
-}
+use kubi_shared::data::{io_thread::IOThreadManager, WorldSaveFile, open_local_save_file};
 
 pub fn initialize_from_args(
   all_storages: AllStoragesView,

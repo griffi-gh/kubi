@@ -1,7 +1,8 @@
 use std::{
-  fs::File,
   mem::size_of,
+  fs::{File, OpenOptions},
   io::{Read, Seek, SeekFrom, Write},
+  path::Path,
   borrow::Cow,
   sync::{Arc, RwLock}
 };
@@ -182,3 +183,21 @@ impl WorldSaveFile {
     Arc::clone(&self.header)
   }
 }
+
+/// Utility function to open a local save file, creating it if it doesn't exist
+pub fn open_local_save_file(path: &Path) -> Result<WorldSaveFile> {
+  let mut save_file = WorldSaveFile::new({
+    OpenOptions::new()
+      .read(true)
+      .write(true)
+      .create(true)
+      .open(path)?
+  });
+  if save_file.file.metadata().unwrap().len() == 0 {
+    save_file.initialize()?;
+  } else {
+    save_file.load_data()?;
+  }
+  Ok(save_file)
+}
+

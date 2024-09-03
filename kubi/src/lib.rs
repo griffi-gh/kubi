@@ -23,7 +23,9 @@ use winit::{
 use glam::vec3;
 use std::time::Instant;
 
+//TODO remove these re-exports
 pub(crate) use kubi_shared::transform;
+pub(crate) use kubi_shared::fixed_timestamp;
 
 mod ui;
 pub(crate) use ui::{
@@ -51,7 +53,6 @@ pub(crate) mod hui_integration;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
-pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
 pub(crate) mod client_physics;
 pub(crate) mod chat;

@@ -1,5 +1,6 @@
 use shipyard::{IntoWorkload, Workload, WorkloadModificator, World};
 use std::{thread, time::Duration};
+use kubi_shared::fixed_timestamp::init_fixed_timestamp_storage;
 
 mod util;
 mod config;
@@ -16,6 +17,7 @@ use world::{update_world, init_world};
 
 fn initialize() -> Workload {
   (
+    init_fixed_timestamp_storage,
     read_config,
     bind_server,
     init_client_maps,

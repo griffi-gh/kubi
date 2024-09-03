@@ -24,7 +24,7 @@ use super::{
   queue::BlockUpdateQueue,
 };
 
-const WORLD_SEED: u64 = 0xbeef_face_dead_cafe;
+const WORLD_SEED: u64 = 0xfeb_face_dead_cafe;
 
 const MAX_CHUNK_OPS_INGAME: usize = 8;
 const MAX_CHUNK_OPS: usize = 32;
