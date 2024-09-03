@@ -295,6 +295,7 @@ fn process_state_changes(
           // Only save the chunk if it has been modified
           if chunk.data_modified {
             // log::debug!("issue save command");
+            chunk.data_modified = false;
             io.send(IOCommand::SaveChunk {
               position,
               data: block_data.blocks.clone(),
