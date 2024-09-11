@@ -21,7 +21,10 @@
       ...
     }: yafas.allSystems nixpkgs ({ pkgs, system }: {
       devShells.default = pkgs.mkShell.override {
-        stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
+        stdenv = if pkgs.stdenv.isLinux then
+          pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv
+        else
+          pkgs.clangStdenv;
       } rec {
         packages = with pkgs; [
           (fenix.packages.${system}.complete.withComponents [
