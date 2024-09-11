@@ -23,7 +23,9 @@ use winit::{
 use glam::vec3;
 use std::time::Instant;
 
+//TODO remove these re-exports
 pub(crate) use kubi_shared::transform;
+pub(crate) use kubi_shared::fixed_timestamp;
 
 mod ui;
 pub(crate) use ui::{
@@ -51,17 +53,12 @@ pub(crate) mod hui_integration;
 pub(crate) mod networking;
 pub(crate) mod init;
 pub(crate) mod color;
-pub(crate) mod fixed_timestamp;
 pub(crate) mod filesystem;
 pub(crate) mod client_physics;
 pub(crate) mod chat;
 
 use world::{
-  init_game_world,
-  loading::update_loaded_world_around_player,
-  raycast::update_raycasts,
-  queue::apply_queued_blocks,
-  tasks::ChunkTaskManager,
+  init_game_world, loading::{save_on_exit, update_loaded_world_around_player}, queue::apply_queued_blocks, raycast::update_raycasts, tasks::ChunkTaskManager
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -157,7 +154,6 @@ fn update() -> Workload {
     kubi_ui_end,
     update_state,
     exit_on_esc,
-    disconnect_on_exit.run_if(is_multiplayer),
     update_rendering_late,
   ).into_sequential_workload()
 }
@@ -181,6 +177,13 @@ fn after_render() -> Workload {
   (
     clear_events,
   ).into_sequential_workload()
+}
+
+fn on_exit() -> Workload{
+  (
+    disconnect_on_exit.run_if(is_multiplayer),
+    save_on_exit.run_if(is_singleplayer),
+  ).into_sequential_workload().run_if(is_ingame_or_loading)
 }
 
 #[cfg(all(windows, not(debug_assertions)))]
@@ -243,6 +246,7 @@ pub fn kubi_main(
   world.add_workload(update);
   //world.add_workload(render);
   world.add_workload(after_render);
+  world.add_workload(on_exit);
 
   //Save _visualizer.json
   #[cfg(feature = "generate_visualizer_data")] {
@@ -350,6 +354,11 @@ pub fn kubi_main(
           window_target.exit();
         }
       },
+
+      Event::LoopExiting => {
+        world.run_workload(on_exit).unwrap();
+      },
+
       _ => (),
     };
   }).unwrap();

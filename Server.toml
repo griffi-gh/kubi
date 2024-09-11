@@ -4,6 +4,7 @@ max_clients = 32
 timeout_ms = 10000
 
 [world]
+file = "world.kubi"
 seed = 0xfeb_face_dead_cafe
 preheat_radius = 8
 

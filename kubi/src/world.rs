@@ -62,10 +62,10 @@ impl ChunkStorage {
   }
 }
 
-#[derive(Unique)]
-pub struct WorldInfo {
-  pub seed: u32,
-}
+// #[derive(Unique)]
+// pub struct WorldInfo {
+//   pub seed: u32,
+// }
 
 #[derive(Default, Unique)]
 pub struct ChunkMeshStorage {

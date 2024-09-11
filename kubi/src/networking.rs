@@ -159,19 +159,15 @@ pub fn update_networking_late() -> Workload {
 }
 
 pub fn disconnect_on_exit(
-  exit: UniqueView<RequestExit>,
   mut client: UniqueViewMut<UdpClient>,
 ) {
-  //TODO check if this works
-  if exit.0 {
-    if client.0.is_active() {
-      client.0.flush();
-      client.0.disconnect();
-      while client.0.is_active() { client.0.step().for_each(|_|()); }
-      log::info!("Client disconnected");
-    } else {
-      log::info!("Client inactive")
-    }
+  if client.0.is_active() {
+    client.0.flush();
+    client.0.disconnect();
+    while client.0.is_active() { client.0.step().for_each(|_|()); }
+    log::info!("Client disconnected");
+  } else {
+    log::info!("Client inactive")
   }
 }
 

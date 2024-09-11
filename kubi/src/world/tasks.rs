@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use atomic::Atomic;
-use flume::{Sender, Receiver};
+use flume::{Receiver, Sender, TryIter};
 use glam::IVec3;
 use kubi_shared::{queue::QueuedBlock, worldgen::AbortState};
 use shipyard::Unique;
@@ -13,7 +13,7 @@ use super::{
 use crate::rendering::world::ChunkVertex;
 
 pub enum ChunkTask {
-  LoadChunk {
+  ChunkWorldgen {
     seed: u64,
     position: IVec3,
     abortion: Option<Arc<Atomic<AbortState>>>,
@@ -23,13 +23,14 @@ pub enum ChunkTask {
     data: MeshGenData
   }
 }
+
 pub enum ChunkTaskResponse {
-  LoadedChunk {
+  ChunkWorldgenDone {
     position: IVec3,
     chunk_data: BlockData,
     queued: Vec<QueuedBlock>
   },
-  GeneratedMesh {
+  GenerateMeshDone {
     position: IVec3,
     vertices: Vec<ChunkVertex>,
     indices: Vec<u32>,
@@ -43,6 +44,7 @@ pub struct ChunkTaskManager {
   channel: (Sender<ChunkTaskResponse>, Receiver<ChunkTaskResponse>),
   pool: ThreadPool,
 }
+
 impl ChunkTaskManager {
   pub fn new() -> Self {
     Self {
@@ -50,11 +52,17 @@ impl ChunkTaskManager {
       pool: ThreadPoolBuilder::new().num_threads(4).build().unwrap()
     }
   }
+
+  //TODO get rid of add_sussy_response
+
+  /// Add a response to the queue, to be picked up by the main thread
+  /// Used by the multiplayer netcode, a huge hack
   pub fn add_sussy_response(&self, response: ChunkTaskResponse) {
     // this WILL get stuck if the channel is bounded
     // don't make the channel bounded ever
     self.channel.0.send(response).unwrap()
   }
+
   pub fn spawn_task(&self, task: ChunkTask) {
     let sender = self.channel.0.clone();
     self.pool.spawn(move || {
@@ -64,23 +72,29 @@ impl ChunkTaskManager {
             (vertices, indices),
             (trans_vertices, trans_indices),
           ) = generate_mesh(position, data);
-          ChunkTaskResponse::GeneratedMesh {
+          ChunkTaskResponse::GenerateMeshDone {
             position,
             vertices, indices,
             trans_vertices, trans_indices,
           }
         },
-        ChunkTask::LoadChunk { position, seed, abortion } => {
+        ChunkTask::ChunkWorldgen { position, seed, abortion } => {
           let Some((chunk_data, queued)) = generate_world(position, seed, abortion) else {
             log::warn!("aborted operation");
             return
           };
-          ChunkTaskResponse::LoadedChunk { position, chunk_data, queued }
+          ChunkTaskResponse::ChunkWorldgenDone { position, chunk_data, queued }
         }
       });
     });
   }
+
+  #[deprecated(note = "use poll instead")]
   pub fn receive(&self) -> Option<ChunkTaskResponse> {
     self.channel.1.try_recv().ok()
+  }
+
+  pub fn poll(&self) -> TryIter<ChunkTaskResponse> {
+    self.channel.1.try_iter()
   }
 }

@@ -24,12 +24,13 @@ use crate::{
 
 pub mod chunk;
 pub mod tasks;
+pub mod save;
 
 use chunk::Chunk;
 
 use self::{
   tasks::{ChunkTaskManager, ChunkTask, ChunkTaskResponse, init_chunk_task_manager},
-  chunk::ChunkState
+  chunk::ChunkState,
 };
 
 #[derive(Unique, Default)]
@@ -106,7 +107,7 @@ fn process_chunk_requests(
       chunk.state = ChunkState::Loading;
       chunk.subscriptions.insert(message.client_id);
       chunk_manager.chunks.insert(chunk_position, chunk);
-      task_manager.spawn_task(ChunkTask::LoadChunk {
+      task_manager.run(ChunkTask::LoadChunk {
         position: chunk_position,
         seed: config.world.seed,
       });
@@ -249,7 +250,11 @@ fn process_block_queue(
     let Some(blocks) = &mut chunk.blocks else {
       return true
     };
-    blocks[block_position.x as usize][block_position.y as usize][block_position.z as usize] = item.block_type;
+    let block = &mut blocks[block_position.x as usize][block_position.y as usize][block_position.z as usize];
+    if item.block_type != *block {
+      *block = item.block_type;
+      chunk.data_modified = true;
+    }
     false
   });
   if initial_len != queue.queue.len() {
@@ -278,7 +283,7 @@ pub fn preheat_world(
         let mut chunk = Chunk::new();
         chunk.state = ChunkState::Loading;
         chunk_manager.chunks.insert(chunk_position, chunk);
-        task_manager.spawn_task(ChunkTask::LoadChunk {
+        task_manager.run(ChunkTask::LoadChunk {
           position: chunk_position,
           seed: config.world.seed,
         });
@@ -292,7 +297,7 @@ pub fn init_world() -> Workload {
     init_chunk_manager_and_block_queue.before_all(preheat_world),
     init_chunk_task_manager.before_all(preheat_world),
     preheat_world,
-  ).into_workload()
+  ).into_sequential_workload()
 }
 
 pub fn update_world() -> Workload {

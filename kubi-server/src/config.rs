@@ -1,6 +1,6 @@
 use shipyard::{AllStoragesView, Unique};
 use serde::{Serialize, Deserialize};
-use std::{fs, net::SocketAddr};
+use std::{fs, net::SocketAddr, path::PathBuf};
 
 #[derive(Serialize, Deserialize)]
 pub struct ConfigTableServer {
@@ -12,6 +12,7 @@ pub struct ConfigTableServer {
 
 #[derive(Serialize, Deserialize)]
 pub struct ConfigTableWorld {
+  pub file: Option<PathBuf>,
   pub seed: u64,
   pub preheat_radius: u32,
 }

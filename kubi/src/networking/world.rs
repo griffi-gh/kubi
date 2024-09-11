@@ -37,7 +37,7 @@ pub fn inject_network_responses_into_manager_queue(
       let ServerToClientMessage::ChunkResponse {
         chunk, data, queued
       } = packet else { unreachable!() };
-      manager.add_sussy_response(ChunkTaskResponse::LoadedChunk {
+      manager.add_sussy_response(ChunkTaskResponse::ChunkWorldgenDone {
         position: chunk,
         chunk_data: data,
         queued

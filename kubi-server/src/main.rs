@@ -1,5 +1,6 @@
-use shipyard::{IntoWorkload, Workload, WorkloadModificator, World};
+use shipyard::{IntoWorkload, SystemModificator, Workload, WorkloadModificator, World};
 use std::{thread, time::Duration};
+use kubi_shared::fixed_timestamp::{FixedTimestamp, init_fixed_timestamp_storage};
 
 mod util;
 mod config;
@@ -12,10 +13,11 @@ use config::read_config;
 use server::{bind_server, update_server, log_server_errors};
 use client::{init_client_maps, on_client_disconnect, sync_client_positions};
 use auth::authenticate_players;
-use world::{update_world, init_world};
+use world::{init_world, save::save_modified, update_world};
 
 fn initialize() -> Workload {
   (
+    init_fixed_timestamp_storage,
     read_config,
     bind_server,
     init_client_maps,
@@ -32,7 +34,10 @@ fn update() -> Workload {
       update_world,
       sync_client_positions,
       on_client_disconnect,
-    ).into_workload()
+    ).into_workload(),
+    save_modified
+      .into_workload()
+      .make_fixed(10000, 0),
   ).into_sequential_workload()
 }
 
