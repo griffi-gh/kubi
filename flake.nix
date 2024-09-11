@@ -35,6 +35,7 @@
             "rust-src"
             "rust-analyzer"
           ])
+          gdb
           lldb
           cmake
           pkg-config
