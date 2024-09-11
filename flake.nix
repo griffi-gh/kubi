@@ -23,7 +23,7 @@
       devShells.default = pkgs.mkShell.override {
         stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
       } rec {
-        buildInputs = with pkgs; [
+        packages = with pkgs; [
           (fenix.packages.${system}.complete.withComponents [
             "cargo"
             "clippy"
@@ -35,9 +35,10 @@
           lldb
           cmake
           pkg-config
-          openssl
-          xorg.libxcb
-          libxkbcommon
+        ];
+        buildInputs = with pkgs; [
+          libGL
+          glslang
           vulkan-tools
           vulkan-headers
           vulkan-loader
@@ -45,9 +46,11 @@
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
+          xorg.libxcb
+          libxkbcommon
           wayland
-          glslang
           udev
+          openssl
         ];
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
         RUSTFLAGS = "-Zthreads=8";
