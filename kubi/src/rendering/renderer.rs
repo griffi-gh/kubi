@@ -82,9 +82,12 @@ impl Renderer {
     let size = window.inner_size();
 
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-      backends: wgpu::Backends::all(),
+      backends: wgpu::util::backend_bits_from_env().unwrap_or(
+        wgpu::Backends::all()
+      ),
       //Disable validation layer
       flags: wgpu::InstanceFlags::default() & !wgpu::InstanceFlags::VALIDATION,
+      dx12_shader_compiler: wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default(),
       //we're using vulkan on windows
       // #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
       // dx12_shader_compiler: wgpu::Dx12Compiler::Dxc {
@@ -104,7 +107,9 @@ impl Renderer {
 
     let adapter = instance.request_adapter(
       &wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::HighPerformance,
+        power_preference: wgpu::util::power_preference_from_env().unwrap_or(
+          wgpu::PowerPreference::HighPerformance
+        ),
         compatible_surface: Some(&surface),
         force_fallback_adapter: false,
       },
