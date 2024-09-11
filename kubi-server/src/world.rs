@@ -250,7 +250,11 @@ fn process_block_queue(
     let Some(blocks) = &mut chunk.blocks else {
       return true
     };
-    blocks[block_position.x as usize][block_position.y as usize][block_position.z as usize] = item.block_type;
+    let block = &mut blocks[block_position.x as usize][block_position.y as usize][block_position.z as usize];
+    if item.block_type != *block {
+      *block = item.block_type;
+      chunk.data_modified = true;
+    }
     false
   });
   if initial_len != queue.queue.len() {

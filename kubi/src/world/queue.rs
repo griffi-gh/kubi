@@ -22,6 +22,9 @@ pub fn apply_queued_blocks(
       if event.soft && *block != Block::Air {
         return false
       }
+      if event.block_type == *block {
+        return false
+      }
       *block = event.block_type;
       //mark chunk as dirty
       let (chunk_pos, block_pos) = ChunkStorage::to_chunk_coords(event.position);

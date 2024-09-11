@@ -50,7 +50,7 @@ pub fn sync_client_positions(
     };
 
     //log movement (annoying duh)
-    log::debug!("dbg: player moved id: {} coords: {} quat: {}", message.client_id, position, direction);
+    // log::debug!("dbg: player moved id: {} coords: {} quat: {}", message.client_id, position, direction);
 
     //Apply position to server-side client
     let mut trans = (&mut transforms).get(message.entity_id).unwrap();

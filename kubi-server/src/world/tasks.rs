@@ -12,7 +12,11 @@ pub enum ChunkTask {
   LoadChunk {
     position: IVec3,
     seed: u64,
-  }
+  },
+  SaveChunk {
+    position: IVec3,
+    data: BlockData,
+  },
 }
 
 pub enum ChunkTaskResponse {
@@ -40,27 +44,35 @@ impl ChunkTaskManager {
   }
 
   pub fn run(&self, task: ChunkTask) {
-    // 1. Check if the chunk exists in the save file
-    #[allow(irrefutable_let_patterns)]
-    if let ChunkTask::LoadChunk { position, .. } = &task {
-      if let Some(iota) = &self.iota {
-        if iota.chunk_exists(*position) {
-          iota.send(IOCommand::LoadChunk { position: *position });
+    match task {
+      ChunkTask::LoadChunk { position: chunk_position, seed } => {
+        // 1. Check if the chunk exists in the save file
+        if let ChunkTask::LoadChunk { position, .. } = &task {
+          if let Some(iota) = &self.iota {
+            if iota.chunk_exists(*position) {
+              iota.send(IOCommand::LoadChunk { position: *position });
+              return
+            }
+          }
         }
-      }
-    }
 
-    // 2. Generate the chunk if it doesn't exist
-    let sender = self.channel.0.clone();
-    self.pool.spawn(move || {
-      sender.send(match task {
-        ChunkTask::LoadChunk { position: chunk_position, seed } => {
-          //unwrap is fine because abort is not possible
-          let (blocks, queue) = generate_world(chunk_position, seed, None).unwrap();
-          ChunkTaskResponse::ChunkLoaded { chunk_position, blocks, queue }
+        // 2. Generate the chunk if it doesn't exist
+        let sender = self.channel.0.clone();
+        self.pool.spawn(move || {
+          sender.send({
+            //unwrap is fine because abort is not possible
+            let (blocks, queue) = generate_world(chunk_position, seed, None).unwrap();
+            ChunkTaskResponse::ChunkLoaded { chunk_position, blocks, queue }
+          }).unwrap()
+        });
+      },
+      ChunkTask::SaveChunk { position, data } => {
+        // Save the chunk to the save file
+        if let Some(iota) = &self.iota {
+          iota.send(IOCommand::SaveChunk { position, data });
         }
-      }).unwrap()
-    })
+      },
+    }
   }
 
   pub fn receive(&self) -> Option<ChunkTaskResponse> {
