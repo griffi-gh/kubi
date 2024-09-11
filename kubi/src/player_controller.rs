@@ -128,7 +128,7 @@ pub fn debug_switch_ctl_type(
   mut actors: ViewMut<ClPhysicsActor>,
   kbm_state: UniqueView<RawKbmInputState>,
 ) {
-  for (mut controller, mut actor) in (&mut controllers, &mut actors).iter() {
+  for (controller, actor) in (&mut controllers, &mut actors).iter() {
     if kbm_state.keyboard_state.contains(KeyCode::F4 as u32) {
       *controller = PlayerController::DEFAULT_FPS_CTL;
       actor.disable = false;

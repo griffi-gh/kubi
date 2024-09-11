@@ -1,5 +1,5 @@
 use shipyard::{UniqueView, UniqueViewMut, Unique, AllStoragesView};
-use winit::{keyboard::KeyCode, event_loop::ControlFlow};
+use winit::keyboard::KeyCode;
 use crate::input::RawKbmInputState;
 
 #[derive(Unique)]

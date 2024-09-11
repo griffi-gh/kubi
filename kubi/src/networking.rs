@@ -1,19 +1,18 @@
 use shipyard::{Unique, AllStoragesView, UniqueView, UniqueViewMut, Workload, IntoWorkload, EntitiesViewMut, Component, ViewMut, SystemModificator, View, IntoIter, WorkloadModificator};
 use std::net::SocketAddr;
 use uflow::{
-  client::{Client, Config as ClientConfig, Event as ClientEvent}, 
+  client::{Client, Config as ClientConfig, Event as ClientEvent},
   EndpointConfig
 };
 use kubi_shared::networking::{
   messages::ServerToClientMessage,
-  state::ClientJoinState, 
+  state::ClientJoinState,
   client::ClientIdMap,
 };
 use crate::{
-  events::EventComponent, 
-  control_flow::RequestExit,
-  world::tasks::ChunkTaskManager, 
-  state::is_ingame_or_loading, 
+  events::EventComponent,
+  world::tasks::ChunkTaskManager,
+  state::is_ingame_or_loading,
   fixed_timestamp::FixedTimestamp
 };
 

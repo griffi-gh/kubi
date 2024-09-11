@@ -34,7 +34,7 @@ fn pick_block_with_number_keys(
   mut holding: ViewMut<PlayerHolding>,
   input: UniqueView<RawKbmInputState>,
 ) {
-  let Some((_, mut holding)) = (&main_player, &mut holding).iter().next() else { return };
+  let Some((_, holding)) = (&main_player, &mut holding).iter().next() else { return };
   for &(key, block) in BLOCK_KEY_MAP {
     if input.keyboard_state.contains(key as u32) {
       holding.0 = Some(block);

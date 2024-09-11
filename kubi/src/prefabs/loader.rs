@@ -2,7 +2,7 @@ use glam::UVec2;
 use strum::IntoEnumIterator;
 use rayon::prelude::*;
 use wgpu::util::{DeviceExt, TextureDataOrder};
-use std::{io::{BufReader, Read}, path::{Path, PathBuf}};
+use std::{io::BufReader, path::{Path, PathBuf}};
 use crate::{filesystem::AssetManager, prefabs::ModelVertex, rendering::{BufferPair, Renderer}};
 use super::AssetPaths;
 

@@ -1,5 +1,5 @@
 use shipyard::{AllStoragesView, Unique, UniqueView};
-use super::{primitives::FstriPrimitive, RenderCtx, Renderer};
+use super::{primitives::FstriPrimitive, RenderCtx};
 
 mod uniform;
 mod pipeline;

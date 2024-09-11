@@ -1,4 +1,4 @@
-use glam::{ivec3, IVec3, Vec3};
+use glam::{ivec3, IVec3};
 use strum::IntoEnumIterator;
 use kubi_shared::block::{Block, RenderType, Transparency};
 use crate::world::chunk::CHUNK_SIZE;

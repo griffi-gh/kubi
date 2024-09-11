@@ -9,7 +9,7 @@ fn update_view_matrix(
   mut vm_camera: ViewMut<Camera>,
   v_transform: View<Transform, track::All>
 ) {
-  for (mut camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
+  for (camera, transform) in (&mut vm_camera, v_transform.inserted_or_modified()).iter() {
     let (_, rotation, translation) = transform.0.to_scale_rotation_translation();
     let direction = (rotation.normalize() * Vec3::NEG_Z).normalize();
     camera.view_matrix = Mat4::look_to_rh(translation, direction, camera.up);
@@ -21,7 +21,7 @@ fn update_perspective_matrix(
   ren: UniqueView<Renderer>,
 ) {
   let sz = ren.size_vec2();
-  for mut camera in (&mut vm_camera).iter() {
+  for camera in (&mut vm_camera).iter() {
     camera.perspective_matrix = Mat4::perspective_rh(
       camera.fov, 
       sz.x / sz.y,

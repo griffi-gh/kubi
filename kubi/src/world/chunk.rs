@@ -2,7 +2,7 @@ use std::sync::Arc;
 use glam::IVec3;
 use atomic::Atomic;
 use kubi_shared::worldgen::AbortState;
-use crate::rendering::{world::ChunkVertex, BufferPair};
+use crate::rendering::BufferPair;
 
 pub use kubi_shared::chunk::{CHUNK_SIZE, BlockData};
 

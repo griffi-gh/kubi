@@ -1,6 +1,6 @@
 use std::{fs::File, path::Path, io::{Read, Seek}};
 use anyhow::Result;
-use shipyard::{Unique, AllStoragesView};
+use shipyard::Unique;
 
 pub trait ReadOnly: Read + Seek {}
 impl<T: Read + Seek> ReadOnly for T {}

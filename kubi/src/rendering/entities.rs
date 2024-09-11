@@ -1,8 +1,5 @@
-use shipyard::{AllStoragesView, IntoIter, IntoWithId, Unique, UniqueView, View};
-use kubi_shared::{entity::Entity, transform::Transform};
-use crate::{
-  camera::Camera, prefabs::GpuPrefabs, settings::GameSettings
-};
+use shipyard::{AllStoragesView, Unique, UniqueView};
+use crate::prefabs::GpuPrefabs;
 
 use super::{camera_uniform::CameraUniformBuffer, depth::DepthTexture, RenderCtx};
 

@@ -106,7 +106,7 @@ pub fn update_client_physics_late(
   world: UniqueView<ChunkStorage>,
   dt: UniqueView<DeltaTime>,
 ) {
-  for (mut actor, mut transform) in (&mut actors, &mut transforms).iter() {
+  for (actor, mut transform) in (&mut actors, &mut transforms).iter() {
     if actor.disable {
       actor.forces = Vec3::ZERO;
       continue;
