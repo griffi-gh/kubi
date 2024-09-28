@@ -11,16 +11,16 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 kubi-shared = { path = "../kubi-shared" }
 kubi-logging = { path = "../kubi-logging" }
-hui = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
-hui-wgpu = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4" }
-hui-winit = { git = "https://github.com/griffi-gh/hui", rev = "6eb3d98ad4", features = ["winit_30"] }
+hui = { git = "https://github.com/griffi-gh/hui", rev = "121e667bdb" }
+hui-wgpu = { git = "https://github.com/griffi-gh/hui", rev = "121e667bdb" }
+hui-winit = { git = "https://github.com/griffi-gh/hui", rev = "121e667bdb" }
 log = "0.4"
 wgpu = { version = "0.20", features = ["webgl"] }
 pollster = "0.3"
 bytemuck = { version = "1.15", features = ["derive"] }
 winit = { version = "0.30", features = ["android-native-activity"] }
 raw-window-handle = "0.6"
-glam = { version = "0.27", features = ["debug-glam-assert", "fast-math"] }
+glam = { version = "0.28", features = ["debug-glam-assert", "fast-math"] }
 image = { version = "0.25", default_features = false, features = ["png"] }
 strum = { version = "0.26", features = ["derive"] }
 hashbrown = "0.14"

@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-glam = { version = "0.27", features = ["debug-glam-assert", "fast-math", "serde"] }
+glam = { version = "0.28", features = ["debug-glam-assert", "fast-math", "serde"] }
 shipyard = { version = "0.7", default-features = false, features = ["std"] }
 strum = { version = "0.26", features = ["derive"] }
 num_enum = "0.7"
