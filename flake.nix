@@ -25,7 +25,7 @@
           pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv
         else
           pkgs.clangStdenv;
-      } rec {
+      } {
         packages = with pkgs; [
           (fenix.packages.${system}.complete.withComponents [
             "cargo"
@@ -56,7 +56,20 @@
           udev
           openssl
         ];
-        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+          libGL
+          glslang 
+          vulkan-tools
+          vulkan-headers
+          vulkan-loader
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+          xorg.libxcb
+          libxkbcommon
+        ]);
         RUSTFLAGS = "-Zthreads=8";
       };
     }
