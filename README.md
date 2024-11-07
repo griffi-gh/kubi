@@ -1,8 +1,13 @@
 <h1 align="center">Kubi</h1>
 <p align="center">
-  Voxel engine written in Rust
+  Heavily multithreaded voxel engine with multiplayer networking.<br>
+  Written in Rust using <a href="https://crates.io/crates/wgpu">wgpu</a>
 </p>
+
+<!-- <h2>screenshots</h2> -->
+
 <div align="center">
+  <img src=".readme/screenshot_new.png" width="512">
   <img src=".readme/game.gif" width="512">
 </div>
 
