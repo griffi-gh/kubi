@@ -78,7 +78,7 @@ impl ChunkTaskManager {
   pub fn receive(&self) -> Option<ChunkTaskResponse> {
     // Try to receive IO results first
     // If there are none, try to receive worldgen results
-    self.iota.as_ref().map(|iota| {
+    self.iota.as_ref().and_then(|iota| {
       iota.poll_single().map(|response| match response {
         IOResponse::ChunkLoaded { position, data } => ChunkTaskResponse::ChunkLoaded {
           chunk_position: position,
@@ -87,9 +87,13 @@ impl ChunkTaskManager {
         },
         _ => panic!("Unexpected response from IO thread"),
       })
-    }).flatten().or_else(|| {
+    }).or_else(|| {
       self.channel.1.try_recv().ok()
     })
+  }
+
+  pub fn iota(self) -> Option<IOThreadManager> {
+    self.iota
   }
 }
 

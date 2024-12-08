@@ -7,7 +7,8 @@ pub enum GameState {
   Initial,
   Connecting,
   LoadingWorld,
-  InGame
+  InGame,
+  ShuttingDown,
 }
 
 #[derive(Unique, PartialEq, Eq, Default, Clone, Copy)]
@@ -51,8 +52,20 @@ pub fn is_loading(
   matches!(*state, GameState::LoadingWorld)
 }
 
+pub fn is_shutting_down(
+  state: UniqueView<GameState>
+) -> bool {
+  *state == GameState::ShuttingDown
+}
+
 pub fn is_ingame_or_loading(
   state: UniqueView<GameState>
 ) -> bool {
   matches!(*state, GameState::InGame | GameState::LoadingWorld)
+}
+
+pub fn is_ingame_or_shutting_down(
+  state: UniqueView<GameState>
+) -> bool {
+  matches!(*state, GameState::InGame | GameState::ShuttingDown)
 }

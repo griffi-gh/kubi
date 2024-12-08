@@ -34,6 +34,7 @@ pub(crate) use ui::{
   chat_ui,
   crosshair_ui,
   settings_ui,
+  shutdown_screen,
 };
 pub(crate) mod rendering;
 pub(crate) mod world;
@@ -58,7 +59,11 @@ pub(crate) mod client_physics;
 pub(crate) mod chat;
 
 use world::{
-  init_game_world, loading::{save_on_exit, update_loaded_world_around_player}, queue::apply_queued_blocks, raycast::update_raycasts, tasks::ChunkTaskManager
+  init_game_world,
+  loading::{save_on_exit, update_loaded_world_around_player},
+  queue::apply_queued_blocks,
+  raycast::update_raycasts,
+  tasks::ChunkTaskManager,
 };
 use player::{spawn_player, MainPlayer};
 use prefabs::load_prefabs;
@@ -72,11 +77,12 @@ use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{debug_toggle_lock, insert_lock_state, lock_cursor_now, update_cursor_lock_state};
 use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
-use state::{is_ingame, is_ingame_or_loading, is_loading, init_state, update_state, is_connecting};
+use state::{init_state, is_connecting, is_ingame, is_ingame_or_loading, is_loading, is_shutting_down, update_state};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
 use hui_integration::{kubi_ui_begin, /*kubi_ui_draw,*/ kubi_ui_end, kubi_ui_init};
 use loading_screen::update_loading_screen;
+use shutdown_screen::update_shutdown_screen;
 use connecting_screen::update_connecting_screen;
 use fixed_timestamp::init_fixed_timestamp_storage;
 use filesystem::AssetManager;
@@ -149,11 +155,15 @@ fn update() -> Workload {
       draw_crosshair,
       render_settings_ui,
     ).into_sequential_workload().run_if(is_ingame),
+    (
+      update_shutdown_screen,
+    ).into_sequential_workload().run_if(is_shutting_down),
     update_networking_late.run_if(is_multiplayer),
     compute_cameras,
     kubi_ui_end,
-    update_state,
     exit_on_esc,
+    shutdown_screen::late_intercept,
+    update_state,
     update_rendering_late,
   ).into_sequential_workload()
 }

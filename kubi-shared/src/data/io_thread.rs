@@ -8,6 +8,17 @@ use super::{SharedHeader, WorldSaveFile};
 // may be broken, so currently disabled
 const MAX_SAVE_BATCH_SIZE: usize = usize::MAX;
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug, PartialOrd, Ord)]
+pub enum TerminationStage {
+  Starting,
+  SaveQueue {
+    progress: usize,
+    total: usize,
+  },
+  ProcessRx,
+  Terminated,
+}
+
 pub enum IOCommand {
   SaveChunk {
     position: IVec3,
@@ -33,6 +44,9 @@ pub enum IOResponse {
     position: IVec3,
     data: Option<BlockData>,
   },
+
+  /// In-progress shutdown info
+  KysProgressInformational(TerminationStage),
 
   /// The IO thread has been terminated
   Terminated,
@@ -68,7 +82,7 @@ impl IOThreadContext {
       // which breaks batching, so we need to check if there are any pending save requests
       // and if there are, use non-blocking recv to give them a chance to be processed
       'rx: while let Some(command) = {
-        if self.save_queue.len() > 0 {
+        if !self.save_queue.is_empty() {
           self.rx.try_recv().ok()
         } else {
           self.rx.recv().ok()
@@ -102,14 +116,34 @@ impl IOThreadContext {
             self.tx.send(IOResponse::ChunkLoaded { position, data }).unwrap();
           }
           IOCommand::Kys => {
+            self.tx.send(IOResponse::KysProgressInformational(
+              TerminationStage::Starting,
+            )).unwrap();
+
             // Process all pending write commands
-            log::info!("info: queue has {} chunks", self.save_queue.len());
+            let save_queue_len = self.save_queue.len();
+
+            log::info!("info: queue has {} chunks", save_queue_len);
             let mut saved_amount = 0;
             for (pos, data) in self.save_queue.drain(..) {
               self.save.save_chunk(pos, &data).unwrap();
               saved_amount += 1;
+
+              // Send kys preflight info
+              self.tx.send(IOResponse::KysProgressInformational(
+                TerminationStage::SaveQueue {
+                  progress: saved_amount,
+                  total: save_queue_len,
+                }
+              )).unwrap();
             }
-            log::debug!("now, moving on to the rx queue...");
+
+            log::debug!("now, moving on to the rx queue, ...");
+
+            self.tx.send(IOResponse::KysProgressInformational(
+              TerminationStage::ProcessRx
+            )).unwrap();
+
             for cmd in self.rx.try_iter() {
               let IOCommand::SaveChunk { position, data } = cmd else {
                 continue;
@@ -118,13 +152,18 @@ impl IOThreadContext {
               saved_amount += 1;
             }
             log::info!("saved {} chunks on exit", saved_amount);
+
+            self.tx.send(IOResponse::KysProgressInformational(
+              TerminationStage::Terminated
+            )).unwrap();
             self.tx.send(IOResponse::Terminated).unwrap();
+
             return;
           }
         }
       }
       // between every betch of requests, check if there are any pending save requests
-      if self.save_queue.len() > 0 {
+      if !self.save_queue.is_empty() {
         let will_drain = MAX_SAVE_BATCH_SIZE.min(self.save_queue.len());
         log::info!("saving {}/{} chunks with batch size {}...", will_drain, self.save_queue.len(), MAX_SAVE_BATCH_SIZE);
         for (pos, data) in self.save_queue.drain(..will_drain) {
@@ -138,8 +177,9 @@ impl IOThreadContext {
 pub struct IOSingleThread {
   tx: Sender<IOCommand>,
   rx: Receiver<IOResponse>,
-  handle: std::thread::JoinHandle<()>,
+  handle: Option<std::thread::JoinHandle<()>>,
   header: SharedHeader,
+  exit_requested: bool,
 }
 
 impl IOSingleThread {
@@ -162,8 +202,9 @@ impl IOSingleThread {
     IOSingleThread {
       tx: command_tx,
       rx: response_rx,
-      handle,
+      handle: Some(handle),
       header,
+      exit_requested: false,
     }
   }
 
@@ -183,23 +224,33 @@ impl IOSingleThread {
   }
 
   /// Signal the IO thread to process the remaining requests and wait for it to terminate
-  pub fn stop_sync(&self) {
+  #[deprecated(note = "Use stop_sync instead")]
+  pub fn deprecated_stop_sync(&mut self) {
     log::debug!("Stopping IO thread (sync)");
 
     // Tell the thread to terminate and wait for it to finish
-    self.tx.send(IOCommand::Kys).unwrap();
-    while !matches!(self.rx.recv().unwrap(), IOResponse::Terminated) {}
+    if !self.exit_requested {
+      self.exit_requested = true;
+      self.tx.send(IOCommand::Kys).unwrap();
+    }
+    // while !matches!(self.rx.recv().unwrap(), IOResponse::Terminated) {}
 
-    // HACK "we have .join at home"
-    while !self.handle.is_finished() {}
+    // // HACK "we have .join at home"
+    // while !self.handle.is_finished() {}
+    self.stop_async_block_on();
 
     log::debug!("IO thread stopped"); //almost lol
   }
 
   /// Same as stop_sync but doesn't wait for the IO thread to terminate
-  pub fn stop_async(&self) {
+  pub fn stop_async(&mut self) {
     log::debug!("Stopping IO thread (async)");
+    self.exit_requested = true;
     self.tx.send(IOCommand::Kys).unwrap();
+  }
+
+  pub fn stop_async_block_on(&mut self) {
+    self.handle.take().unwrap().join().unwrap();
   }
 
   pub fn chunk_exists(&self, position: IVec3) -> bool {
@@ -209,11 +260,14 @@ impl IOSingleThread {
 
 impl Drop for IOSingleThread {
   fn drop(&mut self) {
-    log::trace!("IOSingleThread dropped, about to sync unsaved data...");
-    self.stop_sync();
+    if self.handle.is_some() {
+      log::warn!("IOSingleThread dropped without being stopped first. (about to sync unsaved data...)");
+      self.deprecated_stop_sync();
+    } else {
+      log::trace!("IOSingleThread dropped, already stopped");
+    }
   }
 }
-
 
 /// This is a stub for future implemntation that may use multiple IO threads
 #[derive(Unique)]
@@ -242,6 +296,20 @@ impl IOThreadManager {
 
   pub fn chunk_exists(&self, position: IVec3) -> bool {
     self.thread.chunk_exists(position)
+  }
+
+  #[allow(deprecated)]
+  #[deprecated(note = "Use stop_async and block_on_termination instead")]
+  pub fn deprecated_stop_sync(&mut self) {
+    self.thread.deprecated_stop_sync();
+  }
+
+  pub fn stop_async_block_on(&mut self) {
+    self.thread.stop_async_block_on();
+  }
+
+  pub fn stop_async(&mut self) {
+    self.thread.stop_async();
   }
 }
 
