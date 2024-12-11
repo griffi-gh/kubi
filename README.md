@@ -50,7 +50,7 @@ cargo run -p kubi --release
 <h2>build for android</h2>
 
 please note that android support is highly experimental!\
-gamepad, mouse input is currently borked, as well as srgb, which leads to dark textures.
+gamepad and mouse input is currently not supported
 
 prerequisites: Android SDK, NDK, command line tools, platform-tools, latest JDK\
 (make sure that your `PATH`, `ANDROID_HOME` and `ANDROID_NDK_ROOT` variables are configured properly)
