@@ -12,7 +12,7 @@ pub struct MeshGenData {
   pub block_data_pos_x: BlockData,
   pub block_data_neg_x: BlockData,
 }
-impl<'a> AllChunkNeighbors<'a> {
+impl AllChunkNeighbors<'_> {
   pub fn mesh_data(&self) -> Option<MeshGenData> {
     let center_block_data = self.center.block_data.as_ref()?;
     let front_block_data = self.front.block_data.as_ref()?;

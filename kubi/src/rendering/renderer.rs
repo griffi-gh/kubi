@@ -124,6 +124,7 @@ impl Renderer {
         label: None,
         required_features: wgpu::Features::empty(),
         required_limits: wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits()),
+        memory_hints: wgpu::MemoryHints::Performance,
       },
       None,
     ).block_on().unwrap();

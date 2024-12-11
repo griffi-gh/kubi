@@ -34,7 +34,7 @@ pub fn init_world_pipeline(
     layout: Some(&world_pipeline_layout),
     fragment: Some(wgpu::FragmentState {
       module: &shader,
-      entry_point: "fs_main",
+      entry_point: Some("fs_main"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       targets: &[Some(wgpu::ColorTargetState {
         format: ren.surface_config().format,
@@ -44,7 +44,7 @@ pub fn init_world_pipeline(
     }),
     vertex: wgpu::VertexState {
       module: &shader,
-      entry_point: "vs_main",
+      entry_point: Some("vs_main"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       buffers: &[
         ChunkVertex::LAYOUT,
@@ -68,6 +68,7 @@ pub fn init_world_pipeline(
     }),
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
+    cache: None,
   });
 
   log::info!("init_world_pipeline: create trans pipeline");
@@ -77,7 +78,7 @@ pub fn init_world_pipeline(
     layout: Some(&world_pipeline_layout),
     fragment: Some(wgpu::FragmentState {
       module: &shader,
-      entry_point: "fs_main_trans",
+      entry_point: Some("fs_main_trans"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       targets: &[Some(wgpu::ColorTargetState {
         format: ren.surface_config().format,
@@ -87,7 +88,7 @@ pub fn init_world_pipeline(
     }),
     vertex: wgpu::VertexState {
       module: &shader,
-      entry_point: "vs_main",
+      entry_point: Some("vs_main"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       buffers: &[
         ChunkVertex::LAYOUT,
@@ -111,6 +112,7 @@ pub fn init_world_pipeline(
     }),
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
+    cache: None,
   });
 
   (pipeline_main, pipeline_trans)

@@ -82,7 +82,9 @@ impl ChunkMeshStorage {
   pub fn insert(&mut self, mesh: ChunkMesh) -> usize {
     let index = self.index;
     debug_assert!(self.meshes.get(&index).is_none());
-    self.meshes.insert_unique_unchecked(index, mesh);
+    unsafe {
+      self.meshes.insert_unique_unchecked(index, mesh);
+    }
     self.index += 1;
     index
   }

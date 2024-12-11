@@ -101,12 +101,12 @@ impl super::ChunkStorage {
   }
   pub fn neighbors_all_mut(&mut self, coords: IVec3) -> Option<AllChunkNeighborsMut> {
     let [
-      center, 
-      top, 
-      bottom, 
-      left, 
-      right, 
-      front, 
+      center,
+      top,
+      bottom,
+      left,
+      right,
+      front,
       back
     ] = self.chunks.get_many_mut([
       &coords,
@@ -116,7 +116,15 @@ impl super::ChunkStorage {
       &(coords + ivec3(1, 0, 0)),
       &(coords + ivec3(0, 0, 1)),
       &(coords - ivec3(0, 0, 1)),
-    ])?;
-    Some(AllChunkNeighborsMut { center, top, bottom, left, right, front, back })
+    ]);
+    Some(AllChunkNeighborsMut {
+      center: center?,
+      top:    top?,
+      bottom: bottom?,
+      left:   left?,
+      right:  right?,
+      front:  front?,
+      back:   back?,
+    })
   }
 }

@@ -32,7 +32,7 @@ pub fn init_selection_box_pipeline(
     layout: Some(&selection_box_pipeline_layout),
     fragment: Some(wgpu::FragmentState {
       module: &shader,
-      entry_point: "fs_main",
+      entry_point: Some("fs_main"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       targets: &[Some(wgpu::ColorTargetState {
         format: ren.surface_config().format,
@@ -42,7 +42,7 @@ pub fn init_selection_box_pipeline(
     }),
     vertex: wgpu::VertexState {
       module: &shader,
-      entry_point: "vs_main",
+      entry_point: Some("vs_main"),
       compilation_options: wgpu::PipelineCompilationOptions::default(),
       buffers: &[
         PrimitiveVertex::LAYOUT,
@@ -66,5 +66,6 @@ pub fn init_selection_box_pipeline(
     }),
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
+    cache: None,
   })
 }

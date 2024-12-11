@@ -26,7 +26,7 @@ pub fn init_smoverlay_pipeline(
     vertex: wgpu::VertexState {
       module: &module,
       compilation_options: wgpu::PipelineCompilationOptions::default(),
-      entry_point: "vs_main",
+      entry_point: Some("vs_main"),
       buffers: &[
         PrimitiveVertex2::LAYOUT,
       ],
@@ -34,7 +34,7 @@ pub fn init_smoverlay_pipeline(
     fragment: Some(wgpu::FragmentState {
       module: &module,
       compilation_options: wgpu::PipelineCompilationOptions::default(),
-      entry_point: "fs_main",
+      entry_point: Some("fs_main"),
       targets: &[Some(wgpu::ColorTargetState {
       format: renderer.surface_config().format,
         blend: Some(wgpu::BlendState::ALPHA_BLENDING),
@@ -53,5 +53,6 @@ pub fn init_smoverlay_pipeline(
     depth_stencil: None,
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
+    cache: None,
   })
 }

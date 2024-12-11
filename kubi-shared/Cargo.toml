@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-glam = { version = "0.28", features = ["debug-glam-assert", "fast-math", "serde"] }
+glam = { version = "0.29", features = ["debug-glam-assert", "fast-math", "serde"] }
 shipyard = { version = "0.7", default-features = false, features = ["std"] }
 strum = { version = "0.26", features = ["derive"] }
 num_enum = "0.7"
@@ -18,7 +18,7 @@ flume = "0.11"
 fastnoise-lite = { version = "1.1", features = ["std", "f64"] }
 rand = { version = "0.8", default_features = false, features = ["std", "min_const_gen"] }
 rand_xoshiro = "0.6"
-hashbrown = { version = "0.14", features = ["serde"] }
+hashbrown = { version = "0.15", features = ["serde"] }
 nohash-hasher = "0.2"
 bytemuck = { version = "1.14", features = ["derive"] }
 static_assertions = "1.1"

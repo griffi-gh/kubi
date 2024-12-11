@@ -14,7 +14,6 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       yafas,
       fenix,
@@ -58,7 +57,7 @@
         ];
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
           libGL
-          glslang 
+          glslang
           vulkan-tools
           vulkan-headers
           vulkan-loader

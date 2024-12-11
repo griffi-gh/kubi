@@ -82,7 +82,9 @@ pub fn update_chunks_if_player_moved(
           Some(chunk) => chunk,
           None => {
             let chunk = Chunk::new(chunk_pos);
-            vm_world.chunks.insert_unique_unchecked(chunk_pos, chunk);
+            unsafe {
+              vm_world.chunks.insert_unique_unchecked(chunk_pos, chunk);
+            }
             vm_world.chunks.get_mut(&chunk_pos).unwrap()
           }
         };

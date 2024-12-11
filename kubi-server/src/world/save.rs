@@ -10,7 +10,7 @@ pub fn init_save_file(storages: &AllStoragesView) -> Option<IOThreadManager> {
   let config = storages.borrow::<UniqueView<ConfigTable>>().unwrap();
   if let Some(file_path) = &config.world.file {
     log::info!("Initializing save file from {:?}", file_path);
-    let save = open_local_save_file(&file_path).unwrap();
+    let save = open_local_save_file(file_path).unwrap();
     Some(IOThreadManager::new(save))
   } else {
     log::warn!("No save file specified, world will not be saved");
@@ -31,7 +31,7 @@ pub fn save_modified(
       };
       ctm.run(ChunkTask::SaveChunk {
         position: *position,
-        data: data,
+        data,
       });
       chunk.data_modified = false;
       amount_saved += 1;

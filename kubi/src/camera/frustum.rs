@@ -125,6 +125,6 @@ pub fn update_frustum(
   transforms: View<Transform, track::All>
 ) {
   for (camera, _) in (&mut cameras, transforms.inserted_or_modified()).iter() {
-    camera.frustum = Frustum::compute(&camera);
+    camera.frustum = Frustum::compute(camera);
   }
 }

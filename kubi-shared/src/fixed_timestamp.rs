@@ -26,7 +26,9 @@ impl FixedTimestamp for Workload {
     let duration = Duration::from_millis(rate_millis as u64);
     (self,).into_workload().run_if(move |mut timestamps: UniqueViewMut<FixedTimestampStorage>| {
       let Some(t) = timestamps.0.get_mut(&key) else {
-        timestamps.0.insert_unique_unchecked(key, Instant::now());
+        unsafe {
+          timestamps.0.insert_unique_unchecked(key, Instant::now());
+        }
         return true
       };
       if t.elapsed() >= duration {

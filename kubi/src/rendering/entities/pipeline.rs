@@ -28,7 +28,7 @@ pub fn init_entities_pipeline(
     vertex: wgpu::VertexState {
       module: &module,
       compilation_options: wgpu::PipelineCompilationOptions::default(),
-      entry_point: "vs_main",
+      entry_point: Some("vs_main"),
       buffers: &[
         ModelVertex::LAYOUT,
         InstanceData::LAYOUT,
@@ -37,7 +37,7 @@ pub fn init_entities_pipeline(
     fragment: Some(wgpu::FragmentState {
       module: &module,
       compilation_options: wgpu::PipelineCompilationOptions::default(),
-      entry_point: "fs_main",
+      entry_point: Some("fs_main"),
       targets: &[Some(wgpu::ColorTargetState {
         format: renderer.surface_config().format,
         blend: Some(wgpu::BlendState::REPLACE),
@@ -62,5 +62,6 @@ pub fn init_entities_pipeline(
     }),
     multisample: wgpu::MultisampleState::default(),
     multiview: None,
+    cache: None,
   })
 }

@@ -7,7 +7,7 @@
 #![forbid(
   static_mut_refs,
   unsafe_op_in_unsafe_fn,
-  rust_2024_compatibility,
+  // rust_2024_compatibility,
 )]
 
 use shipyard::{

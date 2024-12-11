@@ -160,7 +160,7 @@ fn process_gilrs_events(
   mut active_gamepad: UniqueViewMut<ActiveGamepad>
 ) {
   if let Some(gilrs) = &mut gilrs.0 {
-    while let Some(Event { id, event: _, time: _ }) = gilrs.next_event() {
+    while let Some(Event { id, event: _, time: _, .. }) = gilrs.next_event() {
       active_gamepad.0 = Some(id);
     }
   }

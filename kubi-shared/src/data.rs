@@ -191,6 +191,7 @@ pub fn open_local_save_file(path: &Path) -> Result<WorldSaveFile> {
       .read(true)
       .write(true)
       .create(true)
+      .truncate(false)
       .open(path)?
   });
   if save_file.file.metadata().unwrap().len() == 0 {
