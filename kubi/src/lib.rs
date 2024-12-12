@@ -16,7 +16,7 @@ use shipyard::{
   WorkloadModificator,
   SystemModificator
 };
-use ui::main_menu::update_main_menu;
+use ui::{main_menu::update_main_menu, settings_ui::f1_held_settings_condition};
 use winit::{
   event_loop::{EventLoop, ControlFlow},
   event::{Event, WindowEvent}
@@ -161,7 +161,7 @@ fn update() -> Workload {
       //UI:
       render_chat,
       draw_crosshair,
-      render_settings_ui,
+      render_settings_ui.run_if(f1_held_settings_condition),
     ).into_sequential_workload().run_if(is_ingame),
     (
       update_shutdown_screen,

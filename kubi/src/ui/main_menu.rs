@@ -15,14 +15,19 @@ use hui::{
   size,
 };
 use kubi_shared::data::{io_thread::IOThreadManager, open_local_save_file};
-use shipyard::{AllStoragesView, AllStoragesViewMut, IntoWorkload, NonSendSync, Unique, UniqueView, UniqueViewMut, Workload};
+use settings_overlay::{not_settings_ui_shown, settings_overlay_logic};
+use shipyard::{AllStoragesView, AllStoragesViewMut, IntoWorkload, NonSendSync, SystemModificator, Unique, UniqueView, UniqueViewMut, Workload, WorkloadModificator};
 use crate::{
   control_flow::RequestExit,
   hui_integration::UiState, networking::GameType, rendering::Renderer, state::{GameState, NextState}};
 
+
+mod settings_overlay;
+
 #[derive(Clone, Copy)]
 enum MainMenuPage {
   TopMenu,
+  Settings,
   // ListWorlds {
   //   list: Vec<String>,
   // },
@@ -36,7 +41,8 @@ struct MainMenuState {
 #[derive(Signal, Clone, Copy)]
 enum MainMenuSignal {
   GotoPage(MainMenuPage),
-  Play,
+  PlayOffline,
+  PlayOnline,
   Quit,
   // CreatePlayWorld {
   //   name: String,
@@ -90,7 +96,9 @@ pub fn render_main_menu_ui(
             })
             .with_children(|ui| {
               for (button_text, button_signal) in [
-                ("Play", MainMenuSignal::Play),
+                ("Singleplayer", MainMenuSignal::PlayOffline),
+                ("Multiplayer", MainMenuSignal::PlayOnline),
+                ("Settings", MainMenuSignal::GotoPage(MainMenuPage::Settings)),
                 ("Quit", MainMenuSignal::Quit),
               ] {
                 Container::default()
@@ -123,7 +131,7 @@ fn main_menu_process_signals(
   let mut quit = storages.borrow::<UniqueViewMut<RequestExit>>().unwrap();
   hui.hui.process_signals(|signal| {
     match signal {
-      MainMenuSignal::Play => {
+      MainMenuSignal::PlayOffline => {
         log::info!("play button pressed");
         // Open the local save file
         let save_file = open_local_save_file(Path::new("./world.kubi")).expect("failed to open save file");
@@ -131,6 +139,13 @@ fn main_menu_process_signals(
         // Switch the state and kick off the world loading
         storages.add_unique(GameType::Singleplayer);
         storages.borrow::<UniqueViewMut<NextState>>().unwrap().0 = Some(GameState::LoadingWorld);
+      }
+      MainMenuSignal::PlayOnline => {
+
+      },
+      MainMenuSignal::GotoPage(page) => {
+        log::info!("goto page button pressed");
+        storages.add_unique(MainMenuState { page });
       }
       MainMenuSignal::Quit => {
         log::info!("quit button pressed");
@@ -143,7 +158,8 @@ fn main_menu_process_signals(
 
 pub fn update_main_menu() -> Workload {
   (
-    render_main_menu_ui,
+    render_main_menu_ui.run_if(not_settings_ui_shown),
+    settings_overlay_logic,
     main_menu_process_signals,
   ).into_sequential_workload()
 }
