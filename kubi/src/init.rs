@@ -12,7 +12,12 @@ pub fn initialize_from_args(
   // If an address is provided, we're in multiplayer mode (the first argument is the address)
   // Otherwise, we're in singleplayer mode and working with local stuff
   let args: Vec<String> = env::args().collect();
-  if args.get(1) == Some(&"play".into()) {
+  if cfg!(target_os = "android") || (args.get(1) == Some(&"android".into())) {
+    // TODO REMOVE: temporarily bypass menu on Android as hUI (0.1.0-alpha.5) doesnt play well with touchscreens (yet? :3)
+    // TODO REMOVE: disable save files on Android as they're stored in relative path rn
+    all_storages.add_unique(GameType::Singleplayer);
+    all_storages.borrow::<UniqueViewMut<NextState>>().unwrap().0 = Some(GameState::LoadingWorld);
+  } else if args.get(1) == Some(&"play".into()) {
     // Open the local save file
     let save_file = open_local_save_file(Path::new("./world.kubi")).expect("failed to open save file");
     all_storages.add_unique(IOThreadManager::new(save_file));
