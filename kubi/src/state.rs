@@ -5,6 +5,7 @@ use std::mem::take;
 pub enum GameState {
   #[default]
   Initial,
+  MainMenu,
   Connecting,
   LoadingWorld,
   InGame,
@@ -32,6 +33,12 @@ pub fn is_changing_state(
   state: UniqueView<NextState>
 ) -> bool {
   state.0.is_some()
+}
+
+pub fn is_main_menu(
+  state: UniqueView<GameState>
+) -> bool {
+  *state == GameState::MainMenu
 }
 
 pub fn is_connecting(
@@ -62,6 +69,12 @@ pub fn is_ingame_or_loading(
   state: UniqueView<GameState>
 ) -> bool {
   matches!(*state, GameState::InGame | GameState::LoadingWorld)
+}
+
+pub fn is_ingame_or_loading_or_connecting_or_shutting_down(
+  state: UniqueView<GameState>
+) -> bool {
+  matches!(*state, GameState::InGame | GameState::LoadingWorld | GameState::Connecting)
 }
 
 pub fn is_ingame_or_shutting_down(
