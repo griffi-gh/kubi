@@ -11,9 +11,9 @@ use kubi_shared::networking::{
 };
 use crate::{
   events::EventComponent,
+  fixed_timestamp::FixedTimestamp,
+  state::{is_ingame_or_loading, is_ingame_or_loading_or_connecting_or_shutting_down},
   world::tasks::ChunkTaskManager,
-  state::is_ingame_or_loading,
-  fixed_timestamp::FixedTimestamp
 };
 
 mod handshake;
@@ -185,13 +185,15 @@ fn is_join_state<const STATE: u8>(
 }
 
 pub fn is_multiplayer(
-  game_type: UniqueView<GameType>
+  game_type: Option<UniqueView<GameType>>
 ) -> bool {
+  let Some(game_type) = game_type else { return false };
   *game_type == GameType::Muliplayer
 }
 
 pub fn is_singleplayer(
-  game_type: UniqueView<GameType>
+  game_type: Option<UniqueView<GameType>>
 ) -> bool {
+  let Some(game_type) = game_type else { return false };
   *game_type == GameType::Singleplayer
 }

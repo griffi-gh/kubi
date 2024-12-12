@@ -507,9 +507,13 @@ fn process_completed_tasks(
 
 /// Save all modified chunks to the disk
 pub fn save_on_exit(
-  io: UniqueView<IOThreadManager>,
+  io: Option<UniqueView<IOThreadManager>>,
   world: UniqueView<ChunkStorage>,
 ) {
+  let Some(io) = io else {
+    log::warn!("no IO thread manager, skipping save on exit");
+    return
+  };
   for (&position, chunk) in &world.chunks {
     if let Some(block_data) = &chunk.block_data {
       if chunk.data_modified {

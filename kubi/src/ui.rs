@@ -1,3 +1,4 @@
+pub(crate) mod main_menu;
 pub(crate) mod loading_screen;
 pub(crate) mod connecting_screen;
 pub(crate) mod shutdown_screen;

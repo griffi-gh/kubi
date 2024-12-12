@@ -16,6 +16,7 @@ use shipyard::{
   WorkloadModificator,
   SystemModificator
 };
+use ui::{main_menu::update_main_menu, settings_ui::f1_held_settings_condition};
 use winit::{
   event_loop::{EventLoop, ControlFlow},
   event::{Event, WindowEvent}
@@ -35,6 +36,7 @@ pub(crate) use ui::{
   crosshair_ui,
   settings_ui,
   shutdown_screen,
+  main_menu,
 };
 pub(crate) mod rendering;
 pub(crate) mod world;
@@ -77,10 +79,11 @@ use block_placement::update_block_placement;
 use delta_time::{DeltaTime, init_delta_time};
 use cursor_lock::{debug_toggle_lock, insert_lock_state, lock_cursor_now, update_cursor_lock_state};
 use control_flow::{exit_on_esc, insert_control_flow_unique, RequestExit};
-use state::{init_state, is_connecting, is_ingame, is_ingame_or_loading, is_loading, is_shutting_down, update_state};
+use state::{init_state, is_connecting, is_ingame, is_ingame_or_loading, is_ingame_or_loading_or_connecting_or_shutting_down, is_loading, is_main_menu, is_shutting_down, update_state};
 use networking::{update_networking, update_networking_late, is_multiplayer, disconnect_on_exit, is_singleplayer};
 use init::initialize_from_args;
 use hui_integration::{kubi_ui_begin, /*kubi_ui_draw,*/ kubi_ui_end, kubi_ui_init};
+use main_menu::render_main_menu_ui;
 use loading_screen::update_loading_screen;
 use shutdown_screen::update_shutdown_screen;
 use connecting_screen::update_connecting_screen;
@@ -109,7 +112,7 @@ fn startup() -> Workload {
     insert_lock_state,
     init_state,
     initialize_from_args,
-    lock_cursor_now,
+    // lock_cursor_now,
     init_input,
     insert_control_flow_unique,
     init_delta_time,
@@ -127,12 +130,17 @@ fn update() -> Workload {
     process_inputs,
     kubi_ui_begin,
     (
+      update_main_menu
+    ).into_sequential_workload().run_if(is_main_menu),
+    (
       init_game_world.run_if_missing_unique::<ChunkTaskManager>(),
       (
         spawn_player.run_if_storage_empty::<MainPlayer>(),
       ).into_sequential_workload().run_if(is_singleplayer),
     ).into_sequential_workload().run_if(is_ingame_or_loading),
-    update_networking().run_if(is_multiplayer),
+    (
+      update_networking
+    ).into_sequential_workload().run_if(is_multiplayer).run_if(is_ingame_or_loading_or_connecting_or_shutting_down),
     (
       update_connecting_screen,
     ).into_sequential_workload().run_if(is_connecting),
@@ -153,12 +161,14 @@ fn update() -> Workload {
       //UI:
       render_chat,
       draw_crosshair,
-      render_settings_ui,
+      render_settings_ui.run_if(f1_held_settings_condition),
     ).into_sequential_workload().run_if(is_ingame),
     (
       update_shutdown_screen,
     ).into_sequential_workload().run_if(is_shutting_down),
-    update_networking_late.run_if(is_multiplayer),
+    (
+      update_networking_late
+    ).into_sequential_workload().run_if(is_multiplayer).run_if(is_ingame_or_loading_or_connecting_or_shutting_down),
     compute_cameras,
     kubi_ui_end,
     exit_on_esc,

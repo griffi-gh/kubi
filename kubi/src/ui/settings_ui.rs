@@ -19,7 +19,7 @@ enum SettingsSignal {
   SetRenderDistance(u8),
   SetEnableDynamicCrosshair(bool),
   SetEnableVsync(bool),
-  SetEnableDebugChunkBorder(bool),
+  // SetEnableDebugChunkBorder(bool),
   SetMouseSensitivity(f32),
 }
 
@@ -68,18 +68,19 @@ fn checkbox(
     .add_child(ui);
 }
 
+pub fn f1_held_settings_condition(
+  kbd: UniqueView<RawKbmInputState>,
+) -> bool {
+  //f1 must be held down to open settings
+  //TODO implement ModalManager instead of this
+  kbd.keyboard_state.contains(KeyCode::F1 as u32)
+}
+
 pub fn render_settings_ui(
   mut ui: NonSendSync<UniqueViewMut<UiState>>,
   mut ren: UniqueViewMut<Renderer>,
   mut settings: UniqueViewMut<GameSettings>,
-  kbd: UniqueView<RawKbmInputState>,
 ) {
-  //f1 must be held down to open settings
-  //TODO implement ModalManager instead of this
-  if !kbd.keyboard_state.contains(KeyCode::F1 as u32) {
-    return
-  }
-
   Container::default()
     .with_size(size!(100%))
     .with_background((0., 0., 0., 0.5))
@@ -132,13 +133,13 @@ pub fn render_settings_ui(
           );
           Break.add_child(ui);
 
-          checkbox(
-            ui,
-            "Debug Chunk Border",
-            settings.debug_draw_current_chunk_border,
-            SettingsSignal::SetEnableDebugChunkBorder
-          );
-          Break.add_child(ui);
+          // checkbox(
+          //   ui,
+          //   "Debug Chunk Border",
+          //   settings.debug_draw_current_chunk_border,
+          //   SettingsSignal::SetEnableDebugChunkBorder
+          // );
+          // Break.add_child(ui);
 
           Text::new("Mouse Sensitivity")
             .add_child(ui);
@@ -160,7 +161,16 @@ pub fn render_settings_ui(
       settings.vsync = value;
       ren.reload_settings(&settings);
     },
-    SettingsSignal::SetEnableDebugChunkBorder(value) => settings.debug_draw_current_chunk_border = value && cfg!(not(target_os = "android")),
+    // SettingsSignal::SetEnableDebugChunkBorder(value) => settings.debug_draw_current_chunk_border = value && cfg!(not(target_os = "android")),
     SettingsSignal::SetMouseSensitivity(value) => settings.mouse_sensitivity = value,
   });
+}
+
+#[allow(clippy::just_underscores_and_digits)]
+pub fn render_settings_ui2(
+  _0: NonSendSync<UniqueViewMut<UiState>>,
+  _1: UniqueViewMut<Renderer>,
+  _2: UniqueViewMut<GameSettings>,
+) {
+  render_settings_ui(_0, _1, _2);
 }

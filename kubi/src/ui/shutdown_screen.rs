@@ -18,7 +18,12 @@ fn intercept_exit(
   mut state: UniqueViewMut<NextState>,
   cur_state: UniqueView<GameState>,
   termination_state: Option<UniqueView<ShutdownState>>,
+  iota: Option<UniqueView<IOThreadManager>>,
 ) {
+  // If iota is missing, don't bother with shutdown state (likely running without a save file)
+  if iota.is_none() {
+    return;
+  }
   if exit.0 {
     if *cur_state == GameState::ShuttingDown {
       // If we're already shutting down, check if we're done
